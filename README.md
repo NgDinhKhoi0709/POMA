@@ -162,12 +162,12 @@ python run_eval.py \
 
 The repository includes Open-ViTabQA:
 
-| File | Records | Purpose |
-| --- | ---: | --- |
-| `dataset/qas_train.json` | 7,928 | Training split |
-| `dataset/qas_dev.json` | 991 | Development split |
-| `dataset/qas_test.json` | 992 | Test split |
-| `dataset/table.json` | 329 | Source Wikipedia tables |
+| File                     | Records | Purpose                 |
+| ------------------------ | ------: | ----------------------- |
+| `dataset/qas_train.json` |   7,928 | Training split          |
+| `dataset/qas_dev.json`   |     991 | Development split       |
+| `dataset/qas_test.json`  |     992 | Test split              |
+| `dataset/table.json`     |     329 | Source Wikipedia tables |
 
 Each QA record contains `qa_id`, `table_id`, `question`, `answer`, and `hints`. Each table record stores HTML, title, domain, table type, and a flattened table dictionary. See the [dataset documentation](dataset/README.md) for the data schema.
 
@@ -175,17 +175,17 @@ Each QA record contains `qa_id`, `table_id`, `question`, `answer`, and `hints`. 
 
 The following values are reported in the accompanying paper for Open-ViTabQA test data. All metrics are percentages.
 
-| System | EM | F1 | R1 | MET |
-| --- | ---: | ---: | ---: | ---: |
-| Qwen3 8B zero-shot | 62.40 | 76.16 | 69.06 | 67.52 |
-| Qwen3 8B task decomposition | 59.38 | 74.01 | 65.99 | 64.15 |
-| Qwen3 8B chain-of-thought | 59.17 | 74.03 | 66.55 | 64.45 |
-| Qwen3 8B few-shot | 67.14 | 78.64 | 74.18 | 72.30 |
-| **POMA (Qwen3 8B)** | **80.24** | **88.23** | **86.07** | **84.50** |
+| System                      |        EM |        F1 |        R1 |       MET |
+| --------------------------- | --------: | --------: | --------: | --------: |
+| Qwen3 8B zero-shot          |     62.40 |     76.16 |     69.06 |     67.52 |
+| Qwen3 8B task decomposition |     59.38 |     74.01 |     65.99 |     64.15 |
+| Qwen3 8B chain-of-thought   |     59.17 |     74.03 |     66.55 |     64.45 |
+| Qwen3 8B few-shot           |     67.14 |     78.64 |     74.18 |     72.30 |
+| **POMA (Qwen3 8B)**         | **80.24** | **88.23** | **86.07** | **84.50** |
 
 ## Citation
 
-The manuscript has been submitted to *Knowledge and Information Systems* and is currently under review. Until a final bibliographic record is available, please cite it as an unpublished manuscript:
+The manuscript has been submitted to _Knowledge and Information Systems_ and is currently under review. Until a final bibliographic record is available, please cite it as an unpublished manuscript:
 
 ```bibtex
 @unpublished{nguyen2026poma,
@@ -195,11 +195,6 @@ The manuscript has been submitted to *Knowledge and Information Systems* and is 
   year    = {2026}
 }
 ```
-
-## References
-
-- POMA is built for the [Open-ViTabQA](dataset/README.md) benchmark included in this repository.
-- [GLiNER2](https://github.com/fastino-ai/GLiNER2) informed the concise research-software documentation structure used here. POMA does not depend on GLiNER2.
 
 ## License
 

@@ -12,36 +12,9 @@ Rather than asking one LLM call to interpret the question, find evidence, reason
 
 ![POMA pipeline: preprocessing, hint prediction, question refinement and routing, parallel specialists, and answer normalization](imgs/pipeline.png)
 
-```text
-Vietnamese question + HTML table
-            |
-            v
-  Flatten V1 table representation
-            |
-            v
-      Hint prediction
-            |
-            v
-   Question refinement
-            |
-            v
- Deterministic hint-based router
-            |
-            v
- Parallel specialist agents
-            |
-            v
-    Answer normalization
-            |
-            v
- Candidate answers / Null
-```
+POMA first parses the raw HTML table, resolves `rowspan` and `colspan` cells into a logical grid, normalizes Unicode and whitespace, then serializes the result as the row-oriented **Flatten V1** representation. The flattened table and Vietnamese question are passed to the hint predictor, which assigns one or more canonical reasoning hints. The question refiner then rewrites the request into a structured query with an explicit target and constraints.
 
-The router operates on a fixed, interpretable hint vocabulary:
-
-`What`, `Where`, `Who`, `When`, `Why`, `How`, `YesNo`, `List`, `MathematicalReasoning`, and `MultiConditions`.
-
-Each selected specialist returns an answer candidate, evidence, confidence, and a short rationale. The normalization stage then creates evaluation-ready Vietnamese answer variants for booleans, numbers, dates, lists, ranks, and `Null` cases.
+The router deterministically maps the refined hints to specialist agents from a fixed, interpretable vocabulary: `What`, `Where`, `Who`, `When`, `Why`, `How`, `YesNo`, `List`, `MathematicalReasoning`, and `MultiConditions`. Selected specialists run in parallel and each returns an answer candidate, evidence, confidence, and a short rationale. Finally, answer normalization consolidates the candidates and generates evaluation-ready Vietnamese variants for booleans, numbers, dates, lists, ranks, and `Null` cases.
 
 ## Repository layout
 

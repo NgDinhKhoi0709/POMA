@@ -8,11 +8,11 @@ from typing import Any
 
 
 BASELINE_ROOT = Path(__file__).resolve().parent
-WORKSPACE_ROOT = BASELINE_ROOT.parents[1]
-if str(WORKSPACE_ROOT) not in sys.path:
-    sys.path.insert(0, str(WORKSPACE_ROOT))
+PROJECT_ROOT = BASELINE_ROOT.parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from Open_ViTabQA.preprocessing.parser import HTMLTableParser
+from preprocessing.parser import HTMLTableParser
 
 
 def _load_records(path: Path, key: str) -> list[dict[str, Any]]:
@@ -25,9 +25,16 @@ def _load_records(path: Path, key: str) -> list[dict[str, Any]]:
 
 
 def _coq_table_from_open_table(table: dict[str, Any]) -> dict[str, Any]:
-    parsed = HTMLTableParser().parse(str(table.get("table_html") or ""))
-    header_rows = [[cell.value for cell in row] for row in parsed.headers]
-    data_rows = [[cell.value for cell in row] for row in parsed.rows]
+    table_rows = table.get("table_dict", {}).get("table_rows")
+    if table_rows:
+        header_rows = [[str(cell or "").strip() for cell in table_rows[0]]]
+        data_rows = [
+            [str(cell or "").strip() for cell in row] for row in table_rows[1:]
+        ]
+    else:
+        parsed = HTMLTableParser().parse(str(table.get("table_html") or ""))
+        header_rows = [[cell.value for cell in row] for row in parsed.headers]
+        data_rows = [[cell.value for cell in row] for row in parsed.rows]
 
     if header_rows:
         max_cols = max((len(row) for row in header_rows + data_rows), default=0)

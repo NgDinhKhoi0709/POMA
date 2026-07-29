@@ -13,6 +13,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from baselines.contracts import (
+    RunPaths,
+    read_jsonl,
+    validate_prediction,
+    write_json,
+)
+
 
 BASELINE_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = BASELINE_ROOT.parents[1]
@@ -122,6 +129,16 @@ def _missing_full_pipeline_modules() -> list[str]:
         "utils.agents.order2",
     ]
     return [name for name in required if importlib.util.find_spec(name) is None]
+
+
+def require_fallback_mode(record: dict[str, Any]) -> None:
+    if record.get("pipeline_mode") != "coq_base_sql_fallback":
+        raise RuntimeError(
+            "CoQ integration requires pipeline_mode=coq_base_sql_fallback "
+            "for the available source snapshot"
+        )
+    if not str(record.get("fallback_reason") or "").strip():
+        raise RuntimeError("CoQ fallback_reason must be non-empty")
 
 
 def get_record_id(record: dict[str, Any]) -> str | None:
@@ -404,7 +421,7 @@ def _run_one(
         "cost_usd": round(cost_usd, 8),
         "stage": "chainofquery_open_vitabqa",
         "temperatures": {"default": temperature},
-        "method": "ChainofQuery",
+        "method": "coq",
         "pipeline_mode": pipeline_mode,
         "fallback_reason": fallback_reason,
         "valid_sql": valid_flag,
@@ -416,12 +433,10 @@ def _run_one(
     }
 
 
-def run_open_vitabqa(args: argparse.Namespace) -> dict[str, Any]:
+def _run_open_vitabqa_args(args: argparse.Namespace) -> dict[str, Any]:
     _load_env_files()
     _check_dependencies()
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is required for ChainofQuery smoke inference.")
+    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip() or "adapter-test-key"
 
     source_records = convert_open_vitabqa(args.qas, args.tables, limit=args.limit)
     backend_model = _normalize_model_for_openai(args.model)
@@ -508,7 +523,7 @@ def run_open_vitabqa(args: argparse.Namespace) -> dict[str, Any]:
     results_path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
 
     meta = {
-        "method": "ChainofQuery",
+        "method": "coq",
         "upstream_commit": _read_git_commit(),
         "model": args.model,
         "backend_model": backend_model,
@@ -546,6 +561,71 @@ def run_open_vitabqa(args: argparse.Namespace) -> dict[str, Any]:
     return {"results_path": results_path, "meta_path": meta_path, "meta": meta}
 
 
+def _prepare_run_paths(
+    run_paths: RunPaths,
+    *,
+    resume: bool,
+    overwrite: bool,
+) -> None:
+    existing = [path for path in run_paths.generated_files() if path.exists()]
+    if existing and not resume and not overwrite:
+        raise FileExistsError(
+            f"run already contains generated files: {run_paths.root}"
+        )
+    if overwrite:
+        for path in run_paths.generated_files():
+            if path.exists():
+                path.unlink()
+    run_paths.root.mkdir(parents=True, exist_ok=True)
+
+
+def run_open_vitabqa(
+    *,
+    qas_path: Path,
+    tables_path: Path,
+    run_paths: RunPaths,
+    model: str,
+    limit: int | None,
+    max_workers: int,
+    resume: bool,
+    overwrite: bool,
+) -> dict[str, Any]:
+    _prepare_run_paths(run_paths, resume=resume, overwrite=overwrite)
+    args = argparse.Namespace(
+        qas=qas_path,
+        tables=tables_path,
+        model=model,
+        output_dir=run_paths.root.parent,
+        run_id=run_paths.root.name,
+        limit=limit,
+        max_workers=max(1, max_workers),
+        temperature=0.0,
+        timeout=60,
+        errors_output=run_paths.errors_jsonl,
+        resume=resume,
+        overwrite=overwrite,
+    )
+    outcome = _run_open_vitabqa_args(args)
+    results = read_jsonl(run_paths.results_jsonl)
+    for record in results:
+        require_fallback_mode(record)
+        validate_prediction(record, "coq")
+
+    missing = _missing_full_pipeline_modules()
+    fallback_reason = (
+        str(results[0]["fallback_reason"])
+        if results
+        else "Missing full pipeline modules: " + ", ".join(missing)
+    )
+    meta = dict(outcome["meta"])
+    meta["method"] = "coq"
+    meta["pipeline_mode"] = "coq_base_sql_fallback"
+    meta["fallback_reason"] = fallback_reason
+    require_fallback_mode(meta)
+    write_json(run_paths.meta_json, meta)
+    return meta
+
+
 def _read_git_commit() -> str:
     head = BASELINE_ROOT / ".git" / "HEAD"
     if not head.exists():
@@ -577,7 +657,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
-    outcome = run_open_vitabqa(args)
+    outcome = _run_open_vitabqa_args(args)
     print(f"Wrote results to {outcome['results_path']}")
     print(f"Wrote meta to {outcome['meta_path']}")
 

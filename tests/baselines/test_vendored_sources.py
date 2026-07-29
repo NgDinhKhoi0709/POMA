@@ -41,3 +41,20 @@ def test_vendor_tree_contains_no_runtime_artifacts_or_secrets() -> None:
         or "tmp" in path.parts
     ]
     assert offenders == []
+
+
+def test_readmes_document_unified_runner_and_coq_fallback() -> None:
+    readmes = [
+        ROOT / "README.md",
+        ROOT / "baselines" / "README.md",
+        ROOT / "baselines" / "coagt" / "OPEN_VITABQA_README.md",
+        ROOT / "baselines" / "chain_of_query" / "OPEN_VITABQA_README.md",
+    ]
+    for readme in readmes:
+        text = readme.read_text(encoding="utf-8")
+        assert "scripts/run_baseline.py" in text
+
+    coq_docs = "\n".join(
+        readme.read_text(encoding="utf-8") for readme in readmes
+    )
+    assert "coq_base_sql_fallback" in coq_docs

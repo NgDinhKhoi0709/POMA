@@ -135,6 +135,32 @@ python run_baseline.py \
   --id qwen3-8b-zero-shot
 ```
 
+CoAgt and Chain-of-Query are available through a separate unified runner. Install
+their additional dependencies first:
+
+```powershell
+python -m pip install -r baselines\requirements.txt
+```
+
+Run exactly two Open-ViTabQA test samples with GPT-4o-mini:
+
+```powershell
+python scripts/run_baseline.py coagt --model openai/gpt-4o-mini --limit 2 --max-workers 1 --run-id smoke-gpt4o-mini --overwrite
+python scripts/run_baseline.py coq --model openai/gpt-4o-mini --limit 2 --max-workers 1 --run-id smoke-gpt4o-mini --overwrite
+```
+
+The runner reads `OPENAI_API_KEY` from the environment or the repository
+`.env`, writes predictions and evaluation reports below
+`outputs/baselines/<method>/<run-id>/`, and returns a non-zero exit code if any
+sample fails. Use `--resume` instead of `--overwrite` to continue an interrupted
+run.
+
+The vendored Chain-of-Query snapshot does not contain the clause-agent modules
+needed by the full paper pipeline. Consequently, its adapter always records
+`pipeline_mode: "coq_base_sql_fallback"` and a `fallback_reason`; these results
+must not be reported as full Chain-of-Query results. See
+[`baselines/README.md`](baselines/README.md) for details.
+
 ## Evaluation
 
 POMA evaluates candidate answer lists against the reference answer and selects the best matching candidate. The default metrics are F1, Exact Match, ROUGE-1, and METEOR.

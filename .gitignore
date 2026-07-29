@@ -10,3 +10,8 @@ __pycache__/
 
 # Isolated feature worktrees
 .worktrees/
+
+# Vendored baseline runtime artifacts
+outputs/baselines/
+baselines/**/tmp/
+baselines/**/*.db

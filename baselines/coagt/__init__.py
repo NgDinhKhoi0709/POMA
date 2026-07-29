@@ -1,0 +1,1 @@
+"""CoAgt baseline adapter."""

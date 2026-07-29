@@ -1,0 +1,11 @@
+openai
+python-dotenv
+tqdm
+tiktoken
+pandas
+records
+sqlalchemy
+requests
+recognizers-text-suite
+emoji==1.7.0
+fuzzywuzzy

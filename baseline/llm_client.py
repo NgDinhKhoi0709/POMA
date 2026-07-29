@@ -244,6 +244,8 @@ class GenConfig:
     max_tokens: int = 2048
     timeout: int = 60
     openrouter_provider: Optional[Dict[str, Any]] = None
+    text_format: Optional[Dict[str, Any]] = None
+    require_parameters: bool = False
 
 
 class LLMZeroShotClient:
@@ -358,12 +360,29 @@ class LLMZeroShotClient:
                 "OpenAI client is unavailable. Set GPT_API_KEY/GPT_API_KEYS or OPENAI_API_KEY."
             )
 
+        request: Dict[str, Any] = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": cfg.temperature,
+            "top_p": cfg.top_p,
+            "max_tokens": cfg.max_tokens,
+        }
+        if cfg.text_format is not None:
+            text_format = dict(cfg.text_format)
+            if text_format.get("type") == "json_schema":
+                request["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {
+                        key: value
+                        for key, value in text_format.items()
+                        if key != "type"
+                    },
+                }
+            else:
+                request["response_format"] = text_format
+
         response = self._openai_client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=cfg.temperature,
-            top_p=cfg.top_p,
-            max_tokens=cfg.max_tokens,
+            **request,
         )
         usage = getattr(response, "usage", None)
         if usage:
@@ -400,9 +419,15 @@ class LLMZeroShotClient:
         }
         if cfg.top_p is not None:
             body["top_p"] = cfg.top_p
-        openrouter_provider = _openrouter_provider_for_model(model_name, cfg.openrouter_provider)
-        if openrouter_provider is not None:
-            body["provider"] = openrouter_provider
+        provider = dict(
+            _openrouter_provider_for_model(model_name, cfg.openrouter_provider) or {}
+        )
+        if cfg.require_parameters:
+            provider["require_parameters"] = True
+        if provider:
+            body["provider"] = provider
+        if cfg.text_format is not None:
+            body["text"] = {"format": dict(cfg.text_format)}
 
         url = f"{self._openrouter_api_base}/responses"
         resp = requests.post(url, headers=headers, json=body, timeout=cfg.timeout)
@@ -476,6 +501,26 @@ class LLMZeroShotClient:
                 time.sleep(retry_delay)
 
         raise RuntimeError(f"Generation failed for model={model}. Last error: {last_err!r}") from last_err
+
+    def generate_with_usage(
+        self,
+        model: str,
+        prompt: str,
+        config: GenConfig,
+        *,
+        max_retries: int = 4,
+        retry_delay: int = 15,
+    ) -> Tuple[str, Dict[str, Any]]:
+        text = self.generate(
+            model=model,
+            prompt=prompt,
+            config=config,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+        )
+        usage = dict(getattr(self._thread_local, "last_usage", None) or {})
+        usage["cost_usd"] = usage_cost_usd(model, usage)
+        return text, usage
 
     def shutdown(self) -> None:
         return None

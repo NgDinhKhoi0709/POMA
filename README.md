@@ -52,7 +52,7 @@ Activate the environment, then install the runtime dependencies:
 # Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 
-pip install openai requests beautifulsoup4 python-dotenv
+python -m pip install openai requests beautifulsoup4 python-dotenv pytest jsonschema
 ```
 
 The project supports OpenAI and OpenRouter model endpoints. Configure at least one provider in a local `.env` file; do not commit this file.

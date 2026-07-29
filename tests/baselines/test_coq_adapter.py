@@ -8,6 +8,7 @@ from baselines.chain_of_query.run_open_vitabqa import (
     run_open_vitabqa,
 )
 from baselines.contracts import RunPaths, read_jsonl
+from utils.database import MYSQLDB
 
 
 def test_convert_open_vitabqa_for_coq(open_vitabqa_files) -> None:
@@ -89,3 +90,27 @@ def test_coq_mock_run_preserves_fallback(
     assert record["fallback_reason"]
     assert outcome["pipeline_mode"] == "coq_base_sql_fallback"
     assert paths.meta_json.exists()
+
+
+def test_mysqldb_close_removes_sqlite_file_on_windows(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    database = MYSQLDB(
+        tables=[
+            {
+                "title": "ranking",
+                "table": {
+                    "header": ["name", "rank"],
+                    "rows": [["An", 1]],
+                },
+            }
+        ]
+    )
+    db_path = Path(database.db_path)
+    assert db_path.exists()
+
+    database.close()
+
+    assert database._closed is True
+    assert not db_path.exists()

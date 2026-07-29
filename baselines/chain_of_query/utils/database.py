@@ -220,10 +220,12 @@ class MYSQLDB(object):
         if self._closed:
             return
         try:
-            if hasattr(self, 'sqlite_conn') and self.sqlite_conn:
-                self.sqlite_conn.close()
             if hasattr(self, 'records_conn') and self.records_conn:
                 self.records_conn.close()
+            if hasattr(self, 'db') and self.db:
+                self.db.close()
+            if hasattr(self, 'sqlite_conn') and self.sqlite_conn:
+                self.sqlite_conn.close()
             if hasattr(self, 'db_path') and os.path.exists(self.db_path):
                 os.remove(self.db_path)
         except Exception as e:

@@ -13,5 +13,6 @@ __pycache__/
 
 # Vendored baseline runtime artifacts
 outputs/baselines/
+tmp/
 baselines/**/tmp/
 baselines/**/*.db

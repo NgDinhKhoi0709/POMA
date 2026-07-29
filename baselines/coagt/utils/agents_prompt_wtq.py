@@ -1,12 +1,4 @@
-import os
 from openai import OpenAI
-
-API_KEY = ''' '''
-os.environ['OPENAI_API_KEY'] = API_KEY
-
-client = OpenAI(
-    api_key=os.environ['OPENAI_API_KEY'],  # this is also the default, it can be omitted
-)
 
 
 #
@@ -24,6 +16,7 @@ def get_completion(prompt, model="gpt-4o", temperature=0.15, n=1):
     if n < 1 or n > 5:
         raise ValueError("Parameter 'n' must be between 1 and 3.")
 
+    client = OpenAI()
     messages = [{"role": "user", "content": prompt}]
     response = client.chat.completions.create(
         model=model,
@@ -288,9 +281,9 @@ Example 4:
 Question: what is the first name listed?  
 Headers: ['name', 'location', 'date established', 'area', 'description']  
 Top Rows: [
-  ['denali', 'alaska63°20′n 150°30′w63.33°n 150.50°w', 'february 26, 1917', '4,740,911.72 acres (19,185.8\km2)', 'centered around the mount mckinley, the tallest mountain in north america, denali is serviced by a single road leading to wonder lake. mckinley and other peaks of the alaska range are covered with long glaciers and boreal forest. wildlife includes grizzly bears, dall sheep, caribou, and gray wolves.'], 
-  ['congaree', 'south carolina33°47′n 80°47′w / 33.78°n 80.78°w', 'november 10, 2003', '26,545.86 acres (107.4\km2)', 'on the congaree river, this park is the largest portion of old-growth floodplain forest left in north america. some of the trees are the tallest in the eastern us, and the boardwalk loop is an elevated walkway through the swamp.'], 
-  ['haleakalā', 'hawaii20°43′n 156°10′w20.72°n 156.17°w', 'august 1, 1916', '29,093.67 acres (117.7\km2)', "the haleakalā volcano on maui has a very large crater with many cinder cones, hosmer's grove of alien trees, and the native hawaiian goose. the kipahulu section has numerous pools with freshwater fish. this national park has the greatest number of endangered species."]
+  ['denali', 'alaska63°20′n 150°30′w63.33°n 150.50°w', 'february 26, 1917', '4,740,911.72 acres (19,185.8\\km2)', 'centered around the mount mckinley, the tallest mountain in north america, denali is serviced by a single road leading to wonder lake. mckinley and other peaks of the alaska range are covered with long glaciers and boreal forest. wildlife includes grizzly bears, dall sheep, caribou, and gray wolves.'],
+  ['congaree', 'south carolina33°47′n 80°47′w / 33.78°n 80.78°w', 'november 10, 2003', '26,545.86 acres (107.4\\km2)', 'on the congaree river, this park is the largest portion of old-growth floodplain forest left in north america. some of the trees are the tallest in the eastern us, and the boardwalk loop is an elevated walkway through the swamp.'],
+  ['haleakalā', 'hawaii20°43′n 156°10′w20.72°n 156.17°w', 'august 1, 1916', '29,093.67 acres (117.7\\km2)', "the haleakalā volcano on maui has a very large crater with many cinder cones, hosmer's grove of alien trees, and the native hawaiian goose. the kipahulu section has numerous pools with freshwater fish. this national park has the greatest number of endangered species."]
 ]
 
 Thinking: The question asks for the "first name listed," which means we are interested in the order of the rows and not a specific name in the row . This makes the question culumn-dependent, as it requires examining the first row (not specific name in the row ) to find the first name listed.

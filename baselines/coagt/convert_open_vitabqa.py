@@ -64,6 +64,28 @@ def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
+def convert_open_vitabqa(
+    qas_path: Path,
+    tables_path: Path,
+    limit: int | None = None,
+) -> list[dict[str, Any]]:
+    qas = load_records(qas_path, "qas")
+    tables = load_records(tables_path, "table")
+    if limit is not None:
+        qas = qas[:limit]
+    table_by_id = {str(table["table_id"]): table for table in tables}
+    converted: list[dict[str, Any]] = []
+    for source_qa in qas:
+        qa = {**source_qa, "source_split": source_qa.get("source_split", "test")}
+        table = table_by_id.get(str(qa["table_id"]))
+        if table is None:
+            raise KeyError(
+                f"Missing table_id={qa['table_id']} for qa_id={qa['qa_id']}"
+            )
+        converted.append(convert_record(qa, table))
+    return converted
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset-dir", default="../../Open_ViTabQA/dataset")

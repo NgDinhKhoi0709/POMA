@@ -20,8 +20,20 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from tqdm import tqdm
 
-from utils.agents_prompt_wtq import prompt_agent_follow, prompt_agent_synthesis, prompt_answer_refiner
-from utils.spliter_chunk import chunk_table
+from baselines.contracts import (
+    RunPaths,
+    append_jsonl,
+    read_jsonl,
+    validate_prediction,
+    write_json,
+)
+from .convert_open_vitabqa import convert_open_vitabqa, load_records
+from .utils.agents_prompt_wtq import (
+    prompt_agent_follow,
+    prompt_agent_synthesis,
+    prompt_answer_refiner,
+)
+from .utils.spliter_chunk import chunk_table
 
 
 @dataclass
@@ -62,11 +74,13 @@ class Pricing:
 
 
 def load_env() -> None:
-    here = Path(__file__).resolve().parent
-    # The imported upstream prompt module clears OPENAI_API_KEY. Reload env after import.
-    for candidate in (here / ".env", here.parent / "coagt_open_vitabqa" / ".env"):
-        if candidate.exists():
-            load_dotenv(candidate, override=True)
+    project_root = Path(__file__).resolve().parents[2]
+    load_dotenv(project_root / ".env", override=False)
+
+
+def normalize_openai_model(model: str) -> str:
+    value = str(model).strip()
+    return value.split("/", 1)[1] if value.startswith("openai/") else value
 
 
 def call_model(client: OpenAI, *, model: str, prompt: str, temperature: float, max_retries: int, usage: Usage) -> str:
@@ -100,6 +114,7 @@ def run_sample(
     refiner_temperature: float,
     max_retries: int,
 ) -> dict[str, Any]:
+    started = time.perf_counter()
     ids = record["ids"]
     title = record["title"]
     headers = record["table_text"][0]
@@ -156,12 +171,15 @@ def run_sample(
         "prediction": prediction,
         "answer": answer,
         "model": model,
+        "method": "coagt",
         "num_collectors": len(chunks),
         "prompt_tokens": usage.prompt_tokens,
         "completion_tokens": usage.completion_tokens,
         "total_tokens": usage.total_tokens,
         "api_calls": usage.calls,
         "cost_usd": round(cost_usd, 8),
+        "latency_s": round(time.perf_counter() - started, 3),
+        "error": None,
         "stage": "coagt_open_vitabqa",
         "temperatures": {
             "collector": collector_temperature,
@@ -185,7 +203,7 @@ def run_sample_worker(
 ) -> dict[str, Any]:
     return run_sample(
         record,
-        client=OpenAI(),
+        client=OpenAI(api_key=os.getenv("OPENAI_API_KEY", "").strip() or "missing"),
         model=model,
         pricing=pricing,
         max_chunk_tokens=max_chunk_tokens,
@@ -269,6 +287,163 @@ def filter_records_for_resume(records: list[dict[str, Any]], done_ids: set[str])
         scheduled_ids.add(qa_id)
         pending.append(record)
     return pending, skipped_existing, skipped_duplicate_input
+
+
+def _prepare_run_paths(
+    run_paths: RunPaths,
+    *,
+    resume: bool,
+    overwrite: bool,
+) -> None:
+    existing = [path for path in run_paths.generated_files() if path.exists()]
+    if existing and not resume and not overwrite:
+        raise FileExistsError(
+            f"run already contains generated files: {run_paths.root}"
+        )
+    if overwrite:
+        for path in run_paths.generated_files():
+            if path.exists():
+                path.unlink()
+    run_paths.root.mkdir(parents=True, exist_ok=True)
+
+
+def run_open_vitabqa(
+    *,
+    qas_path: Path,
+    tables_path: Path,
+    run_paths: RunPaths,
+    model: str,
+    limit: int | None,
+    max_workers: int,
+    resume: bool,
+    overwrite: bool,
+) -> dict[str, Any]:
+    _prepare_run_paths(run_paths, resume=resume, overwrite=overwrite)
+    load_env()
+    backend_model = normalize_openai_model(model)
+    pricing = Pricing.from_env(backend_model)
+    records = convert_open_vitabqa(qas_path, tables_path, limit=limit)
+    selected_qas = load_records(qas_path, "qas")
+    if limit is not None:
+        selected_qas = selected_qas[:limit]
+    write_json(run_paths.qas_subset, {"qas": selected_qas})
+
+    done_ids = (
+        load_done_ids(run_paths.results_jsonl, run_paths.errors_jsonl)
+        if resume
+        else set()
+    )
+    pending, skipped_existing, skipped_duplicate_input = filter_records_for_resume(
+        records, done_ids
+    )
+    failures = 0
+    api_key = os.getenv("OPENAI_API_KEY", "").strip() or "adapter-test-key"
+    client = OpenAI(api_key=api_key)
+
+    def handle_success(prediction: dict[str, Any]) -> None:
+        validate_prediction(prediction, "coagt")
+        append_jsonl(run_paths.results_jsonl, prediction)
+
+    if max_workers <= 1:
+        for record in pending:
+            try:
+                handle_success(
+                    run_sample(
+                        record,
+                        client=client,
+                        model=backend_model,
+                        pricing=pricing,
+                        max_chunk_tokens=1000,
+                        collector_temperature=0.2,
+                        synthesizer_temperature=0.5,
+                        refiner_temperature=0.0,
+                        max_retries=5,
+                    )
+                )
+            except Exception as error:  # noqa: BLE001
+                failures += 1
+                append_jsonl(
+                    run_paths.errors_jsonl,
+                    {
+                        "qa_id": record.get("ids"),
+                        "table_id": record.get("table_id"),
+                        "error": f"{type(error).__name__}: {error}",
+                    },
+                )
+    else:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=max(1, max_workers)
+        ) as executor:
+            futures = {
+                executor.submit(
+                    run_sample_worker,
+                    record,
+                    model=backend_model,
+                    pricing=pricing,
+                    max_chunk_tokens=1000,
+                    collector_temperature=0.2,
+                    synthesizer_temperature=0.5,
+                    refiner_temperature=0.0,
+                    max_retries=5,
+                ): record
+                for record in pending
+            }
+            for future in concurrent.futures.as_completed(futures):
+                record = futures[future]
+                try:
+                    handle_success(future.result())
+                except Exception as error:  # noqa: BLE001
+                    failures += 1
+                    append_jsonl(
+                        run_paths.errors_jsonl,
+                        {
+                            "qa_id": record.get("ids"),
+                            "table_id": record.get("table_id"),
+                            "error": f"{type(error).__name__}: {error}",
+                        },
+                    )
+
+    results = read_jsonl(run_paths.results_jsonl)
+    errors = read_jsonl(run_paths.errors_jsonl)
+    order = {str(record["ids"]): index for index, record in enumerate(records)}
+    results.sort(key=lambda item: order.get(str(item.get("qa_id")), 10**9))
+    write_json(run_paths.results_json, results)
+    total_prompt = sum(int(item.get("prompt_tokens") or 0) for item in results)
+    total_completion = sum(
+        int(item.get("completion_tokens") or 0) for item in results
+    )
+    total_tokens = sum(int(item.get("total_tokens") or 0) for item in results)
+    total_calls = sum(int(item.get("api_calls") or 0) for item in results)
+    total_cost = sum(float(item.get("cost_usd") or 0.0) for item in results)
+    meta = {
+        "method": "coagt",
+        "model": model,
+        "backend_model": backend_model,
+        "selected_records": len(records),
+        "pending_records": len(pending),
+        "num_records": len(results),
+        "num_errors": len(errors),
+        "failures": failures,
+        "max_workers": max(1, max_workers),
+        "resume": resume,
+        "overwrite": overwrite,
+        "existing_done_ids": len(done_ids),
+        "skipped_existing": skipped_existing,
+        "skipped_duplicate_input": skipped_duplicate_input,
+        "prompt_tokens": total_prompt,
+        "completion_tokens": total_completion,
+        "total_tokens": total_tokens,
+        "api_calls": total_calls,
+        "cost_usd": round(total_cost, 8),
+        "temperatures": {
+            "collector": 0.2,
+            "synthesizer": 0.5,
+            "refiner": 0.0,
+        },
+        "max_chunk_tokens": 1000,
+    }
+    write_json(run_paths.meta_json, meta)
+    return meta
 
 
 def main() -> int:

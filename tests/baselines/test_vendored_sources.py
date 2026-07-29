@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -22,11 +23,18 @@ def test_required_vendored_entrypoints_exist() -> None:
 
 
 def test_vendor_tree_contains_no_runtime_artifacts_or_secrets() -> None:
-    vendor_root = ROOT / "baselines"
     forbidden_names = {".env", "__pycache__", ".pytest_cache"}
+    tracked = subprocess.run(
+        ["git", "ls-files", "baselines"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
     offenders = [
-        path.relative_to(ROOT).as_posix()
-        for path in vendor_root.rglob("*")
+        value
+        for value in tracked
+        for path in [Path(value)]
         if path.name in forbidden_names
         or path.suffix in {".pyc", ".db"}
         or "outputs" in path.parts

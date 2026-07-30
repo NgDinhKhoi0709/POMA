@@ -3,6 +3,7 @@ import pytest
 from src.contracts.structured_outputs import (
     STRUCTURED_SCHEMAS,
     StructuredContractError,
+    StructuredResult,
     schema_for_call,
     validate_domain_payload,
 )
@@ -20,6 +21,25 @@ def test_schema_registry_contains_every_poma_owned_call():
         "baseline_cot.v1",
         "baseline_task_decomposition.v1",
     }
+
+
+def test_structured_result_represents_unknown_provider_cost_as_none():
+    assert StructuredResult.__annotations__["cost_usd"] == "float | None"
+
+    result = StructuredResult(
+        data={"final_answer": "42"},
+        raw_response='{"final_answer":"42"}',
+        schema_name="baseline_zero_shot.v1",
+        schema_valid=True,
+        repair_attempted=False,
+        repair_succeeded=False,
+        prompt_tokens=10,
+        completion_tokens=5,
+        total_tokens=15,
+        cost_usd=None,
+    )
+
+    assert result.cost_usd is None
 
 
 def test_all_schemas_are_closed_objects():

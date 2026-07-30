@@ -44,7 +44,7 @@ class StructuredResult:
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
-    cost_usd: float
+    cost_usd: float | None
 
 
 def _closed_object(

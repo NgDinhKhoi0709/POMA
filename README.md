@@ -228,6 +228,31 @@ output manifest, source fingerprint, dataset fingerprint, and configuration
 fingerprint match the requested run. Prior failures remain final unless
 `--retry-failed` is explicitly supplied together with `--resume`.
 
+## Q2 symmetric experiment runbook
+
+`scripts/run_q2_experiments.ps1` prints its complete two-backbone, five-system
+matrix by default. This dry run creates no output and makes no network calls:
+
+```powershell
+pwsh -File scripts/run_q2_experiments.ps1
+```
+
+Execution gates, in order:
+
+1. Run the test suite first, including `python -m pytest tests/scripts/test_q2_runbook.py -q`.
+2. Run `-Phase Preflight`, then inspect its trace and manifest.
+3. Require 100% schema validity after at most one repair for the preflight.
+4. Obtain explicit approval before `-Phase Full`; it is the only phase that uses all 992 questions.
+5. Do not mix historical and new artifacts: retain each raw source under its
+   per-backbone `raw` directory and write each finalizer result only under its
+   sibling `finalized` directory.
+
+For example, a five-question capability preflight is:
+
+```powershell
+pwsh -File scripts/run_q2_experiments.ps1 -Phase Preflight
+```
+
 ## Evaluation
 
 POMA evaluates candidate answer lists against the reference answer and selects the best matching candidate. The default metrics are F1, Exact Match, ROUGE-1, and METEOR.

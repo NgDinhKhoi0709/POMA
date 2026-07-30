@@ -8,7 +8,7 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Mapping, Optional, Set
 
 # ---------------------------------------------------------------------------
 # Bootstrap: ensure the standalone POMA project root is on sys.path.
@@ -199,7 +199,7 @@ def process_one(
         "question": question,
         "groundtruth": groundtruth,
         "hints": raw_hints,
-        "predicted_answer": answers,
+        "prediction": answers,
         "hint_source": hint_source,
         "elapsed_s": round(elapsed, 2),
         "prompt_tokens": result.get("prompt_tokens", 0),
@@ -361,6 +361,16 @@ def _calculate_batch_stats(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
+def _record_candidates(record: Mapping[str, Any]) -> list[str]:
+    """Return canonical candidates while accepting historical POMA records."""
+    raw = record.get("prediction", record.get("predicted_answer", []))
+    if isinstance(raw, str):
+        return [raw]
+    if not isinstance(raw, list):
+        return []
+    return [candidate for candidate in raw if isinstance(candidate, str)]
+
+
 def _save_results(results: List[Dict[str, Any]], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
@@ -491,6 +501,10 @@ def _build_stage_record(
         if value is not None:
             record[key] = value
 
+    candidates = _record_candidates(result_rec)
+    if candidates:
+        record["prediction"] = candidates
+
     return record
 
 
@@ -528,7 +542,11 @@ def _save_stage_outputs(
         if not stage_records:
             continue
         stage_path = output_path.parent / stage_name / output_path.name
-        _save_results(stage_records, stage_path)
+        existing_stage_records = _load_existing_results(stage_path)
+        _save_results(
+            _merge_records_by_qa_id(existing_stage_records, stage_records),
+            stage_path,
+        )
 
 
 def _should_run_auto_evaluation(stages: Optional[Set[str]]) -> bool:
@@ -674,10 +692,10 @@ def run_batch(
             )
             _save_prediction_output(existing, output_path, evaluation)
         if traces_path:
-            _save_results(current_existing_traces, traces_path)
-            logger.info("Traces saved to %s  (%d records)", traces_path, len(current_existing_traces))
-        if output_path and current_existing_traces:
-            _save_stage_outputs(output_path, stages, current_existing_traces, existing)
+            _save_results(existing_traces, traces_path)
+            logger.info("Traces saved to %s  (%d records)", traces_path, len(existing_traces))
+        if output_path and existing_traces:
+            _save_stage_outputs(output_path, stages, existing_traces, existing)
         return existing
 
     total = len(pending)
@@ -699,12 +717,18 @@ def run_batch(
         new_traces.append(trace)
 
     def _incremental_save() -> None:
+        merged_traces = _merge_trace_lists(existing_traces, new_traces)
         if output_path:
             _save_prediction_output(existing + new_results, output_path, evaluation=None)
         if traces_path:
-            _save_results(new_traces, traces_path)
+            _save_results(merged_traces, traces_path)
         if output_path:
-            _save_stage_outputs(output_path, stages, new_traces, new_results)
+            _save_stage_outputs(
+                output_path,
+                stages,
+                merged_traces,
+                existing + new_results,
+            )
 
     if workers <= 1:
         for i, qa in enumerate(pending, 1):
@@ -794,11 +818,12 @@ def run_batch(
         )
     if output_path:
         _save_prediction_output(merged, output_path, evaluation)
+    merged_traces = _merge_trace_lists(existing_traces, new_traces)
     if traces_path:
-        _save_results(new_traces, traces_path)
-        logger.info("Traces saved to %s  (%d records)", traces_path, len(new_traces))
+        _save_results(merged_traces, traces_path)
+        logger.info("Traces saved to %s  (%d records)", traces_path, len(merged_traces))
     if output_path:
-        _save_stage_outputs(output_path, stages, new_traces, new_results)
+        _save_stage_outputs(output_path, stages, merged_traces, merged)
 
     _print_summary(merged)
     return merged
@@ -806,13 +831,16 @@ def run_batch(
 
 def _print_summary(results: List[Dict[str, Any]]) -> None:
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
-    success = [r for r in results if "error" not in r and "predicted_answer" in r]
+    success = [
+        record for record in results
+        if "error" not in record and _record_candidates(record)
+    ]
     total = len(success)
     if total == 0:
         return
     matches = 0
     for r in success:
-        candidates = r.get("predicted_answer", [""])
+        candidates = _record_candidates(r)
         if _cli_has_match(r.get("groundtruth", ""), candidates, r.get("hints")):
             matches += 1
 
@@ -835,7 +863,7 @@ def _print_summary(results: List[Dict[str, Any]]) -> None:
 
 def _print_result(rec: Dict[str, Any], idx: int, total: int) -> None:
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
-    candidates = rec.get("predicted_answer", [""])
+    candidates = _record_candidates(rec)
     print(f"\n{'='*70}")
     print(f"  [{idx}/{total}]  qa_id: {rec.get('qa_id')}")
     print(f"  Question:    {rec.get('question')}")

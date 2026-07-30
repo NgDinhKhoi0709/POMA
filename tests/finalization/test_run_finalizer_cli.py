@@ -11,7 +11,7 @@ from src.contracts.structured_outputs import (
     StructuredResult,
     schema_for_call,
 )
-from src.finalization.artifacts import sha256_file
+from src.finalization.artifacts import ArtifactError, sha256_file
 from src.services.structured_generation import StructuredGenerator
 
 
@@ -180,6 +180,68 @@ class _FakeLLMFactory:
             interrupt_qa_id=self.interrupt_qa_id,
             incremental_path=self.incremental_path,
         )
+
+
+class _MetricsLLM:
+    def __init__(self, *, fail_q1: bool) -> None:
+        self._fail_q1 = fail_q1
+        self._qa_id: str | None = None
+        self._logs: list[dict[str, object]] = []
+        self.total_prompt_tokens = 0
+        self.total_completion_tokens = 0
+        self.total_total_tokens = 0
+        self.total_cost_usd = None
+
+    def set_qa_id(self, qa_id: str | None) -> None:
+        self._qa_id = qa_id
+
+    def get_call_logs(self) -> list[dict[str, object]]:
+        return [dict(item) for item in self._logs]
+
+    def generate_structured(self, _prompt, *, schema, **_kwargs):
+        self.total_prompt_tokens += 2
+        self.total_completion_tokens += 1
+        self.total_total_tokens += 3
+        if self._qa_id == "q1" and self._fail_q1:
+            self._logs.append(
+                {
+                    "schema_valid": False,
+                    "repair_attempted": True,
+                    "repair_succeeded": False,
+                }
+            )
+            raise RuntimeError("repair remained invalid")
+
+        call_number = len(self._logs) + 1
+        repair_succeeded = self._qa_id == "q2" and call_number == 3
+        self._logs.append(
+            {
+                "schema_valid": not repair_succeeded,
+                "repair_attempted": repair_succeeded,
+                "repair_succeeded": repair_succeeded,
+            }
+        )
+        data = {"answers": [f"normalized-{self._qa_id}-{call_number}"]}
+        return StructuredResult(
+            data=data,
+            raw_response=json.dumps(data),
+            schema_name=schema.name,
+            schema_valid=not repair_succeeded,
+            repair_attempted=repair_succeeded,
+            repair_succeeded=repair_succeeded,
+            prompt_tokens=2,
+            completion_tokens=1,
+            total_tokens=3,
+            cost_usd=None,
+        )
+
+
+class _MetricsLLMFactory:
+    def __init__(self, *, fail_q1: bool) -> None:
+        self.fail_q1 = fail_q1
+
+    def __call__(self, _config):
+        return _MetricsLLM(fail_q1=self.fail_q1)
 
 
 def test_parser_accepts_approved_values() -> None:
@@ -417,3 +479,228 @@ def test_fake_llm_interrupt_then_resume_is_append_safe(
         "materialized output:",
     ):
         assert label in stdout
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["unrelated-source", "tampered-configuration"],
+)
+def test_resume_rejects_mismatched_existing_materialized_manifest(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    """Catch a matching JSONL silently overwriting an unrelated JSON result."""
+    source_path, qas_path, tables_path = _fixture_files(tmp_path)
+    output_path = tmp_path / "gsa.json"
+    incremental_path = tmp_path / "gsa.jsonl"
+    argv = [
+        "--source",
+        str(source_path),
+        "--source-kind",
+        "poma-specialists",
+        "--finalizer",
+        "gsa",
+        "--qas",
+        str(qas_path),
+        "--tables",
+        str(tables_path),
+        "--model",
+        "openrouter/qwen/qwen3-8b",
+        "--output",
+        str(output_path),
+        "--max-workers",
+        "1",
+    ]
+    factory = _FakeLLMFactory(
+        interrupt_qa_id=None,
+        incremental_path=incremental_path,
+    )
+    assert main(argv, llm_factory=factory) == 0
+
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    if mutation == "unrelated-source":
+        payload["manifest"]["source_sha256"] = "0" * 64
+    else:
+        payload["manifest"]["model"] = "openrouter/other/model"
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    output_before = output_path.read_bytes()
+    incremental_before = incremental_path.read_bytes()
+
+    with pytest.raises(ArtifactError):
+        main(
+            [*argv, "--resume"],
+            llm_factory=_FakeLLMFactory(
+                interrupt_qa_id=None,
+                incremental_path=incremental_path,
+            ),
+        )
+
+    assert output_path.read_bytes() == output_before
+    assert incremental_path.read_bytes() == incremental_before
+
+
+def test_summary_aggregates_every_incremental_structured_call(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    """Catch retries and multi-call QAs being collapsed to official records."""
+    qas_path = _write_json(
+        tmp_path / "qas.json",
+        {
+            "qas": [
+                {"qa_id": "q1", "table_id": "t1", "question": "First?"},
+                {"qa_id": "q2", "table_id": "t2", "question": "Second?"},
+                {"qa_id": "q3", "table_id": "t3", "question": "Số nào?"},
+            ]
+        },
+    )
+    tables_path = _write_json(
+        tmp_path / "tables.json",
+        {
+            "table": [
+                _table("t1", "alpha"),
+                _table("t2", "beta"),
+                _table("t3", "42"),
+            ]
+        },
+    )
+    source_path = _write_json(
+        tmp_path / "raw.json",
+        [
+            {
+                "qa_id": "q1",
+                "steps": {
+                    "3_specialists": [
+                        {"agent_name": "What", "answer": "alpha"}
+                    ]
+                },
+            },
+            {
+                "qa_id": "q2",
+                "steps": {
+                    "3_specialists": [
+                        {"agent_name": "What", "answer": "beta"},
+                        {"agent_name": "What", "answer": "gamma"},
+                        {"agent_name": "What", "answer": "delta"},
+                    ]
+                },
+            },
+            {
+                "qa_id": "q3",
+                "steps": {
+                    "3_specialists": [
+                        {"agent_name": "MathematicalReasoning", "answer": "42"}
+                    ]
+                },
+            },
+        ],
+    )
+    output_path = tmp_path / "an.json"
+    incremental_path = tmp_path / "an.jsonl"
+    argv = [
+        "--source",
+        str(source_path),
+        "--source-kind",
+        "poma-specialists",
+        "--finalizer",
+        "an-common",
+        "--qas",
+        str(qas_path),
+        "--tables",
+        str(tables_path),
+        "--model",
+        "openrouter/qwen/qwen3-8b",
+        "--output",
+        str(output_path),
+        "--max-workers",
+        "1",
+    ]
+
+    assert main(argv, llm_factory=_MetricsLLMFactory(fail_q1=True)) == 1
+    capsys.readouterr()
+    assert (
+        main(
+            [*argv, "--resume", "--retry-failed"],
+            llm_factory=_MetricsLLMFactory(fail_q1=False),
+        )
+        == 0
+    )
+
+    stdout = capsys.readouterr().out
+    assert "schema-valid rate: 3/5 (60.0%)" in stdout
+    assert "repair rate: 2/5 (40.0%)" in stdout
+    assert "tokens: prompt=10 completion=5 total=15" in stdout
+
+    lines = incremental_path.read_text(encoding="utf-8").splitlines()
+    records = [json.loads(line) for line in lines[1:]]
+    assert [record["qa_id"] for record in records] == [
+        "q1",
+        "q2",
+        "q3",
+        "q1",
+    ]
+    assert [
+        record["trace"]["structured_calls"] for record in records
+    ] == [1, 3, 0, 1]
+
+
+def test_summary_reports_na_when_no_structured_calls(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    qas_path = _write_json(
+        tmp_path / "qas.json",
+        {
+            "qas": [
+                {"qa_id": "q1", "table_id": "t1", "question": "Số nào?"}
+            ]
+        },
+    )
+    tables_path = _write_json(
+        tmp_path / "tables.json",
+        {"table": [_table("t1", "42")]},
+    )
+    source_path = _write_json(
+        tmp_path / "raw.json",
+        [
+            {
+                "qa_id": "q1",
+                "steps": {
+                    "3_specialists": [
+                        {"agent_name": "MathematicalReasoning", "answer": "42"}
+                    ]
+                },
+            }
+        ],
+    )
+    output_path = tmp_path / "deterministic.json"
+
+    assert (
+        main(
+            [
+                "--source",
+                str(source_path),
+                "--source-kind",
+                "poma-specialists",
+                "--finalizer",
+                "an-common",
+                "--qas",
+                str(qas_path),
+                "--tables",
+                str(tables_path),
+                "--model",
+                "openrouter/qwen/qwen3-8b",
+                "--output",
+                str(output_path),
+            ],
+            llm_factory=_MetricsLLMFactory(fail_q1=False),
+        )
+        == 0
+    )
+
+    stdout = capsys.readouterr().out
+    assert "schema-valid rate: n/a" in stdout
+    assert "repair rate: n/a" in stdout

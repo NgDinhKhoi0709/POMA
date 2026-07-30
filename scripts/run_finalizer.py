@@ -27,7 +27,9 @@ from src.agents.grounded_single_answer import GroundedSingleAnswerAgent
 from src.config.settings import LLMConfig, get_settings
 from src.contracts.structured_outputs import StructuredOutputMode
 from src.finalization.artifacts import (
+    ArtifactError,
     IncrementalArtifactStore,
+    ManifestMismatchError,
     RunManifest,
     failure_record,
     success_record,
@@ -156,6 +158,38 @@ def _existing_started_at(path: Path) -> str | None:
     return started_at if isinstance(started_at, str) else None
 
 
+def _validate_existing_output(path: Path, requested: RunManifest) -> None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ArtifactError(
+            f"Cannot load existing materialized output {path}: {exc}"
+        ) from exc
+    if not isinstance(payload, dict) or not isinstance(
+        payload.get("manifest"), dict
+    ):
+        raise ArtifactError(
+            f"Existing materialized output {path} has no valid manifest"
+        )
+
+    existing = RunManifest.from_dict(payload["manifest"])
+    identity_fields = (
+        "source_sha256",
+        "dataset_sha256",
+        "configuration_fingerprint",
+    )
+    mismatches = [
+        name
+        for name in identity_fields
+        if getattr(existing, name) != getattr(requested, name)
+    ]
+    if mismatches:
+        raise ManifestMismatchError(
+            "Cannot resume materialized output with mismatched "
+            + ", ".join(mismatches)
+        )
+
+
 def _llm_config(model: str) -> LLMConfig:
     return replace(get_settings().llm, model=model)
 
@@ -212,21 +246,30 @@ def _structured_trace(llm: object) -> dict[str, Any]:
     if not structured_logs:
         return {
             "structured_calls": 0,
+            "schema_valid_calls": 0,
+            "repair_attempted_calls": 0,
+            "repair_succeeded_calls": 0,
             "schema_valid": None,
             "repair_attempted": False,
             "repair_succeeded": False,
         }
+    schema_valid_calls = sum(
+        log.get("schema_valid") is True for log in structured_logs
+    )
+    repair_attempted_calls = sum(
+        log.get("repair_attempted") is True for log in structured_logs
+    )
+    repair_succeeded_calls = sum(
+        log.get("repair_succeeded") is True for log in structured_logs
+    )
     return {
         "structured_calls": len(structured_logs),
-        "schema_valid": all(
-            log.get("schema_valid") is True for log in structured_logs
-        ),
-        "repair_attempted": any(
-            log.get("repair_attempted") is True for log in structured_logs
-        ),
-        "repair_succeeded": any(
-            log.get("repair_succeeded") is True for log in structured_logs
-        ),
+        "schema_valid_calls": schema_valid_calls,
+        "repair_attempted_calls": repair_attempted_calls,
+        "repair_succeeded_calls": repair_succeeded_calls,
+        "schema_valid": schema_valid_calls == len(structured_logs),
+        "repair_attempted": repair_attempted_calls > 0,
+        "repair_succeeded": repair_succeeded_calls > 0,
     }
 
 
@@ -317,26 +360,66 @@ def _rate(numerator: int, denominator: int) -> str:
     return f"{numerator}/{denominator} ({100 * numerator / denominator:.1f}%)"
 
 
+def _trace_count(
+    trace: dict[str, Any],
+    field: str,
+    *,
+    default: int,
+    maximum: int,
+) -> int:
+    value = trace.get(field)
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        value = default
+    return min(value, maximum)
+
+
+def _structured_call_counts(
+    records: Sequence[dict[str, Any]],
+) -> tuple[int, int, int]:
+    total_calls = 0
+    schema_valid_calls = 0
+    repair_attempted_calls = 0
+    for record in records:
+        trace = record.get("trace")
+        if not isinstance(trace, dict):
+            continue
+        calls = _trace_count(
+            trace,
+            "structured_calls",
+            default=0,
+            maximum=sys.maxsize,
+        )
+        total_calls += calls
+        schema_valid_calls += _trace_count(
+            trace,
+            "schema_valid_calls",
+            default=calls if trace.get("schema_valid") is True else 0,
+            maximum=calls,
+        )
+        repair_attempted_calls += _trace_count(
+            trace,
+            "repair_attempted_calls",
+            default=(
+                1
+                if calls and trace.get("repair_attempted") is True
+                else 0
+            ),
+            maximum=calls,
+        )
+    return total_calls, schema_valid_calls, repair_attempted_calls
+
+
 def _print_summary(
     payload: dict[str, Any],
     *,
+    attempt_records: Sequence[dict[str, Any]],
     incremental_path: Path,
     output_path: Path,
 ) -> None:
     manifest = payload["manifest"]
     counts = manifest["counts"]
-    records = payload["predictions"]
-    structured = [
-        record.get("trace", {})
-        for record in records
-        if isinstance(record.get("trace"), dict)
-        and record["trace"].get("schema_valid") is not None
-    ]
-    schema_valid = sum(
-        trace.get("schema_valid") is True for trace in structured
-    )
-    repairs = sum(
-        trace.get("repair_attempted") is True for trace in structured
+    structured_calls, schema_valid_calls, repair_attempted_calls = (
+        _structured_call_counts(attempt_records)
     )
     tokens = manifest["tokens"]
     cost = manifest["cost_usd"]
@@ -346,8 +429,14 @@ def _print_summary(
         + _rate(int(counts["successful"]), int(counts["dataset"]))
     )
     print(f"failures: {counts['failed']}")
-    print(f"schema-valid rate: {_rate(schema_valid, len(structured))}")
-    print(f"repair rate: {_rate(repairs, len(structured))}")
+    print(
+        "schema-valid rate: "
+        + _rate(schema_valid_calls, structured_calls)
+    )
+    print(
+        "repair rate: "
+        + _rate(repair_attempted_calls, structured_calls)
+    )
     print(
         "tokens: "
         f"prompt={tokens['prompt']} "
@@ -428,6 +517,8 @@ def main(
         )
         or _utc_now(),
     )
+    if args.resume and output_path.exists():
+        _validate_existing_output(output_path, manifest)
     store = IncrementalArtifactStore(incremental_path, manifest)
     pending_ids = store.pending_qa_ids(
         dataset_order,
@@ -451,12 +542,14 @@ def main(
             for future in as_completed(futures):
                 store.append(future.result())
 
+    attempt_records = store.records()
     payload = store.materialize(
         output_path,
         dataset_order=dataset_order,
     )
     _print_summary(
         payload,
+        attempt_records=attempt_records,
         incremental_path=incremental_path,
         output_path=output_path,
     )

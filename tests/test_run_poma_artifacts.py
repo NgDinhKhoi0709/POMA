@@ -50,16 +50,39 @@ def test_resume_merges_all_existing_and_new_traces_and_stage_outputs(tmp_path, m
     )
 
     qas = [
-        {"qa_id": "q1", "table_id": "t1", "question": "Question q1", "answer": "old-one"},
-        {"qa_id": "q3", "table_id": "t1", "question": "Question q3", "answer": "new-three"},
+        {
+            "qa_id": "q1",
+            "table_id": "t1",
+            "question": "Question q1",
+            "answer": "old-one",
+        },
+        {
+            "qa_id": "q3",
+            "table_id": "t1",
+            "question": "Question q3",
+            "answer": "new-three",
+        },
+        {
+            "qa_id": "q4",
+            "table_id": "t1",
+            "question": "Question q4",
+            "answer": "new-four",
+        },
     ]
     monkeypatch.setattr(run_poma, "load_dataset_pair", lambda *_: (qas, {"t1": {}}))
     monkeypatch.setattr(run_poma, "_print_result", lambda *_: None)
     monkeypatch.setattr(run_poma, "_print_summary", lambda *_: None)
 
     def fake_process_one(qa, *_args, **_kwargs):
-        record = _result(qa["qa_id"], "new-three")
-        record["_trace"] = _trace(qa["qa_id"], "new-three")
+        if qa["qa_id"] == "q4":
+            assert _read_ids(traces_path) == ["q1", "q2", "q3"]
+            for stage_name in run_poma.STAGE_TO_STEP_KEYS:
+                stage_path = output_path.parent / stage_name / output_path.name
+                assert _read_ids(stage_path) == ["q1", "q2", "q3"]
+
+        answer = qa["answer"]
+        record = _result(qa["qa_id"], answer)
+        record["_trace"] = _trace(qa["qa_id"], answer)
         return record
 
     monkeypatch.setattr(run_poma, "process_one", fake_process_one)
@@ -73,11 +96,11 @@ def test_resume_merges_all_existing_and_new_traces_and_stage_outputs(tmp_path, m
         auto_evaluate=False,
     )
 
-    assert _read_ids(traces_path) == ["q1", "q2", "q3"]
+    assert _read_ids(traces_path) == ["q1", "q2", "q3", "q4"]
     assert all(record["llm_calls"][0]["schema_valid"] for record in _read_records(traces_path))
     for stage_name in run_poma.STAGE_TO_STEP_KEYS:
         stage_path = output_path.parent / stage_name / output_path.name
-        assert _read_ids(stage_path) == ["q1", "q2", "q3"]
+        assert _read_ids(stage_path) == ["q1", "q2", "q3", "q4"]
 
     qas[:] = qas[:1]
     run_poma.run_batch(
@@ -89,11 +112,11 @@ def test_resume_merges_all_existing_and_new_traces_and_stage_outputs(tmp_path, m
         auto_evaluate=False,
     )
 
-    assert _read_ids(traces_path) == ["q1", "q2", "q3"]
+    assert _read_ids(traces_path) == ["q1", "q2", "q3", "q4"]
     assert all(record["llm_calls"][0]["schema_valid"] for record in _read_records(traces_path))
     for stage_name in run_poma.STAGE_TO_STEP_KEYS:
         stage_path = output_path.parent / stage_name / output_path.name
-        assert _read_ids(stage_path) == ["q1", "q2", "q3"]
+        assert _read_ids(stage_path) == ["q1", "q2", "q3", "q4"]
 
 
 def test_canonical_prediction_reader_prefers_prediction_and_accepts_legacy():

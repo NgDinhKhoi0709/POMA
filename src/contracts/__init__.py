@@ -1,4 +1,10 @@
-﻿from .enums import HintType, HINT_ALIASES_TO_CANONICAL, HINT_TO_AGENT
+from .enums import HintType, HINT_ALIASES_TO_CANONICAL, HINT_TO_AGENT
+from .finalization import (
+    AnswerCandidate,
+    GroundedAnswer,
+    GroundedAnswerRequest,
+    GroundedDecision,
+)
 from .request import QARequest
 from .responses import (
     EvidenceItem,
@@ -18,8 +24,12 @@ from .structured_outputs import (
 )
 
 __all__ = [
-    "EvidenceItem",
+    "AnswerCandidate",
     "CallContext",
+    "EvidenceItem",
+    "GroundedAnswer",
+    "GroundedAnswerRequest",
+    "GroundedDecision",
     "HINT_ALIASES_TO_CANONICAL",
     "HINT_TO_AGENT",
     "HintType",

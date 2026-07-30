@@ -175,6 +175,18 @@ def _to_float_or_none(value: Any) -> Optional[float]:
         return None
 
 
+def _provider_usage_cost(usage: Any) -> Optional[float]:
+    for name in ("cost_usd", "cost"):
+        if isinstance(usage, dict):
+            value = usage.get(name)
+        else:
+            value = getattr(usage, name, None)
+        cost_usd = _to_float_or_none(value)
+        if cost_usd is not None:
+            return cost_usd
+    return None
+
+
 def _normalize_usage(usage: Any) -> Dict[str, Any]:
     prompt_tokens = _to_int(_usage_get(usage, "prompt_tokens", "input_tokens"))
     completion_tokens = _to_int(_usage_get(usage, "completion_tokens", "output_tokens"))
@@ -188,7 +200,7 @@ def _normalize_usage(usage: Any) -> Dict[str, Any]:
         "completion_tokens": completion_tokens,
         "total_tokens": total_tokens,
     }
-    cost_usd = _to_float_or_none(_usage_get(usage, "cost_usd", "cost"))
+    cost_usd = _provider_usage_cost(usage)
     if cost_usd is not None:
         normalized["cost_usd"] = cost_usd
     return normalized
@@ -211,12 +223,9 @@ def calculate_call_cost(model: str, prompt_tokens: int, completion_tokens: int) 
 
 
 def usage_cost_usd(model: str, usage: Dict[str, Any]) -> float:
-    provided_cost = usage.get("cost_usd", usage.get("cost"))
+    provided_cost = _provider_usage_cost(usage)
     if provided_cost is not None:
-        try:
-            return float(provided_cost)
-        except (TypeError, ValueError):
-            pass
+        return provided_cost
     return calculate_call_cost(
         model,
         int(usage.get("prompt_tokens") or 0),
@@ -528,7 +537,10 @@ class LLMZeroShotClient:
             retry_delay=retry_delay,
         )
         usage = dict(getattr(self._thread_local, "last_usage", None) or {})
-        if "cost_usd" in usage or "cost" in usage or _has_known_model_pricing(model):
+        provided_cost = _provider_usage_cost(usage)
+        if provided_cost is not None:
+            usage["cost_usd"] = provided_cost
+        elif _has_known_model_pricing(model):
             usage["cost_usd"] = usage_cost_usd(model, usage)
         else:
             usage["cost_usd"] = None

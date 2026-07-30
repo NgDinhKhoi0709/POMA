@@ -34,6 +34,24 @@ def client(fake_post):
     return LLMZeroShotClient(openai_api_keys=[], openrouter_api_keys=["test-key"])
 
 
+def _set_openrouter_usage(fake_post, **cost_fields):
+    fake_post.return_value.json = Mock(
+        return_value={
+            "output": [
+                {
+                    "type": "message",
+                    "content": [{"type": "output_text", "text": "answer"}],
+                }
+            ],
+            "usage": {
+                "input_tokens": 2,
+                "output_tokens": 3,
+                **cost_fields,
+            },
+        }
+    )
+
+
 def test_openrouter_responses_sends_strict_json_schema(client, fake_post):
     cfg = GenConfig(
         text_format={
@@ -124,21 +142,66 @@ def test_generate_with_usage_returns_unknown_cost_and_a_usage_copy(
 
 
 def test_generate_with_usage_preserves_provider_reported_cost(client, fake_post):
-    fake_post.return_value.json = Mock(
-        return_value={
-            "output": [
-                {
-                    "type": "message",
-                    "content": [{"type": "output_text", "text": "answer"}],
-                }
-            ],
-            "usage": {
-                "input_tokens": 2,
-                "output_tokens": 3,
-                "cost": "0.00042",
-            },
-        }
+    _set_openrouter_usage(fake_post, cost="0.00042")
+
+    _, usage = client.generate_with_usage(
+        "openrouter/google/gemma-3-4b-it",
+        "prompt",
+        GenConfig(),
+        max_retries=1,
+        retry_delay=0,
     )
+
+    assert usage["cost_usd"] == 0.00042
+
+
+@pytest.mark.parametrize(
+    "cost_fields",
+    [
+        {"cost": None},
+        {"cost": "not-a-number"},
+        {"cost_usd": None},
+        {"cost_usd": "not-a-number"},
+    ],
+    ids=["null-cost", "malformed-cost", "null-cost-usd", "malformed-cost-usd"],
+)
+def test_generate_with_usage_rejects_invalid_provider_cost(
+    client,
+    fake_post,
+    cost_fields,
+):
+    _set_openrouter_usage(fake_post, **cost_fields)
+
+    _, usage = client.generate_with_usage(
+        "openrouter/google/gemma-3-4b-it",
+        "prompt",
+        GenConfig(),
+        max_retries=1,
+        retry_delay=0,
+    )
+
+    assert usage["cost_usd"] is None
+
+
+def test_generate_with_usage_prefers_valid_cost_usd_alias(client, fake_post):
+    _set_openrouter_usage(fake_post, cost_usd="0.00021", cost="0.00042")
+
+    _, usage = client.generate_with_usage(
+        "openrouter/google/gemma-3-4b-it",
+        "prompt",
+        GenConfig(),
+        max_retries=1,
+        retry_delay=0,
+    )
+
+    assert usage["cost_usd"] == 0.00021
+
+
+def test_generate_with_usage_uses_valid_cost_when_cost_usd_is_malformed(
+    client,
+    fake_post,
+):
+    _set_openrouter_usage(fake_post, cost_usd="not-a-number", cost="0.00042")
 
     _, usage = client.generate_with_usage(
         "openrouter/google/gemma-3-4b-it",

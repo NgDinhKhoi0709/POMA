@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import re
 import sys
 import time
@@ -192,6 +193,7 @@ def process_one(
     answers = result["answer"]  # List[str] of candidate surface forms
     if predicted_hints is None and hint_source == "agent":
         predicted_hints = _extract_refined_hints_from_result(result)
+    raw_cost = result.get("cost_usd", 0.0)
 
     rec: Dict[str, Any] = {
         "qa_id": qa_id,
@@ -205,7 +207,9 @@ def process_one(
         "prompt_tokens": result.get("prompt_tokens", 0),
         "completion_tokens": result.get("completion_tokens", 0),
         "total_tokens": result.get("total_tokens", 0),
-        "cost_usd": round(result.get("cost_usd", 0.0), 6),
+        "cost_usd": (
+            None if raw_cost is None else round(float(raw_cost), 6)
+        ),
     }
     if predicted_hints is not None:
         rec["predicted_hints"] = predicted_hints
@@ -344,7 +348,19 @@ def _calculate_batch_stats(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
     total_prompt = sum(r.get("prompt_tokens", 0) for r in valid_recs)
     total_completion = sum(r.get("completion_tokens", 0) for r in valid_recs)
     total_tok = sum(r.get("total_tokens", 0) for r in valid_recs)
-    total_cost = sum(r.get("cost_usd", 0.0) for r in valid_recs)
+    costs = [r.get("cost_usd") for r in valid_recs]
+    has_unknown_cost = any(
+        isinstance(cost, bool)
+        or not isinstance(cost, (int, float))
+        or not math.isfinite(float(cost))
+        or float(cost) < 0
+        for cost in costs
+    )
+    total_cost = (
+        None
+        if has_unknown_cost
+        else sum(float(cost) for cost in costs)
+    )
 
     return {
         "total_elapsed_s": round(total_elapsed, 2),
@@ -355,8 +371,12 @@ def _calculate_batch_stats(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
         "average_completion_tokens": round(total_completion / n, 1),
         "total_tokens": total_tok,
         "average_total_tokens": round(total_tok / n, 1),
-        "total_cost_usd": round(total_cost, 6),
-        "average_cost_usd": round(total_cost / n, 6),
+        "total_cost_usd": (
+            None if total_cost is None else round(total_cost, 6)
+        ),
+        "average_cost_usd": (
+            None if total_cost is None else round(total_cost / n, 6)
+        ),
         "count": n,
     }
 
@@ -856,8 +876,20 @@ def _print_summary(results: List[Dict[str, Any]]) -> None:
     print(f"    Total:   {stats['total_tokens']} (Prompt: {stats['total_prompt_tokens']}, Completion: {stats['total_completion_tokens']})")
     print(f"    Average: {stats['average_total_tokens']} (Prompt: {stats['average_prompt_tokens']}, Completion: {stats['average_completion_tokens']}) per question")
     print(f"  COST:")
-    print(f"    Total:   ${stats['total_cost_usd']:.6f}")
-    print(f"    Average: ${stats['average_cost_usd']:.6f}/question")
+    total_cost = stats["total_cost_usd"]
+    average_cost = stats["average_cost_usd"]
+    print(
+        "    Total:   "
+        + ("unknown" if total_cost is None else f"${total_cost:.6f}")
+    )
+    print(
+        "    Average: "
+        + (
+            "unknown/question"
+            if average_cost is None
+            else f"${average_cost:.6f}/question"
+        )
+    )
     print(f"{'='*70}\n")
 
 
@@ -873,7 +905,11 @@ def _print_result(rec: Dict[str, Any], idx: int, total: int) -> None:
     print(f"  Match:       {'YES' if match else 'NO'}")
     print(f"  Time:        {rec.get('elapsed_s', '?')}s")
     print(f"  Tokens:      {rec.get('total_tokens', 0)} (Prompt: {rec.get('prompt_tokens', 0)}, Completion: {rec.get('completion_tokens', 0)})")
-    print(f"  Cost:        ${rec.get('cost_usd', 0.0):.6f}")
+    cost = rec.get("cost_usd")
+    print(
+        "  Cost:        "
+        + ("unknown" if cost is None else f"${float(cost):.6f}")
+    )
     print(f"{'='*70}")
 
 

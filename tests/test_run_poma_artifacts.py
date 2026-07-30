@@ -151,3 +151,52 @@ def test_process_one_emits_prediction_not_predicted_answer(monkeypatch):
 
     assert record["prediction"] == ["Hà Nội"]
     assert "predicted_answer" not in record
+
+
+def test_success_with_unknown_cost_persists_and_prints_unknown(
+    tmp_path,
+    monkeypatch,
+    capsys,
+):
+    """Catch nullable provider cost crashing a successful paid POMA result."""
+    monkeypatch.setattr(run_poma, "_get_table_str", lambda _table: "table")
+    monkeypatch.setattr(run_poma, "_use_agent_hints_enabled", lambda: False)
+    monkeypatch.setattr(
+        run_poma,
+        "run_pipeline",
+        lambda *_args, **_kwargs: {
+            "answer": ["Hà Nội"],
+            "trace": {"steps": {}},
+            "prompt_tokens": 3,
+            "completion_tokens": 2,
+            "total_tokens": 5,
+            "cost_usd": None,
+        },
+    )
+
+    record = run_poma.process_one(
+        {
+            "qa_id": "q1",
+            "table_id": "t1",
+            "question": "Where?",
+            "answer": "Hà Nội",
+        },
+        {"t1": {}},
+    )
+    assert record["cost_usd"] is None
+
+    stats = run_poma._calculate_batch_stats([record])
+    assert stats["total_cost_usd"] is None
+    assert stats["average_cost_usd"] is None
+
+    output_path = tmp_path / "predictions.json"
+    run_poma._save_prediction_output([record], output_path)
+    persisted = json.loads(output_path.read_text(encoding="utf-8"))
+    assert persisted["predictions"][0]["cost_usd"] is None
+
+    run_poma._print_result(record, 1, 1)
+    run_poma._print_summary([record])
+    stdout = capsys.readouterr().out
+    assert "Cost:        unknown" in stdout
+    assert "Total:   unknown" in stdout
+    assert "Average: unknown/question" in stdout

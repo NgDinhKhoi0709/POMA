@@ -224,6 +224,15 @@ def usage_cost_usd(model: str, usage: Dict[str, Any]) -> float:
     )
 
 
+def _has_known_model_pricing(model: str) -> bool:
+    model_lower = model.lower()
+    if "/" in model_lower:
+        _, model_name = model_lower.split("/", 1)
+    else:
+        model_name = model_lower
+    return any(name in model_name for name in MODEL_PRICING)
+
+
 def _openrouter_provider_for_model(
     model_name: str,
     explicit_provider: Optional[Dict[str, Any]] = None,
@@ -519,7 +528,10 @@ class LLMZeroShotClient:
             retry_delay=retry_delay,
         )
         usage = dict(getattr(self._thread_local, "last_usage", None) or {})
-        usage["cost_usd"] = usage_cost_usd(model, usage)
+        if "cost_usd" in usage or "cost" in usage or _has_known_model_pricing(model):
+            usage["cost_usd"] = usage_cost_usd(model, usage)
+        else:
+            usage["cost_usd"] = None
         return text, usage
 
     def shutdown(self) -> None:

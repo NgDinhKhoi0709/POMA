@@ -106,7 +106,10 @@ def test_openrouter_responses_omits_structured_fields_for_plain_text(client, fak
     assert "provider" not in body
 
 
-def test_generate_with_usage_returns_a_copy_of_last_usage(client, fake_post):
+def test_generate_with_usage_returns_unknown_cost_and_a_usage_copy(
+    client,
+    fake_post,
+):
     _, usage = client.generate_with_usage(
         "openrouter/google/gemma-3-4b-it",
         "prompt",
@@ -117,4 +120,32 @@ def test_generate_with_usage_returns_a_copy_of_last_usage(client, fake_post):
 
     usage["prompt_tokens"] = 999
     assert client._thread_local.last_usage["prompt_tokens"] == 2
-    assert "cost_usd" in usage
+    assert usage["cost_usd"] is None
+
+
+def test_generate_with_usage_preserves_provider_reported_cost(client, fake_post):
+    fake_post.return_value.json = Mock(
+        return_value={
+            "output": [
+                {
+                    "type": "message",
+                    "content": [{"type": "output_text", "text": "answer"}],
+                }
+            ],
+            "usage": {
+                "input_tokens": 2,
+                "output_tokens": 3,
+                "cost": "0.00042",
+            },
+        }
+    )
+
+    _, usage = client.generate_with_usage(
+        "openrouter/google/gemma-3-4b-it",
+        "prompt",
+        GenConfig(),
+        max_retries=1,
+        retry_delay=0,
+    )
+
+    assert usage["cost_usd"] == 0.00042

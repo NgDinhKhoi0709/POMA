@@ -76,3 +76,19 @@ def test_openai_chat_completions_omits_response_format_for_plain_text():
     )
 
     assert "response_format" not in completions.kwargs
+
+
+def test_generate_with_usage_calculates_cost_for_known_model():
+    completions = _FakeCompletions()
+    client = LLMZeroShotClient(openai_api_keys=[])
+    client._openai_client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+
+    _, usage = client.generate_with_usage(
+        "openai/gpt-4o-mini",
+        "prompt",
+        GenConfig(),
+        max_retries=1,
+        retry_delay=0,
+    )
+
+    assert usage["cost_usd"] == (2 * 0.15 / 1_000_000) + (3 * 0.60 / 1_000_000)

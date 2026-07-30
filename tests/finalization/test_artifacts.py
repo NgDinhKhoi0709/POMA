@@ -4,6 +4,7 @@ import multiprocessing
 import pytest
 
 from src.finalization.artifacts import (
+    ArtifactError,
     ArtifactRecordError,
     IncrementalArtifactStore,
     ManifestMismatchError,
@@ -102,6 +103,76 @@ def test_sha256_and_configuration_fingerprints_are_canonical_and_stable(tmp_path
         "completion": 0,
         "total": 0,
     }
+
+
+def test_manifest_deep_detaches_and_exposes_immutable_generation_settings(
+    tmp_path,
+):
+    """Catch caller or exported nested mutation invalidating a frozen identity."""
+    caller_settings = {
+        "temperature": 0,
+        "provider": {
+            "only": ["local", "fallback"],
+            "routing": {"allow_fallbacks": False},
+        },
+    }
+    manifest = _manifest(
+        tmp_path,
+        generation_settings=caller_settings,
+    )
+    original_fingerprint = manifest.configuration_fingerprint
+    original_serialized = manifest.to_dict()
+
+    caller_settings["temperature"] = 1
+    caller_settings["provider"]["only"].append("mutated")
+    caller_settings["provider"]["routing"]["allow_fallbacks"] = True
+
+    with pytest.raises(TypeError):
+        manifest.generation_settings["temperature"] = 1
+    with pytest.raises(TypeError):
+        manifest.generation_settings["provider"]["only"][0] = "mutated"
+    with pytest.raises(TypeError):
+        manifest.generation_settings["provider"]["routing"][
+            "allow_fallbacks"
+        ] = True
+
+    exported = manifest.to_dict()
+    exported["generation_settings"]["provider"]["only"].append("export-only")
+
+    assert manifest.configuration_fingerprint == original_fingerprint
+    assert manifest.to_dict() == original_serialized
+    assert json.loads(json.dumps(manifest.to_dict())) == original_serialized
+
+
+@pytest.mark.parametrize("tampered_field", ["model", "generation_settings"])
+def test_resume_rejects_header_with_tampered_serialized_configuration(
+    tmp_path,
+    tampered_field,
+):
+    """Catch a stale stored fingerprint blessing modified configuration."""
+    manifest = _manifest(
+        tmp_path,
+        generation_settings={
+            "temperature": 0,
+            "provider": {"only": ["local"]},
+        },
+    )
+    jsonl_path = tmp_path / "run.jsonl"
+    IncrementalArtifactStore(jsonl_path, manifest)
+    header = json.loads(jsonl_path.read_text(encoding="utf-8"))
+    if tampered_field == "model":
+        header["manifest"]["model"] = "tampered-model"
+    else:
+        header["manifest"]["generation_settings"]["provider"]["only"].append(
+            "tampered-provider"
+        )
+    jsonl_path.write_text(
+        json.dumps(header, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ArtifactError, match="fingerprint"):
+        IncrementalArtifactStore(jsonl_path, manifest)
 
 
 def test_resume_skips_success_and_retries_failure_only_when_explicit(tmp_path):

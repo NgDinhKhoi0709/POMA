@@ -8,7 +8,7 @@ import os
 import tempfile
 import threading
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import dataclass, field, fields as dataclass_fields, replace
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
@@ -27,10 +27,58 @@ class ArtifactRecordError(ArtifactError):
     """An incremental record violates the result contract."""
 
 
+class _FrozenJsonMapping(Mapping[str, Any]):
+    """A recursively immutable mapping that can be thawed to canonical JSON."""
+
+    __slots__ = ("_items",)
+
+    def __init__(self, value: Mapping[str, Any]) -> None:
+        items: list[tuple[str, Any]] = []
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise ArtifactError("JSON object keys must be strings")
+            items.append((key, _freeze_json(item)))
+        self._items = tuple(items)
+
+    def __getitem__(self, key: str) -> Any:
+        for item_key, item in self._items:
+            if item_key == key:
+                return item
+        raise KeyError(key)
+
+    def __iter__(self) -> Iterator[str]:
+        return (key for key, _ in self._items)
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+
+def _freeze_json(value: Any) -> Any:
+    if isinstance(value, _FrozenJsonMapping):
+        return value
+    if isinstance(value, Mapping):
+        return _FrozenJsonMapping(value)
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_json(item) for item in value)
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    raise ArtifactError(
+        f"Value of type {type(value).__name__} is not JSON-compatible"
+    )
+
+
+def _thaw_json(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _thaw_json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_thaw_json(item) for item in value]
+    return value
+
+
 def _canonical_json(value: Any) -> str:
     try:
         return json.dumps(
-            value,
+            _thaw_json(value),
             ensure_ascii=False,
             allow_nan=False,
             separators=(",", ":"),
@@ -65,6 +113,31 @@ def _empty_tokens() -> dict[str, int]:
     return {"prompt": 0, "completion": 0, "total": 0}
 
 
+def _configuration_payload(
+    *,
+    finalizer: str,
+    generation_settings: Mapping[str, Any],
+    git_commit: str,
+    mode: str,
+    model: str,
+    prompt_version: str,
+    provider: str,
+    schema_version: str,
+    source_kind: str,
+) -> dict[str, Any]:
+    return {
+        "finalizer": finalizer,
+        "generation_settings": generation_settings,
+        "git_commit": git_commit,
+        "mode": mode,
+        "model": model,
+        "prompt_version": prompt_version,
+        "provider": provider,
+        "schema_version": schema_version,
+        "source_kind": source_kind,
+    }
+
+
 @dataclass(frozen=True)
 class RunManifest:
     """Identity, configuration, and aggregate telemetry for one run."""
@@ -81,7 +154,7 @@ class RunManifest:
     prompt_version: str
     schema_version: str
     finalizer: str
-    generation_settings: dict[str, Any]
+    generation_settings: Mapping[str, Any]
     configuration_fingerprint: str
     started_at: str
     completed_at: str | None = None
@@ -89,6 +162,31 @@ class RunManifest:
     tokens: dict[str, int] = field(default_factory=_empty_tokens)
     cost_usd: float | None = None
     manifest_version: str = "finalization-run.v1"
+
+    def __post_init__(self) -> None:
+        settings = _freeze_json(self.generation_settings)
+        if not isinstance(settings, _FrozenJsonMapping):
+            raise ArtifactError("generation_settings must be a JSON object")
+        object.__setattr__(self, "generation_settings", settings)
+
+        expected = canonical_sha256(
+            _configuration_payload(
+                finalizer=self.finalizer,
+                generation_settings=settings,
+                git_commit=self.git_commit,
+                mode=self.mode,
+                model=self.model,
+                prompt_version=self.prompt_version,
+                provider=self.provider,
+                schema_version=self.schema_version,
+                source_kind=self.source_kind,
+            )
+        )
+        if self.configuration_fingerprint != expected:
+            raise ArtifactError(
+                "Run manifest configuration fingerprint does not match "
+                "its serialized configuration"
+            )
 
     @classmethod
     def create(
@@ -112,18 +210,20 @@ class RunManifest:
         source_hash = sha256_file(source_path)
         qas_hash = sha256_file(qas_path)
         tables_hash = sha256_file(tables_path)
-        settings = dict(generation_settings)
-        configuration = {
-            "finalizer": finalizer,
-            "generation_settings": settings,
-            "git_commit": git_commit,
-            "mode": mode,
-            "model": model,
-            "prompt_version": prompt_version,
-            "provider": provider,
-            "schema_version": schema_version,
-            "source_kind": source_kind,
-        }
+        settings = _freeze_json(generation_settings)
+        if not isinstance(settings, _FrozenJsonMapping):
+            raise ArtifactError("generation_settings must be a JSON object")
+        configuration = _configuration_payload(
+            finalizer=finalizer,
+            generation_settings=settings,
+            git_commit=git_commit,
+            mode=mode,
+            model=model,
+            prompt_version=prompt_version,
+            provider=provider,
+            schema_version=schema_version,
+            source_kind=source_kind,
+        )
         return cls(
             source_kind=source_kind,
             source_sha256=source_hash,
@@ -161,7 +261,7 @@ class RunManifest:
                 prompt_version=value["prompt_version"],
                 schema_version=value["schema_version"],
                 finalizer=value["finalizer"],
-                generation_settings=dict(value["generation_settings"]),
+                generation_settings=value["generation_settings"],
                 configuration_fingerprint=value["configuration_fingerprint"],
                 started_at=value["started_at"],
                 completed_at=value.get("completed_at"),
@@ -178,7 +278,10 @@ class RunManifest:
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize every manifest field without dropping unknown cost."""
-        return asdict(self)
+        return {
+            item.name: _thaw_json(getattr(self, item.name))
+            for item in dataclass_fields(self)
+        }
 
 
 _THREAD_LOCKS: dict[str, threading.RLock] = {}

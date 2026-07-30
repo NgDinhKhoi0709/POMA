@@ -200,6 +200,79 @@ def test_terminal_generation_failure_is_recorded_scored_and_returns_nonzero(
     assert report["metrics"]["f1"]["count"] == 2
 
 
+@pytest.mark.parametrize(
+    ("exception_message", "redacted_message", "secret"),
+    [
+        (
+            "provider rejected request\n"
+            "Authorization: Bearer sk-live-secret\n"
+            "request_id=req-1",
+            "provider rejected request\n"
+            "Authorization: [REDACTED]\n"
+            "request_id=req-1",
+            "sk-live-secret",
+        ),
+        (
+            "before Authorization:\tBasic dXNlcjpwYXNz after",
+            "before Authorization:\t[REDACTED] after",
+            "dXNlcjpwYXNz",
+        ),
+        (
+            "HTTP 401; aUtHoRiZaTiOn = raw-token-987; "
+            "provider=openrouter",
+            "HTTP 401; aUtHoRiZaTiOn = [REDACTED]; "
+            "provider=openrouter",
+            "raw-token-987",
+        ),
+    ],
+    ids=["bearer-multiline", "basic-inline", "raw-inline"],
+)
+def test_persisted_failure_redacts_entire_authorization_value(
+    tmp_path: Path,
+    monkeypatch,
+    exception_message: str,
+    redacted_message: str,
+    secret: str,
+) -> None:
+    """Catch authorization schemes being redacted while their tokens leak."""
+    from baseline.llm_client import GenConfig
+    from baseline.run import process_one_qa
+
+    representation = ModuleType("preprocessing.representation")
+    representation.create_representation = lambda table: SimpleNamespace(
+        to_string=lambda: table["table_str"]
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "preprocessing.representation",
+        representation,
+    )
+
+    class _FailingClient:
+        def generate_with_usage(self, *_args, **_kwargs):
+            raise RuntimeError(exception_message)
+
+    output_path = tmp_path / "failed.jsonl"
+    process_one_qa(
+        {
+            "qa_id": "q-secret",
+            "table_id": "t1",
+            "question": "Which city?",
+        },
+        {"t1": {"table_str": "City <header>|Hanoi"}},
+        ["openai/test-model"],
+        {"openai/test-model": output_path},
+        _FailingClient(),
+        GenConfig(),
+        sleep_s=0.0,
+    )
+
+    serialized = output_path.read_text(encoding="utf-8")
+    record = json.loads(serialized)
+    assert record["error"]["message"] == redacted_message
+    assert secret not in serialized
+
+
 def test_interrupt_does_not_start_qas_beyond_worker_bound(
     tmp_path: Path,
     monkeypatch,

@@ -37,6 +37,11 @@ SCHEMA_BY_PROMPT_STYLE = {
     "task_decomposition": "baseline_task_decomposition.v1",
 }
 
+_AUTHORIZATION_PATTERN = re.compile(
+    r"(?i)(\bauthorization[ \t]*[:=][ \t]*)"
+    r"(?:(?:bearer|basic)[ \t]+)?"
+    r"[^ \t\r\n,;]+"
+)
 _SECRET_PATTERN = re.compile(
     r"(?i)\b(api[_-]?key|authorization|bearer)"
     r"(\s*[:=]\s*|\s+)([^\s,;]+)"
@@ -110,6 +115,7 @@ def _append_jsonl_record(path: Path, record: Dict[str, Any]) -> None:
 
 def _safe_error_message(exc: Exception) -> str:
     message = str(exc).strip() or type(exc).__name__
+    message = _AUTHORIZATION_PATTERN.sub(r"\1[REDACTED]", message)
     message = _SECRET_PATTERN.sub(r"\1\2[REDACTED]", message)
     for key, value in os.environ.items():
         upper_key = key.upper()

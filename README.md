@@ -161,6 +161,73 @@ needed by the full paper pipeline. Consequently, its adapter always records
 must not be reported as full Chain-of-Query results. See
 [`baselines/README.md`](baselines/README.md) for details.
 
+## Offline answer finalization
+
+The offline finalizer reads saved raw candidates and applies one answer policy
+without exposing dataset gold answers to the finalizer. Run GSA over POMA
+specialist traces:
+
+```powershell
+python scripts/run_finalizer.py `
+  --source outputs/poma/qwen3-8b-test-traces.json `
+  --source-kind poma-specialists `
+  --finalizer gsa `
+  --qas dataset/qas_test.json `
+  --tables dataset/table.json `
+  --model openrouter/qwen/qwen3-8b `
+  --provider openrouter `
+  --output outputs/finalization/poma-gsa.json
+```
+
+Run GSA over a direct-baseline raw prediction:
+
+```powershell
+python scripts/run_finalizer.py `
+  --source outputs/baseline/qwen3-8b-zero-shot.json `
+  --source-kind direct-baseline `
+  --finalizer gsa `
+  --qas dataset/qas_test.json `
+  --tables dataset/table.json `
+  --model openrouter/qwen/qwen3-8b `
+  --provider openrouter `
+  --output outputs/finalization/baseline-gsa.json
+```
+
+Apply common Answer Normalization without POMA-only metadata:
+
+```powershell
+python scripts/run_finalizer.py `
+  --source outputs/baseline/qwen3-8b-zero-shot.json `
+  --source-kind direct-baseline `
+  --finalizer an-common `
+  --qas dataset/qas_test.json `
+  --tables dataset/table.json `
+  --model openrouter/qwen/qwen3-8b `
+  --provider openrouter `
+  --output outputs/finalization/baseline-an-common.json
+```
+
+Apply POMA's native Answer Normalization policy to specialist candidates:
+
+```powershell
+python scripts/run_finalizer.py `
+  --source outputs/poma/qwen3-8b-test-traces.json `
+  --source-kind poma-specialists `
+  --finalizer an-native `
+  --qas dataset/qas_test.json `
+  --tables dataset/table.json `
+  --model openrouter/qwen/qwen3-8b `
+  --provider openrouter `
+  --output outputs/finalization/poma-an-native.json
+```
+
+Each run appends durable records to a sibling `.jsonl` file and materializes
+the requested readable JSON file after all selected QAs have an outcome. Add
+`--resume` after an interruption. Resume is accepted only when the existing
+output manifest, source fingerprint, dataset fingerprint, and configuration
+fingerprint match the requested run. Prior failures remain final unless
+`--retry-failed` is explicitly supplied together with `--resume`.
+
 ## Evaluation
 
 POMA evaluates candidate answer lists against the reference answer and selects the best matching candidate. The default metrics are F1, Exact Match, ROUGE-1, and METEOR.

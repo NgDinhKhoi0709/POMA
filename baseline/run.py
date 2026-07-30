@@ -4,6 +4,8 @@ import concurrent.futures
 from dataclasses import replace
 import json
 import math
+import os
+import re
 import sys
 import threading
 import time
@@ -34,6 +36,11 @@ SCHEMA_BY_PROMPT_STYLE = {
     "cot": "baseline_cot.v1",
     "task_decomposition": "baseline_task_decomposition.v1",
 }
+
+_SECRET_PATTERN = re.compile(
+    r"(?i)\b(api[_-]?key|authorization|bearer)"
+    r"(\s*[:=]\s*|\s+)([^\s,;]+)"
+)
 
 
 def _ensure_dir(p: Path) -> None:
@@ -99,6 +106,19 @@ def _append_jsonl_record(path: Path, record: Dict[str, Any]) -> None:
     with _FILE_LOCK:
         with path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _safe_error_message(exc: Exception) -> str:
+    message = str(exc).strip() or type(exc).__name__
+    message = _SECRET_PATTERN.sub(r"\1\2[REDACTED]", message)
+    for key, value in os.environ.items():
+        upper_key = key.upper()
+        if value and (
+            "API_KEY" in upper_key
+            or upper_key.startswith("GPT_API_KEY")
+        ):
+            message = message.replace(value, "[REDACTED]")
+    return message
 
 
 def _load_jsonl_records(path: Path) -> List[Dict[str, Any]]:
@@ -278,16 +298,41 @@ def process_one_qa(
                 retry_delay=15,
             )
 
-        result = StructuredGenerator(generate_once).generate(
-            prompt_text,
-            schema,
-            CallContext(
-                qa_id=qa_id,
-                agent_name="DirectPromptBaseline",
-                prompt_name=ps,
-                model=model,
-            ),
-        )
+        try:
+            result = StructuredGenerator(generate_once).generate(
+                prompt_text,
+                schema,
+                CallContext(
+                    qa_id=qa_id,
+                    agent_name="DirectPromptBaseline",
+                    prompt_name=ps,
+                    model=model,
+                ),
+            )
+        except Exception as exc:
+            elapsed_s = round(time.time() - started_at, 2)
+            _append_jsonl_record(
+                outputs[model],
+                {
+                    "qa_id": qa_id,
+                    "table_id": table_id,
+                    "question": question,
+                    "groundtruth": (
+                        "" if groundtruth is None else groundtruth
+                    ),
+                    "schema_name": schema_name,
+                    "prompt_version": prompt_version,
+                    "prompt_style": ps,
+                    "elapsed_s": elapsed_s,
+                    "error": {
+                        "type": type(exc).__name__,
+                        "message": _safe_error_message(exc),
+                    },
+                },
+            )
+            if sleep_s > 0:
+                time.sleep(float(sleep_s))
+            continue
         elapsed_s = round(time.time() - started_at, 2)
         rec = {
             "qa_id": qa_id,
@@ -386,37 +431,70 @@ def run_batch_zeroshot(
         if tqdm is not None:
             pbar = tqdm(total=len(qas), desc="LLM-ZeroShot", unit="qa")
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(
-                    process_one_qa,
-                    qa,
-                    table_idx,
-                    models,
-                    outputs,
-                    client,
-                    cfg,
-                    sleep_s,
-                    ps,
-                ): qa
-                for qa in qas
-            }
-            processed_count = 0
-            for future in concurrent.futures.as_completed(futures):
-                processed_count += 1
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=max_workers
+        )
+        in_flight: set[concurrent.futures.Future[str]] = set()
+        qa_iter = iter(qas)
+
+        def fill_available_slots() -> None:
+            while len(in_flight) < max_workers:
                 try:
-                    qa_id = future.result()
-                    if pbar is not None:
-                        pbar.set_postfix_str(f"qa_id={qa_id}")
-                        pbar.update(1)
-                    elif processed_count % 5 == 0 or processed_count == len(qas):
-                        print(f"[{processed_count}/{len(qas)}] processed qa_id={qa_id}")
-                except Exception as e:
-                    if pbar is not None:
-                        tqdm.write(f"QA Failed: {e!r}")
-                        pbar.update(1)
-                    else:
-                        print(f"QA Failed: {e!r}")
+                    qa = next(qa_iter)
+                except StopIteration:
+                    return
+                in_flight.add(
+                    executor.submit(
+                        process_one_qa,
+                        qa,
+                        table_idx,
+                        models,
+                        outputs,
+                        client,
+                        cfg,
+                        sleep_s,
+                        ps,
+                    )
+                )
+
+        try:
+            fill_available_slots()
+            processed_count = 0
+            while in_flight:
+                completed, _ = concurrent.futures.wait(
+                    in_flight,
+                    return_when=concurrent.futures.FIRST_COMPLETED,
+                )
+                in_flight.difference_update(completed)
+                for future in completed:
+                    processed_count += 1
+                    try:
+                        qa_id = future.result()
+                        if pbar is not None:
+                            pbar.set_postfix_str(f"qa_id={qa_id}")
+                            pbar.update(1)
+                        elif (
+                            processed_count % 5 == 0
+                            or processed_count == len(qas)
+                        ):
+                            print(
+                                f"[{processed_count}/{len(qas)}] "
+                                f"processed qa_id={qa_id}"
+                            )
+                    except Exception as e:
+                        if pbar is not None:
+                            tqdm.write(f"QA Failed: {e!r}")
+                            pbar.update(1)
+                        else:
+                            print(f"QA Failed: {e!r}")
+                fill_available_slots()
+        except BaseException:
+            for future in in_flight:
+                future.cancel()
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            executor.shutdown(wait=True)
 
         for _, jsonl_path in outputs.items():
             try:

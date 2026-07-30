@@ -25,6 +25,24 @@ class _DirectBaselineClient:
         )
 
 
+class _PartiallyFailingDirectBaselineClient:
+    def generate_with_usage(self, _model, prompt, _config, **_kwargs):
+        if "Question that fails" in prompt:
+            raise RuntimeError("terminal structured generation failure")
+        return (
+            '{"final_answer": "Hanoi"}',
+            {
+                "prompt_tokens": 10,
+                "completion_tokens": 2,
+                "total_tokens": 12,
+                "cost_usd": None,
+            },
+        )
+
+    def shutdown(self):
+        return None
+
+
 def test_direct_baseline_writes_canonical_structured_record(
     tmp_path: Path,
     monkeypatch,
@@ -76,6 +94,159 @@ def test_direct_baseline_skip_existing_uses_qa_id(tmp_path: Path) -> None:
     )
 
     assert _load_existing_qa_ids(output_path) == {"q1"}
+
+
+def test_terminal_generation_failure_is_recorded_scored_and_returns_nonzero(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Catch paid generation failures being printed, dropped, and scored on a subset."""
+    import run_baseline
+    from baseline import run as baseline_run
+    from evaluation.run import evaluate_files
+
+    qas_path = tmp_path / "qas.json"
+    qas_path.write_text(
+        json.dumps(
+            {
+                "qas": [
+                    {
+                        "qa_id": "q1",
+                        "table_id": "t1",
+                        "question": "Question that succeeds",
+                        "answer": "Hanoi",
+                    },
+                    {
+                        "qa_id": "q2",
+                        "table_id": "t2",
+                        "question": "Question that fails",
+                        "answer": "Hue",
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    tables_path = tmp_path / "tables.json"
+    tables_path.write_text(
+        json.dumps(
+            {
+                "table": [
+                    {
+                        "table_id": "t1",
+                        "table_html": (
+                            "<table><tr><th>City</th></tr>"
+                            "<tr><td>Hanoi</td></tr></table>"
+                        ),
+                    },
+                    {
+                        "table_id": "t2",
+                        "table_html": (
+                            "<table><tr><th>City</th></tr>"
+                            "<tr><td>Hue</td></tr></table>"
+                        ),
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        baseline_run,
+        "LLMZeroShotClient",
+        _PartiallyFailingDirectBaselineClient,
+    )
+    output_dir = tmp_path / "outputs"
+
+    exit_code = run_baseline.main(
+        [
+            "--qas",
+            str(qas_path),
+            "--tables",
+            str(tables_path),
+            "--models",
+            "openai/test-model",
+            "--output_dir",
+            str(output_dir),
+            "--id",
+            "failure-integration",
+            "--max_workers",
+            "1",
+            "--no-eval",
+        ]
+    )
+
+    output_path = output_dir / "failure-integration/openai_test-model.jsonl"
+    records = [
+        json.loads(line)
+        for line in output_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert exit_code == 1
+    assert [record["qa_id"] for record in records] == ["q1", "q2"]
+    assert records[1]["error"] == {
+        "type": "RuntimeError",
+        "message": "terminal structured generation failure",
+    }
+    assert "prediction" not in records[1]
+    assert records[1]["prompt_style"] == "zero_shot"
+
+    report = evaluate_files(output_path, qas_path, metrics=["f1"])
+    assert report["coverage"] == {
+        "evaluated_ids": ["q1", "q2"],
+        "missing_predictions": [],
+        "extra_predictions": [],
+    }
+    assert report["metrics"]["f1"]["count"] == 2
+
+
+def test_interrupt_does_not_start_qas_beyond_worker_bound(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Catch eager submission and waiting shutdown starting late paid calls."""
+    from baseline import run as baseline_run
+
+    qas = [
+        {
+            "qa_id": f"q{index}",
+            "table_id": "t1",
+            "question": f"Question {index}",
+        }
+        for index in range(1, 7)
+    ]
+    started: list[str] = []
+
+    def fake_process_one_qa(qa, *_args, **_kwargs):
+        qa_id = qa["qa_id"]
+        started.append(qa_id)
+        if qa_id == "q1":
+            raise KeyboardInterrupt("stop paid baseline run")
+        return qa_id
+
+    class _Client:
+        def shutdown(self):
+            return None
+
+    monkeypatch.setattr(
+        baseline_run,
+        "load_dataset_pair",
+        lambda *_args: (qas, {"t1": {}}),
+    )
+    monkeypatch.setattr(baseline_run, "process_one_qa", fake_process_one_qa)
+    monkeypatch.setattr(baseline_run, "LLMZeroShotClient", _Client)
+    monkeypatch.setattr(baseline_run, "tqdm", None)
+
+    with pytest.raises(KeyboardInterrupt, match="stop paid baseline run"):
+        baseline_run.run_batch_zeroshot(
+            qas_path=tmp_path / "qas.json",
+            tables_path=tmp_path / "tables.json",
+            models=["openai/test-model"],
+            output_dir=tmp_path / "outputs",
+            max_workers=1,
+        )
+
+    assert started == ["q1"]
 
 
 def test_cli_defaults_to_gpt4o_mini_and_one_worker() -> None:

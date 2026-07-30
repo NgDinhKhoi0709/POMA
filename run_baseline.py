@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 import json
 from pathlib import Path
 import sys
@@ -143,14 +144,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     try:
         from dotenv import load_dotenv
         load_dotenv(override=False)
     except Exception:
         pass
 
-    args = build_arg_parser().parse_args()
+    args = build_arg_parser().parse_args(argv)
 
     cfg = GenConfig(
         temperature=args.temperature,
@@ -176,9 +177,16 @@ def main() -> int:
 
     print('')
     print('Wrote outputs:')
+    total_failures = 0
     for m, p in outputs.items():
         jsonl_path = Path(p)
         evaluation = None
+        predictions = load_json_records(jsonl_path)
+        failure_count = sum(
+            isinstance(record, dict) and "error" in record
+            for record in predictions
+        )
+        total_failures += failure_count
         if args.auto_evaluate:
             metrics_list = None
             if args.eval_metrics:
@@ -189,7 +197,6 @@ def main() -> int:
                 metrics=metrics_list,
                 fail_on_metric_error=args.fail_on_metric_error,
             )
-            predictions = load_json_records(jsonl_path)
             payload: dict = {"predictions": predictions, "evaluation": evaluation}
             payload['stats'] = _calculate_batch_stats(predictions)
             
@@ -202,8 +209,10 @@ def main() -> int:
         
         print(f'  {m}: {jsonl_path}')
         print(f'      {jsonl_path.with_suffix(".json")}')
+        if failure_count:
+            print(f'      failures: {failure_count}')
         
-    return 0
+    return 1 if total_failures else 0
 
 
 if __name__ == '__main__':

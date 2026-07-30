@@ -5,6 +5,7 @@ import pytest
 from src.config.settings import LLMConfig
 from src.contracts import schema_for_call
 from src.services.llm_client import LLMClient
+from src.services.structured_generation import StructuredGenerationError
 
 
 class _StructuredLowLevelClient:
@@ -17,6 +18,21 @@ class _StructuredLowLevelClient:
     def generate_with_usage(self, model, prompt, config, **kwargs):
         self.calls.append((model, prompt, config, kwargs))
         return self.response, dict(self.usage)
+
+
+class _SequenceStructuredLowLevelClient:
+    def __init__(self, outcomes):
+        self._outcomes = list(outcomes)
+        self.calls = []
+        self._thread_local = SimpleNamespace(last_usage=None)
+
+    def generate_with_usage(self, model, prompt, config, **kwargs):
+        self.calls.append((model, prompt, config, kwargs))
+        outcome = self._outcomes.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        raw, usage = outcome
+        return raw, dict(usage)
 
 
 def _client_with(low_level_client):
@@ -57,6 +73,146 @@ def test_generate_structured_delegates_and_records_schema_telemetry():
     assert call_log["completion_tokens"] == 3
     assert call_log["total_tokens"] == 5
     assert call_log["cost_usd"] == 0.25
+    assert client.total_prompt_tokens == 2
+    assert client.total_completion_tokens == 3
+    assert client.total_total_tokens == 5
+    assert client.total_cost_usd == 0.25
+
+
+def test_generate_structured_repair_success_accounts_for_both_attempts_once():
+    client = _client_with(
+        _SequenceStructuredLowLevelClient(
+            [
+                (
+                    "not json",
+                    {
+                        "prompt_tokens": 2,
+                        "completion_tokens": 3,
+                        "total_tokens": 5,
+                        "cost_usd": 0.10,
+                    },
+                ),
+                (
+                    '{"predicted_hints": ["What"]}',
+                    {
+                        "prompt_tokens": 4,
+                        "completion_tokens": 5,
+                        "total_tokens": 9,
+                        "cost_usd": 0.20,
+                    },
+                ),
+            ]
+        )
+    )
+
+    result = client.generate_structured(
+        "prompt",
+        schema=schema_for_call("hint_predictor.v1"),
+    )
+
+    assert result.repair_succeeded is True
+    assert client.total_prompt_tokens == 6
+    assert client.total_completion_tokens == 8
+    assert client.total_total_tokens == 14
+    assert client.total_cost_usd == pytest.approx(0.30)
+    log = client.get_call_logs()[0]
+    assert log["schema_valid"] is False
+    assert log["repair_attempted"] is True
+    assert log["repair_succeeded"] is True
+    assert (log["prompt_tokens"], log["completion_tokens"], log["total_tokens"]) == (
+        6,
+        8,
+        14,
+    )
+    assert log["cost_usd"] == pytest.approx(0.30)
+
+
+def test_generate_structured_terminal_repair_failure_records_consumed_attempts():
+    client = _client_with(
+        _SequenceStructuredLowLevelClient(
+            [
+                (
+                    "not json",
+                    {
+                        "prompt_tokens": 2,
+                        "completion_tokens": 3,
+                        "total_tokens": 5,
+                        "cost_usd": 0.10,
+                    },
+                ),
+                (
+                    "still not json",
+                    {
+                        "prompt_tokens": 4,
+                        "completion_tokens": 5,
+                        "total_tokens": 9,
+                        "cost_usd": 0.20,
+                    },
+                ),
+            ]
+        )
+    )
+
+    with pytest.raises(StructuredGenerationError, match="repair"):
+        client.generate_structured(
+            "prompt",
+            schema=schema_for_call("hint_predictor.v1"),
+        )
+
+    assert client.total_prompt_tokens == 6
+    assert client.total_completion_tokens == 8
+    assert client.total_total_tokens == 14
+    assert client.total_cost_usd == pytest.approx(0.30)
+    log = client.get_call_logs()[0]
+    assert log["schema_valid"] is False
+    assert log["repair_attempted"] is True
+    assert log["repair_succeeded"] is False
+    assert (log["prompt_tokens"], log["completion_tokens"], log["total_tokens"]) == (
+        6,
+        8,
+        14,
+    )
+    assert log["cost_usd"] == pytest.approx(0.30)
+
+
+def test_generate_structured_provider_failure_during_repair_records_first_attempt():
+    client = _client_with(
+        _SequenceStructuredLowLevelClient(
+            [
+                (
+                    "not json",
+                    {
+                        "prompt_tokens": 2,
+                        "completion_tokens": 3,
+                        "total_tokens": 5,
+                        "cost_usd": None,
+                    },
+                ),
+                RuntimeError("provider unavailable"),
+            ]
+        )
+    )
+
+    with pytest.raises(RuntimeError, match="provider unavailable"):
+        client.generate_structured(
+            "prompt",
+            schema=schema_for_call("hint_predictor.v1"),
+        )
+
+    assert client.total_prompt_tokens == 2
+    assert client.total_completion_tokens == 3
+    assert client.total_total_tokens == 5
+    assert client.total_cost_usd is None
+    log = client.get_call_logs()[0]
+    assert log["schema_valid"] is False
+    assert log["repair_attempted"] is True
+    assert log["repair_succeeded"] is False
+    assert (log["prompt_tokens"], log["completion_tokens"], log["total_tokens"]) == (
+        2,
+        3,
+        5,
+    )
+    assert log["cost_usd"] is None
 
 
 def test_generate_json_requires_schema_and_delegates_to_structured_generation():

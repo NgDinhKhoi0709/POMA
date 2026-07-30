@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import re
 import threading
 from datetime import datetime
@@ -22,7 +23,6 @@ from src.contracts import (
     StructuredResult,
 )
 from src.services.structured_generation import (
-    StructuredGenerationError,
     StructuredGenerator,
     resolve_output_mode,
 )
@@ -356,6 +356,47 @@ def _usage_cost_usd(model: str, usage: Dict[str, Any]) -> float:
     return calculate_call_cost(model, usage["prompt_tokens"], usage["completion_tokens"])
 
 
+def _structured_usage_cost(usage: Dict[str, Any]) -> Optional[float]:
+    for field in ("cost_usd", "cost"):
+        value = usage.get(field)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        cost = float(value)
+        if math.isfinite(cost) and cost >= 0:
+            return cost
+    return None
+
+
+def _structured_usage_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _structured_usage_total(
+    usages: List[Dict[str, Any]],
+) -> tuple[int, int, int, Optional[float]]:
+    prompt_tokens = sum(
+        _structured_usage_int(usage.get("prompt_tokens")) for usage in usages
+    )
+    completion_tokens = sum(
+        _structured_usage_int(usage.get("completion_tokens")) for usage in usages
+    )
+    total_tokens = sum(
+        _structured_usage_int(
+            usage.get("total_tokens"),
+            default=_structured_usage_int(usage.get("prompt_tokens"))
+            + _structured_usage_int(usage.get("completion_tokens")),
+        )
+        for usage in usages
+    )
+    costs = [_structured_usage_cost(usage) for usage in usages]
+    if any(cost is None for cost in costs):
+        return prompt_tokens, completion_tokens, total_tokens, None
+    return prompt_tokens, completion_tokens, total_tokens, sum(costs)
+
+
 class LLMClient:
     """Agent-facing LLM interface.
 
@@ -372,7 +413,7 @@ class LLMClient:
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
         self.total_total_tokens = 0
-        self.total_cost_usd = 0.0
+        self.total_cost_usd: Optional[float] = 0.0
 
     def set_qa_id(self, qa_id: Optional[str]) -> None:
         if qa_id is None:
@@ -401,7 +442,23 @@ class LLMClient:
         self.total_prompt_tokens += usage["prompt_tokens"]
         self.total_completion_tokens += usage["completion_tokens"]
         self.total_total_tokens += usage["total_tokens"]
-        self.total_cost_usd += cost_usd
+        if self.total_cost_usd is not None:
+            self.total_cost_usd += cost_usd
+
+    def _record_structured_totals(
+        self,
+        prompt_tokens: int,
+        completion_tokens: int,
+        total_tokens: int,
+        cost_usd: Optional[float],
+    ) -> None:
+        self.total_prompt_tokens += prompt_tokens
+        self.total_completion_tokens += completion_tokens
+        self.total_total_tokens += total_tokens
+        if cost_usd is None:
+            self.total_cost_usd = None
+        elif self.total_cost_usd is not None:
+            self.total_cost_usd += cost_usd
 
     def _record_call(self, payload: Dict[str, Any]) -> None:
         with self._call_logs_lock:
@@ -481,11 +538,37 @@ class LLMClient:
             model=self._cfg.model,
         )
         mode = resolve_output_mode(self._cfg.model)
-        generator = StructuredGenerator(self._generate_raw_text)
+        attempt_usages: List[Dict[str, Any]] = []
+        attempts_started = 0
+
+        def generate_once(
+            request_prompt: str,
+            text_format: Dict[str, Any],
+        ) -> tuple[str, Dict[str, Any]]:
+            nonlocal attempts_started
+            attempts_started += 1
+            raw_response, usage = self._generate_raw_text(
+                request_prompt,
+                text_format,
+            )
+            attempt_usages.append(usage)
+            return raw_response, usage
+
+        generator = StructuredGenerator(generate_once)
 
         try:
             result = generator.generate(prompt, schema, context)
         except Exception as exc:
+            prompt_tokens, completion_tokens, total_tokens, cost_usd = (
+                _structured_usage_total(attempt_usages)
+            )
+            if attempt_usages:
+                self._record_structured_totals(
+                    prompt_tokens,
+                    completion_tokens,
+                    total_tokens,
+                    cost_usd,
+                )
             self._record_call(
                 {
                     "agent_name": context.agent_name,
@@ -495,19 +578,24 @@ class LLMClient:
                     "prompt_preview": _preview_prompt(prompt),
                     "schema_name": schema.name,
                     "schema_valid": False,
-                    "repair_attempted": isinstance(exc, StructuredGenerationError),
+                    "repair_attempted": attempts_started > 1,
                     "repair_succeeded": False,
                     "mode": mode.value,
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": total_tokens,
+                    "cost_usd": cost_usd,
                     "error": str(exc),
                 }
             )
             raise
 
-        self.total_prompt_tokens += result.prompt_tokens
-        self.total_completion_tokens += result.completion_tokens
-        self.total_total_tokens += result.total_tokens
-        if result.cost_usd is not None:
-            self.total_cost_usd += result.cost_usd
+        self._record_structured_totals(
+            result.prompt_tokens,
+            result.completion_tokens,
+            result.total_tokens,
+            result.cost_usd,
+        )
 
         _dump_raw_response(
             result.raw_response,

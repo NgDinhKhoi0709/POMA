@@ -59,18 +59,23 @@ function Assert-ImmutablePaths {
     }
 }
 
-if ($PreflightLimit -le 0) {
-    throw 'PreflightLimit must be positive.'
+if (
+    $Phase -eq 'Preflight' -and
+    ($PreflightLimit -lt 1 -or $PreflightLimit -gt 5)
+) {
+    throw 'PreflightLimit must be between 1 and 5.'
 }
 
 $datasetQas = 'dataset/qas_test.json'
 $tables = 'dataset/table.json'
 $limit = 992
 $qas = $datasetQas
+$artifactPhase = 'full'
 
 if ($Phase -eq 'Preflight') {
     $limit = $PreflightLimit
-    $qas = Join-Path $OutputRoot 'preflight/qas_limit_5.json'
+    $artifactPhase = 'preflight'
+    $qas = Join-Path $OutputRoot "preflight/qas_limit_$limit.json"
 }
 
 if ($Phase -ne 'DryRun') {
@@ -89,9 +94,10 @@ if ($Phase -eq 'Preflight') {
 
 foreach ($model in $models) {
     $backboneRoot = Join-Path $OutputRoot $model.Slug
-    $rawRoot = Join-Path $backboneRoot 'raw'
-    $finalRoot = Join-Path $backboneRoot 'finalized'
-    $reportsRoot = Join-Path $backboneRoot 'reports'
+    $phaseRoot = Join-Path $backboneRoot $artifactPhase
+    $rawRoot = Join-Path $phaseRoot 'raw'
+    $finalRoot = Join-Path $phaseRoot 'finalized'
+    $reportsRoot = Join-Path $phaseRoot 'reports'
 
     foreach ($generator in $directGenerators) {
         $rawDirectory = Join-Path $rawRoot $generator.Name

@@ -243,8 +243,9 @@ Execution gates, in order:
 2. Run `-Phase Preflight`, then inspect its trace and manifest.
 3. Require 100% schema validity after at most one repair for the preflight.
 4. Obtain explicit approval before `-Phase Full`; it is the only phase that uses all 992 questions.
-5. Do not mix historical and new artifacts: retain each raw source under its
-   per-backbone `raw` directory and write each finalizer result only under its
+5. Do not mix historical and new artifacts: preflight and full runs use
+   separate per-backbone phase directories. Retain each raw source under that
+   phase's `raw` directory and write each finalizer result only under its
    sibling `finalized` directory.
 
 For example, a five-question capability preflight is:

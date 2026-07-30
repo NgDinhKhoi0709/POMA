@@ -8,7 +8,10 @@ from typing import Any, Literal
 
 from preprocessing.representation import create_representation
 from src.contracts.finalization import AnswerCandidate
-from src.finalization.finalizers import FinalizationRequest
+from src.finalization.finalizers import (
+    FinalizationRequest,
+    FinalizationSourceFailure,
+)
 
 
 class FinalizationInputError(ValueError):
@@ -18,7 +21,28 @@ class FinalizationInputError(ValueError):
 def _load_json(path: Path, label: str) -> Any:
     try:
         with path.open("r", encoding="utf-8") as handle:
+            if path.suffix.lower() == ".jsonl":
+                records: list[dict[str, Any]] = []
+                for line_number, line in enumerate(handle, start=1):
+                    if not line.strip():
+                        continue
+                    try:
+                        value = json.loads(line)
+                    except json.JSONDecodeError as exc:
+                        raise FinalizationInputError(
+                            f"Cannot load {label} JSONL from {path}: "
+                            f"line {line_number} is invalid JSON"
+                        ) from exc
+                    if not isinstance(value, dict):
+                        raise FinalizationInputError(
+                            f"Cannot load {label} JSONL from {path}: "
+                            f"line {line_number} is not an object"
+                        )
+                    records.append(value)
+                return records
             return json.load(handle)
+    except FinalizationInputError:
+        raise
     except (OSError, json.JSONDecodeError) as exc:
         raise FinalizationInputError(
             f"Cannot load {label} JSON from {path}: {exc}"
@@ -120,6 +144,81 @@ def _poma_candidates(record: dict[str, Any], qa_id: str) -> list[AnswerCandidate
     return candidates
 
 
+def _poma_native_context(
+    record: dict[str, Any],
+    qa_id: str,
+) -> tuple[str, str | None]:
+    steps = record.get("steps")
+    refiner = (
+        steps.get("1_question_refiner")
+        if isinstance(steps, dict)
+        else None
+    )
+    if not isinstance(refiner, dict):
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} has no steps.1_question_refiner object"
+        )
+
+    normalized_question = refiner.get("normalized_question")
+    if (
+        not isinstance(normalized_question, str)
+        or not normalized_question.strip()
+    ):
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} has no non-empty "
+            "steps.1_question_refiner.normalized_question"
+        )
+    if "target" not in refiner:
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} is missing "
+            "steps.1_question_refiner.target"
+        )
+    target = refiner["target"]
+    if target is not None and (
+        not isinstance(target, str) or not target.strip()
+    ):
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} steps.1_question_refiner.target "
+            "must be null or a non-empty string"
+        )
+    return (
+        normalized_question.strip(),
+        target.strip() if isinstance(target, str) else None,
+    )
+
+
+def _baseline_source_failure(
+    record: dict[str, Any],
+    qa_id: str,
+) -> FinalizationSourceFailure | None:
+    if "error" not in record:
+        return None
+    if "prediction" in record:
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} direct baseline must contain exactly one "
+            "of prediction or error"
+        )
+    error = record["error"]
+    if not isinstance(error, dict):
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} direct baseline error must be an object"
+        )
+    error_type = error.get("type")
+    message = error.get("message")
+    if not isinstance(error_type, str) or not error_type.strip():
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} direct baseline error.type must be non-empty"
+        )
+    if not isinstance(message, str) or not message.strip():
+        raise FinalizationInputError(
+            f"qa_id={qa_id!r} direct baseline error.message must be non-empty"
+        )
+    return FinalizationSourceFailure(
+        error_type=error_type.strip(),
+        message=message.strip(),
+    )
+
+
 def _baseline_candidates(
     record: dict[str, Any],
     qa_id: str,
@@ -214,10 +313,22 @@ def load_finalization_requests(
             raise FinalizationInputError(
                 f"qa_id={qa_id!r} source table_id does not match the dataset"
             )
+        native_question: str | None = None
+        native_target: str | None = None
+        source_failure: FinalizationSourceFailure | None = None
         if source_kind == "poma-specialists":
             candidates = _poma_candidates(source, qa_id)
+            native_question, native_target = _poma_native_context(
+                source,
+                qa_id,
+            )
         else:
-            candidates = _baseline_candidates(source, qa_id)
+            source_failure = _baseline_source_failure(source, qa_id)
+            candidates = (
+                []
+                if source_failure is not None
+                else _baseline_candidates(source, qa_id)
+            )
 
         requests.append(
             FinalizationRequest(
@@ -226,7 +337,9 @@ def load_finalization_requests(
                 question=question,
                 table_flattened=flattened,
                 candidates=candidates,
-                native_target=None,
+                native_question=native_question,
+                native_target=native_target,
+                source_failure=source_failure,
             )
         )
     return requests

@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Callable, Iterator, Sequence
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
@@ -527,20 +527,62 @@ def main(
     requests_by_id = {request.qa_id: request for request in requests}
     factory = llm_factory or LLMClient
 
+    paid_ids: list[str] = []
+    for qa_id in pending_ids:
+        request = requests_by_id[qa_id]
+        if request.source_failure is None:
+            paid_ids.append(qa_id)
+            continue
+        store.append(
+            failure_record(
+                qa_id=request.qa_id,
+                table_id=request.table_id,
+                error_type=request.source_failure.error_type,
+                message=request.source_failure.message,
+            )
+        )
+
+    def finalize_and_append(qa_id: str) -> dict[str, Any]:
+        record = _finalize_one(
+            requests_by_id[qa_id],
+            finalizer_name=args.finalizer,
+            config=config,
+            llm_factory=factory,
+        )
+        store.append(record)
+        return record
+
     with _use_structured_mode(override):
-        with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
-            futures = [
-                executor.submit(
-                    _finalize_one,
-                    requests_by_id[qa_id],
-                    finalizer_name=args.finalizer,
-                    config=config,
-                    llm_factory=factory,
+        executor = ThreadPoolExecutor(max_workers=args.max_workers)
+        in_flight = set()
+        paid_iter = iter(paid_ids)
+
+        def fill_available_slots() -> None:
+            while len(in_flight) < args.max_workers:
+                try:
+                    qa_id = next(paid_iter)
+                except StopIteration:
+                    return
+                in_flight.add(executor.submit(finalize_and_append, qa_id))
+
+        try:
+            fill_available_slots()
+            while in_flight:
+                completed, _ = wait(
+                    in_flight,
+                    return_when=FIRST_COMPLETED,
                 )
-                for qa_id in pending_ids
-            ]
-            for future in as_completed(futures):
-                store.append(future.result())
+                in_flight.difference_update(completed)
+                for future in completed:
+                    future.result()
+                fill_available_slots()
+        except BaseException:
+            for future in in_flight:
+                future.cancel()
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            executor.shutdown(wait=True)
 
     attempt_records = store.records()
     payload = store.materialize(

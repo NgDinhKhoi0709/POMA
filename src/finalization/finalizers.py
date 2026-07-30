@@ -11,6 +11,14 @@ from src.contracts.finalization import AnswerCandidate, GroundedAnswerRequest
 
 
 @dataclass(frozen=True)
+class FinalizationSourceFailure:
+    """A typed upstream failure that must not trigger a paid finalizer call."""
+
+    error_type: str
+    message: str
+
+
+@dataclass(frozen=True)
 class FinalizationRequest:
     """The context available to a finalizer for one table question."""
 
@@ -19,7 +27,9 @@ class FinalizationRequest:
     question: str
     table_flattened: str
     candidates: list[AnswerCandidate]
+    native_question: str | None = None
     native_target: str | None = None
+    source_failure: FinalizationSourceFailure | None = None
 
 
 @dataclass(frozen=True)
@@ -85,7 +95,7 @@ class NativeAnswerNormalizationFinalizer:
         before = _usage_snapshot(self._normalizer)
         prediction = self._normalizer.run_many(
             answers=[candidate.answer for candidate in request.candidates],
-            question=request.question,
+            question=request.native_question or request.question,
             target=request.native_target,
             specialist_names_by_answer=[
                 candidate.source_name for candidate in request.candidates
@@ -156,6 +166,7 @@ __all__ = [
     "CommonAnswerNormalizationFinalizer",
     "FinalizationRequest",
     "FinalizationResult",
+    "FinalizationSourceFailure",
     "GroundedSingleAnswerFinalizer",
     "NativeAnswerNormalizationFinalizer",
 ]

@@ -71,6 +71,7 @@ def finalization_request():
             AnswerCandidate("WhereSpecialist", "Hanoi"),
             AnswerCandidate("Fallback", "Ha Noi"),
         ],
+        native_question="Which refined city?",
         native_target="city",
     )
 
@@ -104,7 +105,7 @@ def test_native_an_receives_only_native_target_and_source_names(finalization_req
     assert normalizer.calls == [
         {
             "answers": ["Hanoi", "Ha Noi"],
-            "question": "Which city?",
+            "question": "Which refined city?",
             "target": "city",
             "specialist_names_by_answer": ["WhereSpecialist", "Fallback"],
         }

@@ -69,6 +69,10 @@ def _fixture_files(tmp_path: Path) -> tuple[Path, Path, Path]:
                 "qa_id": "q1",
                 "groundtruth": "SOURCE-GOLD-Q1",
                 "steps": {
+                    "1_question_refiner": {
+                        "normalized_question": "Thành phố thứ nhất?",
+                        "target": "thành phố",
+                    },
                     "3_specialists": [
                         {"agent_name": "Where", "answer": "Hà Nội"}
                     ]
@@ -78,6 +82,10 @@ def _fixture_files(tmp_path: Path) -> tuple[Path, Path, Path]:
                 "qa_id": "q2",
                 "groundtruth": "SOURCE-GOLD-Q2",
                 "steps": {
+                    "1_question_refiner": {
+                        "normalized_question": "Thành phố thứ hai?",
+                        "target": "thành phố",
+                    },
                     "3_specialists": [
                         {"agent_name": "Where", "answer": "Huế"}
                     ]
@@ -180,6 +188,53 @@ class _FakeLLMFactory:
             interrupt_qa_id=self.interrupt_qa_id,
             incremental_path=self.incremental_path,
         )
+
+
+class _BoundedInterruptLLM:
+    def __init__(self, factory) -> None:
+        self._factory = factory
+        self._qa_id: str | None = None
+        self.total_prompt_tokens = 0
+        self.total_completion_tokens = 0
+        self.total_total_tokens = 0
+        self.total_cost_usd = None
+
+    def set_qa_id(self, qa_id: str | None) -> None:
+        self._qa_id = qa_id
+
+    def get_call_logs(self):
+        return []
+
+    def generate_structured(self, _prompt, *, schema, **_kwargs):
+        qa_id = self._qa_id
+        self._factory.started.append(qa_id)
+        if qa_id == "q1":
+            raise KeyboardInterrupt("stop paid finalizer run")
+        data = {
+            "final_answer": str(qa_id),
+            "supporting_evidence": [str(qa_id)],
+            "decision": "selected",
+        }
+        return StructuredResult(
+            data=data,
+            raw_response=json.dumps(data),
+            schema_name=schema.name,
+            schema_valid=True,
+            repair_attempted=False,
+            repair_succeeded=False,
+            prompt_tokens=0,
+            completion_tokens=0,
+            total_tokens=0,
+            cost_usd=None,
+        )
+
+
+class _BoundedInterruptFactory:
+    def __init__(self) -> None:
+        self.started: list[str | None] = []
+
+    def __call__(self, _config):
+        return _BoundedInterruptLLM(self)
 
 
 class _MetricsLLM:
@@ -392,6 +447,155 @@ def test_structured_output_override_changes_generator_transport_mode() -> None:
     assert "Return one JSON object matching this JSON Schema" in calls[0][0]
 
 
+def test_jsonl_source_failure_is_materialized_without_a_paid_finalizer_call(
+    tmp_path: Path,
+) -> None:
+    """Catch upstream typed failures being dropped or sent to a paid finalizer."""
+    _, qas_path, tables_path = _fixture_files(tmp_path)
+    source_path = tmp_path / "direct.jsonl"
+    source_path.write_text(
+        "\n".join(
+            [
+                json.dumps(
+                    {
+                        "qa_id": "q1",
+                        "table_id": "t1",
+                        "prediction": ["Hà Nội"],
+                    },
+                    ensure_ascii=False,
+                ),
+                json.dumps(
+                    {
+                        "qa_id": "q2",
+                        "table_id": "t2",
+                        "prompt_style": "zero_shot",
+                        "error": {
+                            "type": "StructuredGenerationError",
+                            "message": "repair remained invalid",
+                        },
+                    }
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "gsa.json"
+    factory = _FakeLLMFactory(
+        interrupt_qa_id=None,
+        incremental_path=tmp_path / "gsa.jsonl",
+    )
+
+    exit_code = main(
+        [
+            "--source",
+            str(source_path),
+            "--source-kind",
+            "direct-baseline",
+            "--finalizer",
+            "gsa",
+            "--qas",
+            str(qas_path),
+            "--tables",
+            str(tables_path),
+            "--model",
+            "openrouter/qwen/qwen3-8b",
+            "--provider",
+            "openrouter",
+            "--output",
+            str(output_path),
+            "--max-workers",
+            "1",
+        ],
+        llm_factory=factory,
+    )
+
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert exit_code == 1
+    assert len(factory.prompts) == 1
+    assert [record["qa_id"] for record in payload["predictions"]] == [
+        "q1",
+        "q2",
+    ]
+    assert payload["predictions"][1]["error"] == {
+        "type": "StructuredGenerationError",
+        "message": "repair remained invalid",
+    }
+    assert payload["manifest"]["counts"] == {
+        "dataset": 2,
+        "successful": 1,
+        "failed": 1,
+        "attempts": 2,
+    }
+
+
+def test_interrupt_does_not_start_finalizers_beyond_worker_bound(
+    tmp_path: Path,
+) -> None:
+    """Catch eager submission and waiting shutdown starting late paid calls."""
+    qas = [
+        {
+            "qa_id": f"q{index}",
+            "table_id": f"t{index}",
+            "question": f"Question {index}?",
+        }
+        for index in range(1, 7)
+    ]
+    qas_path = _write_json(tmp_path / "qas.json", {"qas": qas})
+    tables_path = _write_json(
+        tmp_path / "tables.json",
+        {
+            "table": [
+                _table(f"t{index}", f"answer-{index}")
+                for index in range(1, 7)
+            ]
+        },
+    )
+    source_path = _write_json(
+        tmp_path / "direct.json",
+        [
+            {
+                "qa_id": f"q{index}",
+                "table_id": f"t{index}",
+                "prediction": [f"answer-{index}"],
+            }
+            for index in range(1, 7)
+        ],
+    )
+    output_path = tmp_path / "gsa.json"
+    factory = _BoundedInterruptFactory()
+
+    with pytest.raises(
+        KeyboardInterrupt,
+        match="stop paid finalizer run",
+    ):
+        main(
+            [
+                "--source",
+                str(source_path),
+                "--source-kind",
+                "direct-baseline",
+                "--finalizer",
+                "gsa",
+                "--qas",
+                str(qas_path),
+                "--tables",
+                str(tables_path),
+                "--model",
+                "openrouter/qwen/qwen3-8b",
+                "--provider",
+                "openrouter",
+                "--output",
+                str(output_path),
+                "--max-workers",
+                "1",
+            ],
+            llm_factory=factory,
+        )
+
+    assert factory.started == ["q1"]
+
+
 def test_fake_llm_interrupt_then_resume_is_append_safe(
     tmp_path: Path,
     capsys,
@@ -570,28 +774,40 @@ def test_summary_aggregates_every_incremental_structured_call(
     source_path = _write_json(
         tmp_path / "raw.json",
         [
-            {
-                "qa_id": "q1",
-                "steps": {
-                    "3_specialists": [
+                {
+                    "qa_id": "q1",
+                    "steps": {
+                        "1_question_refiner": {
+                            "normalized_question": "First?",
+                            "target": None,
+                        },
+                        "3_specialists": [
                         {"agent_name": "What", "answer": "alpha"}
                     ]
                 },
             },
-            {
-                "qa_id": "q2",
-                "steps": {
-                    "3_specialists": [
+                {
+                    "qa_id": "q2",
+                    "steps": {
+                        "1_question_refiner": {
+                            "normalized_question": "Second?",
+                            "target": None,
+                        },
+                        "3_specialists": [
                         {"agent_name": "What", "answer": "beta"},
                         {"agent_name": "What", "answer": "gamma"},
                         {"agent_name": "What", "answer": "delta"},
                     ]
                 },
             },
-            {
-                "qa_id": "q3",
-                "steps": {
-                    "3_specialists": [
+                {
+                    "qa_id": "q3",
+                    "steps": {
+                        "1_question_refiner": {
+                            "normalized_question": "Số nào?",
+                            "target": None,
+                        },
+                        "3_specialists": [
                         {"agent_name": "MathematicalReasoning", "answer": "42"}
                     ]
                 },
@@ -666,10 +882,14 @@ def test_summary_reports_na_when_no_structured_calls(
     source_path = _write_json(
         tmp_path / "raw.json",
         [
-            {
-                "qa_id": "q1",
-                "steps": {
-                    "3_specialists": [
+                {
+                    "qa_id": "q1",
+                    "steps": {
+                        "1_question_refiner": {
+                            "normalized_question": "Số nào?",
+                            "target": None,
+                        },
+                        "3_specialists": [
                         {"agent_name": "MathematicalReasoning", "answer": "42"}
                     ]
                 },

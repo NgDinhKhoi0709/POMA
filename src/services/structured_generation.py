@@ -160,12 +160,9 @@ def _to_int(value: Any, default: int = 0) -> int:
 def _cost_from_usage(usage: dict[str, Any]) -> float | None:
     for field in ("cost_usd", "cost"):
         raw_value = usage.get(field)
-        if isinstance(raw_value, bool):
+        if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
             continue
-        try:
-            value = float(raw_value)
-        except (TypeError, ValueError):
-            continue
+        value = float(raw_value)
         if math.isfinite(value) and value >= 0:
             return value
     return None

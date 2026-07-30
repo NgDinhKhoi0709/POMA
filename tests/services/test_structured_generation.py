@@ -137,7 +137,7 @@ def test_valid_first_response_makes_one_call_and_normalizes_known_cost():
                     "prompt_tokens": "2",
                     "completion_tokens": 3,
                     "total_tokens": "5",
-                    "cost_usd": "0.25",
+                    "cost_usd": 0.25,
                 },
             )
         ]
@@ -296,6 +296,12 @@ def test_domain_invalid_json_is_repaired_once():
             "$.predicted_hints",
         ),
         (
+            "answer_normalization.v1",
+            '{"answers": []}',
+            '{"answers": ["answer"]}',
+            "$.answers",
+        ),
+        (
             "baseline_task_decomposition.v1",
             '{"reasoning": "because", "subproblems": [], "final_answer": "answer"}',
             (
@@ -418,3 +424,95 @@ def test_invalid_provider_cost_propagates_unknown_through_repair(invalid_cost):
 
     assert len(transport.calls) == 2
     assert result.cost_usd is None
+
+
+@pytest.mark.parametrize(
+    "string_cost_usage",
+    [{"cost_usd": "0.20"}, {"cost": "0.20"}],
+    ids=["preferred-alias", "fallback-alias"],
+)
+def test_numeric_string_cost_propagates_unknown_through_repair(string_cost_usage):
+    generator, transport = _generator(
+        [
+            (
+                "not json",
+                {
+                    "prompt_tokens": 2,
+                    "completion_tokens": 3,
+                    "total_tokens": 5,
+                    "cost": 0.10,
+                },
+            ),
+            (
+                '{"answer": "repaired"}',
+                {
+                    "prompt_tokens": 4,
+                    "completion_tokens": 5,
+                    "total_tokens": 9,
+                    **string_cost_usage,
+                },
+            ),
+        ]
+    )
+
+    result = generator.generate("Answer.", SIMPLE_SCHEMA, _context())
+
+    assert len(transport.calls) == 2
+    assert result.cost_usd is None
+
+
+@pytest.mark.parametrize(
+    "invalid_preferred_cost",
+    [None, "0.50", True, -0.01],
+    ids=["null", "numeric-string", "boolean", "negative"],
+)
+def test_valid_cost_alias_follows_invalid_preferred_alias(invalid_preferred_cost):
+    generator, transport = _generator(
+        [
+            (
+                "not json",
+                {
+                    "prompt_tokens": 2,
+                    "completion_tokens": 3,
+                    "total_tokens": 5,
+                    "cost_usd": 0.10,
+                },
+            ),
+            (
+                '{"answer": "repaired"}',
+                {
+                    "prompt_tokens": 4,
+                    "completion_tokens": 5,
+                    "total_tokens": 9,
+                    "cost_usd": invalid_preferred_cost,
+                    "cost": 0.20,
+                },
+            ),
+        ]
+    )
+
+    result = generator.generate("Answer.", SIMPLE_SCHEMA, _context())
+
+    assert len(transport.calls) == 2
+    assert result.cost_usd == pytest.approx(0.30)
+
+
+def test_preferred_valid_cost_usd_wins_over_conflicting_cost_alias():
+    generator, _ = _generator(
+        [
+            (
+                '{"answer": "yes"}',
+                {
+                    "prompt_tokens": 2,
+                    "completion_tokens": 3,
+                    "total_tokens": 5,
+                    "cost_usd": 0.20,
+                    "cost": 0.90,
+                },
+            )
+        ]
+    )
+
+    result = generator.generate("Answer.", SIMPLE_SCHEMA, _context())
+
+    assert result.cost_usd == 0.20

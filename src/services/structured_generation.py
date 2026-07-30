@@ -104,7 +104,7 @@ def _validation_errors(raw_response: str, schema: ResponseSchema) -> list[str]:
     try:
         validate_domain_payload(schema.name, payload)
     except StructuredContractError as exc:
-        return [f"$: {exc}"]
+        return [f"{_domain_error_path(schema.name, str(exc))}: {exc}"]
     return []
 
 
@@ -118,9 +118,29 @@ def _decode_and_validate(
     return json.loads(raw_response), []
 
 
-def _repair_prompt(validation_errors: list[str], raw_response: str) -> str:
+def _domain_error_path(schema_name: str, message: str) -> str:
+    if schema_name == "gsa.v1":
+        if "final_answer" in message or "null decision" in message:
+            return "$.final_answer"
+        return "$.supporting_evidence"
+
+    paths = {
+        "hint_predictor.v1": "$.predicted_hints",
+        "answer_normalization.v1": "$.answers",
+        "baseline_task_decomposition.v1": "$.subproblems",
+    }
+    return paths.get(schema_name, "$")
+
+
+def _repair_prompt(
+    original_prompt: str,
+    validation_errors: list[str],
+    raw_response: str,
+) -> str:
     errors_text = "\n".join(validation_errors)
     return (
+        "Original request:\n"
+        f"{original_prompt}\n\n"
         "Return one JSON object only.\n"
         "The previous response failed validation.\n"
         "Validation errors:\n"
@@ -139,11 +159,14 @@ def _to_int(value: Any, default: int = 0) -> int:
 
 def _cost_from_usage(usage: dict[str, Any]) -> float | None:
     for field in ("cost_usd", "cost"):
+        raw_value = usage.get(field)
+        if isinstance(raw_value, bool):
+            continue
         try:
-            value = float(usage.get(field))
+            value = float(raw_value)
         except (TypeError, ValueError):
             continue
-        if math.isfinite(value):
+        if math.isfinite(value) and value >= 0:
             return value
     return None
 
@@ -221,8 +244,11 @@ class StructuredGenerator:
                 usages=usages,
             )
 
+        repair_prompt = _repair_prompt(prompt, validation_errors, raw_response)
+        if mode is StructuredOutputMode.JSON_OBJECT:
+            repair_prompt = _qwen_prompt(repair_prompt, schema)
         repair_response, repair_usage = self._generate_once(
-            _repair_prompt(validation_errors, raw_response),
+            repair_prompt,
             text_format,
         )
         usages.append(_normalize_usage(repair_usage))

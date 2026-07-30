@@ -202,6 +202,32 @@ def test_malformed_json_is_repaired_once_with_aggregated_known_usage():
     assert transport.calls[1][1] == transport.calls[0][1]
 
 
+def test_qwen_repair_retains_original_context_and_schema_instruction():
+    generator, transport = _generator(
+        [
+            (
+                "not json",
+                {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            ),
+            (
+                '{"answer": "repaired"}',
+                {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            ),
+        ]
+    )
+
+    generator.generate("Answer the original question.", SIMPLE_SCHEMA, _context())
+
+    repair_prompt, repair_format = transport.calls[1]
+    assert "Answer the original question." in repair_prompt
+    assert '"additionalProperties":false' in repair_prompt
+    assert "Return one JSON object only." in repair_prompt
+    assert "The previous response failed validation." in repair_prompt
+    assert "Validation errors:" in repair_prompt
+    assert "Previous response:" in repair_prompt
+    assert repair_format == transport.calls[0][1] == {"type": "json_object"}
+
+
 def test_schema_invalid_json_is_repaired_once():
     generator, transport = _generator(
         [
@@ -248,6 +274,67 @@ def test_domain_invalid_json_is_repaired_once():
     assert "non-null GSA decisions require evidence" in transport.calls[1][0]
 
 
+@pytest.mark.parametrize(
+    ("schema_name", "invalid_response", "valid_response", "expected_path"),
+    [
+        (
+            "gsa.v1",
+            (
+                '{"final_answer": "answer", "supporting_evidence": [], '
+                '"decision": "selected"}'
+            ),
+            (
+                '{"final_answer": "answer", "supporting_evidence": ['
+                '"row 1"], "decision": "selected"}'
+            ),
+            "$.supporting_evidence",
+        ),
+        (
+            "hint_predictor.v1",
+            '{"predicted_hints": []}',
+            '{"predicted_hints": ["What"]}',
+            "$.predicted_hints",
+        ),
+        (
+            "baseline_task_decomposition.v1",
+            '{"reasoning": "because", "subproblems": [], "final_answer": "answer"}',
+            (
+                '{"reasoning": "because", "subproblems": ["find row"], '
+                '"final_answer": "answer"}'
+            ),
+            "$.subproblems",
+        ),
+    ],
+)
+def test_domain_validation_errors_identify_the_invalid_field(
+    schema_name,
+    invalid_response,
+    valid_response,
+    expected_path,
+):
+    generator, transport = _generator(
+        [
+            (
+                invalid_response,
+                {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            ),
+            (
+                valid_response,
+                {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            ),
+        ]
+    )
+
+    result = generator.generate(
+        "Answer.",
+        STRUCTURED_SCHEMAS[schema_name],
+        _context(),
+    )
+
+    assert result.repair_succeeded is True
+    assert expected_path in transport.calls[1][0]
+
+
 def test_invalid_repair_raises_after_exactly_two_calls():
     generator, transport = _generator(
         [
@@ -287,6 +374,41 @@ def test_unknown_cost_propagates_through_repair_sequence():
                     "completion_tokens": 5,
                     "total_tokens": 9,
                     "cost_usd": "not-a-number",
+                },
+            ),
+        ]
+    )
+
+    result = generator.generate("Answer.", SIMPLE_SCHEMA, _context())
+
+    assert len(transport.calls) == 2
+    assert result.cost_usd is None
+
+
+@pytest.mark.parametrize(
+    "invalid_cost",
+    [True, -0.01, float("nan"), float("inf"), -float("inf")],
+    ids=["boolean", "negative", "nan", "positive-infinity", "negative-infinity"],
+)
+def test_invalid_provider_cost_propagates_unknown_through_repair(invalid_cost):
+    generator, transport = _generator(
+        [
+            (
+                "not json",
+                {
+                    "prompt_tokens": 2,
+                    "completion_tokens": 3,
+                    "total_tokens": 5,
+                    "cost": 0.10,
+                },
+            ),
+            (
+                '{"answer": "repaired"}',
+                {
+                    "prompt_tokens": 4,
+                    "completion_tokens": 5,
+                    "total_tokens": 9,
+                    "cost_usd": invalid_cost,
                 },
             ),
         ]

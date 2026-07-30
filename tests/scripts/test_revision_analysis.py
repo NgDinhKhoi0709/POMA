@@ -28,9 +28,13 @@ def test_revision_analysis_cli_builds_one_mechanical_q2_report(
                 {
                     "qa_id": "q1",
                     "prediction": ["yes"],
-                    "trace": {"decision": "selected"},
-                    "schema_valid": True,
-                    "repair_attempted": False,
+                    "trace": {
+                        "decision": "selected",
+                        "structured_calls": 1,
+                        "schema_valid_calls": 1,
+                        "repair_attempted_calls": 0,
+                        "repair_succeeded_calls": 0,
+                    },
                     "elapsed_s": 1.0,
                     "usage": {
                         "prompt_tokens": 4,
@@ -42,9 +46,12 @@ def test_revision_analysis_cli_builds_one_mechanical_q2_report(
                 {
                     "qa_id": "q2",
                     "error": {"type": "SchemaError", "message": "bad"},
-                    "schema_valid": False,
-                    "repair_attempted": True,
-                    "repair_succeeded": False,
+                    "trace": {
+                        "structured_calls": 1,
+                        "schema_valid_calls": 0,
+                        "repair_attempted_calls": 1,
+                        "repair_succeeded_calls": 0,
+                    },
                     "elapsed_s": 3.0,
                     "usage": {
                         "prompt_tokens": 2,
@@ -119,7 +126,12 @@ def test_revision_analysis_cli_builds_one_mechanical_q2_report(
 
     def fake_evaluate_files(prediction_path, qas_path_arg, **kwargs):
         evaluation_calls.append(
-            (str(prediction_path), str(qas_path_arg), kwargs["metrics"])
+            (
+                str(prediction_path),
+                str(qas_path_arg),
+                kwargs["metrics"],
+                kwargs["fail_on_metric_error"],
+            )
         )
         return {
             "metrics": {
@@ -177,8 +189,8 @@ def test_revision_analysis_cli_builds_one_mechanical_q2_report(
         "answerability_f1",
     ]
     assert evaluation_calls == [
-        (str(primary_path), str(qas_path), expected_metrics),
-        (str(baseline_path), str(qas_path), expected_metrics),
+        (str(primary_path), str(qas_path), expected_metrics, True),
+        (str(baseline_path), str(qas_path), expected_metrics, True),
     ]
     assert report["configuration"] == {
         "bootstrap_samples": 100,
@@ -193,6 +205,13 @@ def test_revision_analysis_cli_builds_one_mechanical_q2_report(
         "count": 1,
         "distribution": {"selected": 1},
     }
+    assert report["systems"]["poma"]["structured_output"] == {
+        "calls": 2,
+        "missing_schema_telemetry_records": 0,
+        "initial_schema_valid_rate": 0.5,
+        "repair_attempt_rate": 0.5,
+        "repair_success_rate": 0.0,
+    }
     assert report["systems"]["poma"]["failure"]["failure_rate"] == 0.5
     assert report["systems"]["poma"]["cost"]["total_cost_usd"] is None
     assert report["systems"]["poma"]["latency"]["mean_s"] == 2.0
@@ -200,6 +219,10 @@ def test_revision_analysis_cli_builds_one_mechanical_q2_report(
     assert comparison["primary_system"] == "poma"
     assert comparison["baseline_system"] == "baseline"
     assert comparison["paired_bootstrap"]["em"]["point_estimate"] == 0.0
+    assert (
+        comparison["paired_bootstrap"]["answerability_f1"]["point_estimate"]
+        == pytest.approx(-1 / 6)
+    )
     assert report["poma_traces"]["structured_output"] == {
         "calls": 2,
         "missing_schema_telemetry_records": 0,
@@ -221,3 +244,36 @@ def test_revision_analysis_rejects_duplicate_system_names(tmp_path):
 
     with pytest.raises(ValueError, match="Duplicate system name"):
         run_revision_analysis.parse_systems([f"same={path}", f"same={path}"])
+
+
+def test_revision_analysis_rejects_incomplete_evaluator_reports():
+    report = {
+        "metrics": {
+            "f1": {"f1": 1.0},
+            "em": {"value": 1.0},
+            "rouge1": {"f1": 1.0},
+            "meteor": {"value": 1.0},
+        },
+        "analyses": {},
+        "metric_errors": {},
+    }
+
+    with pytest.raises(
+        run_revision_analysis.RevisionAnalysisError,
+        match="answerability_f1",
+    ):
+        run_revision_analysis.validate_evaluation_report(
+            report,
+            system_name="poma",
+        )
+
+    report["analyses"]["answerability_f1"] = {}
+    report["metrics"]["f1"] = None
+    with pytest.raises(
+        run_revision_analysis.RevisionAnalysisError,
+        match="f1",
+    ):
+        run_revision_analysis.validate_evaluation_report(
+            report,
+            system_name="poma",
+        )

@@ -110,4 +110,130 @@ def paired_bootstrap_ci(
     }
 
 
-__all__ = ["DEFAULT_SAMPLES", "DEFAULT_SEED", "paired_bootstrap_ci"]
+def _macro_answerability_f1(
+    gold_unanswerable: Sequence[bool],
+    predicted_unanswerable: Sequence[bool],
+) -> float:
+    true_positive = sum(
+        gold and predicted
+        for gold, predicted in zip(gold_unanswerable, predicted_unanswerable)
+    )
+    true_negative = sum(
+        not gold and not predicted
+        for gold, predicted in zip(gold_unanswerable, predicted_unanswerable)
+    )
+    false_positive = sum(
+        not gold and predicted
+        for gold, predicted in zip(gold_unanswerable, predicted_unanswerable)
+    )
+    false_negative = sum(
+        gold and not predicted
+        for gold, predicted in zip(gold_unanswerable, predicted_unanswerable)
+    )
+
+    def class_f1(
+        true_positive_count: int,
+        false_positive_count: int,
+        false_negative_count: int,
+    ) -> float:
+        denominator = (
+            2 * true_positive_count
+            + false_positive_count
+            + false_negative_count
+        )
+        return (
+            2 * true_positive_count / denominator if denominator else 0.0
+        )
+
+    answerable_f1 = class_f1(
+        true_negative,
+        false_negative,
+        false_positive,
+    )
+    unanswerable_f1 = class_f1(
+        true_positive,
+        false_positive,
+        false_negative,
+    )
+    return (answerable_f1 + unanswerable_f1) / 2
+
+
+def paired_answerability_bootstrap_ci(
+    gold_unanswerable: Sequence[bool],
+    system_a_unanswerable: Sequence[bool],
+    system_b_unanswerable: Sequence[bool],
+    *,
+    samples: int = DEFAULT_SAMPLES,
+    seed: int = DEFAULT_SEED,
+    system_a_ids: Sequence[str] | None = None,
+    system_b_ids: Sequence[str] | None = None,
+) -> dict[str, object]:
+    """Bootstrap paired answerability macro-F1 from per-QA class labels."""
+    gold = list(gold_unanswerable)
+    values_a = list(system_a_unanswerable)
+    values_b = list(system_b_unanswerable)
+    if not (
+        all(isinstance(value, bool) for value in gold)
+        and all(isinstance(value, bool) for value in values_a)
+        and all(isinstance(value, bool) for value in values_b)
+    ):
+        raise ValueError("Answerability labels must be booleans")
+    if len(gold) != len(values_a) or len(gold) != len(values_b):
+        raise ValueError("Answerability label vectors must have the same length")
+    if not gold:
+        raise ValueError("Answerability label vectors must be non-empty")
+    if isinstance(samples, bool) or not isinstance(samples, int) or samples <= 0:
+        raise ValueError("samples must be a positive integer")
+    if (system_a_ids is None) != (system_b_ids is None):
+        raise ValueError("Both paired-system ID sequences are required together")
+    if system_a_ids is not None and system_b_ids is not None:
+        ids_a = [str(value) for value in system_a_ids]
+        ids_b = [str(value) for value in system_b_ids]
+        if len(ids_a) != len(gold) or len(ids_b) != len(gold):
+            raise ValueError("QA ID sequences must match their label lengths")
+        if len(ids_a) != len(set(ids_a)) or len(ids_b) != len(set(ids_b)):
+            raise ValueError("Paired-system QA IDs must be unique")
+        if ids_a != ids_b:
+            raise ValueError(
+                "Paired systems must use the same QA IDs in the same order"
+            )
+
+    rng = random.Random(seed)
+    count = len(gold)
+    estimates_a: list[float] = []
+    estimates_b: list[float] = []
+    differences: list[float] = []
+    for _ in range(samples):
+        indices = [rng.randrange(count) for _ in range(count)]
+        sampled_gold = [gold[index] for index in indices]
+        estimate_a = _macro_answerability_f1(
+            sampled_gold,
+            [values_a[index] for index in indices],
+        )
+        estimate_b = _macro_answerability_f1(
+            sampled_gold,
+            [values_b[index] for index in indices],
+        )
+        estimates_a.append(estimate_a)
+        estimates_b.append(estimate_b)
+        differences.append(estimate_a - estimate_b)
+
+    point_a = _macro_answerability_f1(gold, values_a)
+    point_b = _macro_answerability_f1(gold, values_b)
+    difference = _interval(point_a - point_b, differences)
+    return {
+        **difference,
+        "samples": samples,
+        "seed": seed,
+        "system_a": _interval(point_a, estimates_a),
+        "system_b": _interval(point_b, estimates_b),
+        "difference": difference,
+    }
+
+
+__all__ = [
+    "DEFAULT_SAMPLES",
+    "DEFAULT_SEED",
+    "paired_answerability_bootstrap_ci",
+    "paired_bootstrap_ci",
+]

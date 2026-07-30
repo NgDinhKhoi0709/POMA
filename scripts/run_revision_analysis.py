@@ -18,9 +18,18 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from evaluation import exact_match, f1, meteor, rouge1
-from evaluation.bootstrap import DEFAULT_SAMPLES, DEFAULT_SEED, paired_bootstrap_ci
+from evaluation.bootstrap import (
+    DEFAULT_SAMPLES,
+    DEFAULT_SEED,
+    paired_answerability_bootstrap_ci,
+    paired_bootstrap_ci,
+)
 from evaluation.hint_metrics import evaluate_hint_metrics
 from evaluation.io import align_records, load_json_records, load_qas_records
+from evaluation.normalization import (
+    is_unanswerable_reference,
+    prediction_is_unanswerable,
+)
 from evaluation.parallelism import analyze_parallelism
 from evaluation.run import evaluate_files
 
@@ -33,6 +42,54 @@ EVALUATION_METRICS = [
 ]
 BOOTSTRAP_METRICS = ("f1", "em", "rouge1", "meteor")
 MINIMUM_EM_DIFFERENCE = 0.02
+
+
+class RevisionAnalysisError(ValueError):
+    """Raised when an input cannot produce a complete revision report."""
+
+
+def validate_evaluation_report(
+    report: Mapping[str, Any],
+    *,
+    system_name: str,
+) -> None:
+    """Require every precommitted evaluator output for one system."""
+    metric_errors = report.get("metric_errors")
+    if metric_errors:
+        raise RevisionAnalysisError(
+            f"Evaluation failed for system {system_name!r}: {metric_errors}"
+        )
+    metrics = report.get("metrics")
+    if not isinstance(metrics, Mapping):
+        metrics = {}
+    analyses = report.get("analyses")
+    if not isinstance(analyses, Mapping):
+        analyses = {}
+    required_metric_fields = {
+        "f1": "f1",
+        "em": "value",
+        "rouge1": "f1",
+        "meteor": "value",
+    }
+    missing = []
+    for name, value_field in required_metric_fields.items():
+        value = metrics.get(name)
+        if (
+            not isinstance(value, Mapping)
+            or value.get(value_field) is None
+        ):
+            missing.append(name)
+    answerability = analyses.get("answerability_f1")
+    if (
+        not isinstance(answerability, Mapping)
+        or answerability.get("macro_f1") is None
+    ):
+        missing.append("answerability_f1")
+    if missing:
+        raise RevisionAnalysisError(
+            f"Evaluation for system {system_name!r} is missing requested "
+            f"outputs: {', '.join(missing)}"
+        )
 
 
 def parse_systems(values: Sequence[str]) -> dict[str, Path]:
@@ -87,7 +144,7 @@ def _score_vectors(
     records: list[dict[str, Any]],
     qas: list[dict[str, Any]],
     qa_ids: list[str],
-) -> dict[str, list[float]]:
+) -> tuple[dict[str, list[float]], list[bool], list[bool]]:
     samples, _ = align_records(records, qas)
     sample_by_id = {sample.qa_id: sample for sample in samples}
     ordered = [sample_by_id[qa_id] for qa_id in qa_ids]
@@ -97,10 +154,17 @@ def _score_vectors(
         "rouge1": rouge1.score_sample,
         "meteor": meteor.score_sample,
     }
-    return {
+    vectors = {
         name: [float(scorer(sample).value) for sample in ordered]
         for name, scorer in scorers.items()
     }
+    gold_unanswerable = [
+        is_unanswerable_reference(sample.reference) for sample in ordered
+    ]
+    predicted_unanswerable = [
+        prediction_is_unanswerable(sample.prediction) for sample in ordered
+    ]
+    return vectors, gold_unanswerable, predicted_unanswerable
 
 
 def _decision_summary(records: Iterable[Mapping[str, Any]]) -> dict[str, object]:
@@ -118,31 +182,71 @@ def _decision_summary(records: Iterable[Mapping[str, Any]]) -> dict[str, object]
 
 
 def _structured_output_summary(
-    calls: Iterable[Mapping[str, Any]],
+    records: Iterable[Mapping[str, Any]],
 ) -> dict[str, float | int | None]:
-    all_calls = list(calls)
-    telemetry = [call for call in all_calls if "schema_valid" in call]
-    count = len(telemetry)
-    repair_attempts = [
-        call for call in telemetry if bool(call.get("repair_attempted"))
-    ]
-    repair_successes = sum(
-        bool(call.get("repair_succeeded")) for call in repair_attempts
-    )
+    all_records = list(records)
+    count = 0
+    schema_valid_count = 0
+    repair_attempt_count = 0
+    repair_success_count = 0
+    missing_count = 0
+    for record in all_records:
+        trace = record.get("trace")
+        aggregate = trace if isinstance(trace, Mapping) else record
+        if "structured_calls" in aggregate:
+            fields = (
+                "structured_calls",
+                "schema_valid_calls",
+                "repair_attempted_calls",
+                "repair_succeeded_calls",
+            )
+            values: dict[str, int] = {}
+            for field in fields:
+                raw_value = aggregate.get(field)
+                if (
+                    isinstance(raw_value, bool)
+                    or not isinstance(raw_value, int)
+                    or raw_value < 0
+                ):
+                    raise RevisionAnalysisError(
+                        f"Invalid structured telemetry field {field}: "
+                        f"{raw_value!r}"
+                    )
+                values[field] = raw_value
+            structured_calls = values["structured_calls"]
+            if any(
+                values[field] > structured_calls
+                for field in fields[1:]
+            ):
+                raise RevisionAnalysisError(
+                    "Structured telemetry call counts cannot exceed "
+                    "structured_calls"
+                )
+            count += structured_calls
+            schema_valid_count += values["schema_valid_calls"]
+            repair_attempt_count += values["repair_attempted_calls"]
+            repair_success_count += values["repair_succeeded_calls"]
+        elif "schema_valid" in record:
+            # Raw POMA llm_calls and legacy direct-baseline records expose
+            # per-call telemetry rather than finalizer aggregate counters.
+            count += 1
+            schema_valid_count += record.get("schema_valid") is True
+            repair_attempt_count += record.get("repair_attempted") is True
+            repair_success_count += record.get("repair_succeeded") is True
+        else:
+            missing_count += 1
     return {
         "calls": count,
-        "missing_schema_telemetry_records": len(all_calls) - count,
+        "missing_schema_telemetry_records": missing_count,
         "initial_schema_valid_rate": (
-            sum(bool(call.get("schema_valid")) for call in telemetry) / count
-            if count
-            else None
+            schema_valid_count / count if count else None
         ),
         "repair_attempt_rate": (
-            len(repair_attempts) / count if count else None
+            repair_attempt_count / count if count else None
         ),
         "repair_success_rate": (
-            repair_successes / len(repair_attempts)
-            if repair_attempts
+            repair_success_count / repair_attempt_count
+            if repair_attempt_count
             else None
         ),
     }
@@ -274,6 +378,8 @@ def _latency_summary(
 
 def _system_bootstrap(
     vectors: Mapping[str, Sequence[float]],
+    gold_unanswerable: Sequence[bool],
+    predicted_unanswerable: Sequence[bool],
     qa_ids: Sequence[str],
     *,
     samples: int,
@@ -294,6 +400,20 @@ def _system_bootstrap(
             "samples": samples,
             "seed": seed,
         }
+    answerability_interval = paired_answerability_bootstrap_ci(
+        gold_unanswerable,
+        predicted_unanswerable,
+        predicted_unanswerable,
+        samples=samples,
+        seed=seed,
+        system_a_ids=qa_ids,
+        system_b_ids=qa_ids,
+    )["system_a"]
+    report["answerability_f1"] = {
+        **answerability_interval,
+        "samples": samples,
+        "seed": seed,
+    }
     return report
 
 
@@ -333,25 +453,40 @@ def build_report(
 
     qas = load_qas_records(qas_path)
     qa_ids = _unique_ids(qas, source_name="QAs")
-    records_by_system: dict[str, list[dict[str, Any]]] = {}
     vectors_by_system: dict[str, dict[str, list[float]]] = {}
+    answerability_by_system: dict[str, list[bool]] = {}
+    gold_answerability: list[bool] | None = None
     system_reports: dict[str, dict[str, object]] = {}
     for name, path in systems.items():
         records = load_json_records(path)
         _validate_system_coverage(records, qa_ids, name)
-        records_by_system[name] = records
-        vectors = _score_vectors(records, qas, qa_ids)
+        vectors, system_gold, system_answerability = _score_vectors(
+            records,
+            qas,
+            qa_ids,
+        )
+        if gold_answerability is None:
+            gold_answerability = system_gold
+        elif gold_answerability != system_gold:
+            raise RevisionAnalysisError(
+                "Aligned systems produced inconsistent gold answerability labels"
+            )
         vectors_by_system[name] = vectors
+        answerability_by_system[name] = system_answerability
         evaluation = evaluate_files(
             path,
             qas_path,
             metrics=EVALUATION_METRICS,
+            fail_on_metric_error=True,
         )
+        validate_evaluation_report(evaluation, system_name=name)
         system_reports[name] = {
             "path": str(path),
             "evaluation": evaluation,
             "bootstrap": _system_bootstrap(
                 vectors,
+                system_gold,
+                system_answerability,
                 qa_ids,
                 samples=bootstrap_samples,
                 seed=seed,
@@ -376,6 +511,17 @@ def build_report(
         )
         for metric in BOOTSTRAP_METRICS
     }
+    if gold_answerability is None:
+        raise RevisionAnalysisError("QAs must be non-empty")
+    paired["answerability_f1"] = paired_answerability_bootstrap_ci(
+        gold_answerability,
+        answerability_by_system[primary_system],
+        answerability_by_system[baseline_system],
+        samples=bootstrap_samples,
+        seed=seed,
+        system_a_ids=qa_ids,
+        system_b_ids=qa_ids,
+    )
 
     traces = load_json_records(poma_traces_path)
     trace_ids = _unique_ids(traces, source_name="POMA traces")

@@ -1,6 +1,9 @@
 import pytest
 
-from evaluation.bootstrap import paired_bootstrap_ci
+from evaluation.bootstrap import (
+    paired_answerability_bootstrap_ci,
+    paired_bootstrap_ci,
+)
 
 
 def test_paired_bootstrap_is_reproducible_and_reports_the_observed_difference():
@@ -41,6 +44,28 @@ def test_paired_bootstrap_uses_the_same_indices_for_both_systems():
         "lower": 0.25,
         "upper": 0.25,
     }
+
+
+def test_answerability_bootstrap_recomputes_macro_f1_for_each_resample():
+    first = paired_answerability_bootstrap_ci(
+        gold_unanswerable=[False, False, True, True],
+        system_a_unanswerable=[False, True, True, False],
+        system_b_unanswerable=[False, False, False, False],
+        samples=500,
+        seed=19,
+    )
+    second = paired_answerability_bootstrap_ci(
+        gold_unanswerable=[False, False, True, True],
+        system_a_unanswerable=[False, True, True, False],
+        system_b_unanswerable=[False, False, False, False],
+        samples=500,
+        seed=19,
+    )
+
+    assert first == second
+    assert first["system_a"]["point_estimate"] == pytest.approx(0.5)
+    assert first["system_b"]["point_estimate"] == pytest.approx(1 / 3)
+    assert first["point_estimate"] == pytest.approx(1 / 6)
 
 
 def test_paired_bootstrap_rejects_unequal_lengths_and_different_id_orderings():

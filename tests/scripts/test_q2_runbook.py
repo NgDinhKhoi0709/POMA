@@ -12,6 +12,7 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RUNBOOK = PROJECT_ROOT / "scripts" / "run_q2_experiments.ps1"
+DOCUMENTED_RUNBOOK = PROJECT_ROOT / "docs" / "Q2_EXPERIMENT_RUNBOOK.md"
 MODELS = {
     "openrouter/qwen/qwen3-8b": "openrouter_qwen_qwen3-8b",
     "openrouter/google/gemma-3-4b-it": (
@@ -288,3 +289,20 @@ def test_runbook_keeps_preflight_and_full_artifact_roots_distinct():
     assert "Invoke-Expression" not in text
     assert "API_KEY" not in text
     assert "${LASTEXITCODE}:" in text
+
+
+def test_documented_throttling_is_scoped_to_gemma():
+    text = DOCUMENTED_RUNBOOK.read_text(encoding="utf-8")
+    qwen = text[text.index("### 6.2."):text.index("### 6.5.")]
+    gemma = text[text.index("### 6.5."):text.index("### 6.8.")]
+
+    assert "POMA_PARALLEL_WORKERS=1" not in qwen
+    assert "POMA_LLM_RETRY_DELAY=30" not in qwen
+    assert "--max_workers 1" not in qwen
+
+    assert 'set "POMA_PARALLEL_WORKERS=1"' in gemma
+    assert 'set "POMA_LLM_RETRY_DELAY=30"' in gemma
+    assert "--max_workers 1" in gemma
+    assert "--workers 1" in gemma
+    assert 'set "POMA_PARALLEL_WORKERS="' in gemma
+    assert 'set "POMA_LLM_RETRY_DELAY="' in gemma

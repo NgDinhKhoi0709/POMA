@@ -11,6 +11,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
+from src.contracts import schema_for_call
 from src.services.llm_client import LLMClient
 from src.services.prompt_loader import load_prompt
 
@@ -20,6 +21,7 @@ class BaseAgent(ABC):
 
     name: str = "BaseAgent"
     prompt_name: str = ""
+    response_schema_name: str = ""
 
     def __init__(self, llm: Optional[LLMClient] = None) -> None:
         self._llm = llm or LLMClient()
@@ -38,8 +40,12 @@ class BaseAgent(ABC):
         )
 
     def _call_llm_json(self, prompt: str) -> Dict[str, Any]:
-        return self._llm.generate_json(
+        if not self.response_schema_name:
+            raise NotImplementedError(f"{self.name} has no response schema")
+        result = self._llm.generate_structured(
             prompt,
+            schema=schema_for_call(self.response_schema_name),
             agent_name=self.name,
             prompt_name=self.prompt_name,
         )
+        return result.data

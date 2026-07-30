@@ -83,6 +83,7 @@ def _require_constraints(data: Dict[str, Any]) -> List[str]:
 class QuestionRefinerAgent(BaseAgent):
     name = "QuestionRefiner"
     prompt_name = "question_refiner"
+    response_schema_name = "question_refiner.v1"
 
     def run(self, question: str, hints: List[str]) -> RefinedQuery:
         canonical_hints = _canonicalize_hints(hints)

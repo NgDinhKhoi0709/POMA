@@ -762,6 +762,7 @@ def _deterministic_variants(
 class AnswerNormalizationAgent(BaseAgent):
     name = "AnswerNormalization"
     prompt_name = "answer_normalization"
+    response_schema_name = "answer_normalization.v1"
 
     def _prompt_name_for_hint(self, answer_hint: Optional[str]) -> str:
         if not answer_hint:

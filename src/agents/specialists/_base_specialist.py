@@ -19,6 +19,8 @@ from src.errors import LLMContractError
 class BaseSpecialistAgent(BaseAgent):
     """Subclasses only need to set ``name`` and ``prompt_name``."""
 
+    response_schema_name = "specialist.v1"
+
     def run(self, refined_query: RefinedQuery, table_flattened: str) -> SpecialistResult:
         prompt = self._load_prompt(
             normalized_question=refined_query.normalized_question,

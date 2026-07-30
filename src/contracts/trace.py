@@ -3,7 +3,30 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
+
+
+class LLMCallTelemetry(TypedDict, total=False):
+    """Serialized LLM metadata retained with a pipeline trace."""
+
+    call_index: int
+    agent_name: str
+    prompt_name: str
+    response_format: str
+    model: str
+    prompt_preview: str
+    raw_response: str
+    parsed_response: Dict[str, Any]
+    schema_name: str
+    schema_valid: bool
+    repair_attempted: bool
+    repair_succeeded: bool
+    mode: str
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    cost_usd: Optional[float]
+    error: str
 
 
 @dataclass
@@ -14,7 +37,7 @@ class PipelineTrace:
     router: Optional[Dict[str, Any]] = None
     specialists: List[Dict[str, Any]] = field(default_factory=list)
     answer_normalization: Optional[Dict[str, Any]] = None
-    llm_calls: List[Dict[str, Any]] = field(default_factory=list)
+    llm_calls: List[LLMCallTelemetry] = field(default_factory=list)
     error: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:

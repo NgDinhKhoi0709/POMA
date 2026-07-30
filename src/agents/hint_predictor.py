@@ -16,6 +16,7 @@ from src.errors import LLMContractError
 class HintPredictorAgent(BaseAgent):
     name = "HintPredictor"
     prompt_name = "hint_predictor"
+    response_schema_name = "hint_predictor.v1"
 
     def run(self, question: str, table_flattened: str) -> List[str]:
         """Predict canonical hints from the raw Vietnamese question and table context."""

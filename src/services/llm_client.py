@@ -16,7 +16,16 @@ from typing import Any, Dict, List, Optional
 from baseline.llm_client import GenConfig, LLMZeroShotClient
 
 from src.config.settings import LLMConfig, get_settings
-from src.errors import LLMContractError
+from src.contracts import (
+    CallContext,
+    ResponseSchema,
+    StructuredResult,
+)
+from src.services.structured_generation import (
+    StructuredGenerationError,
+    StructuredGenerator,
+    resolve_output_mode,
+)
 
 _shared_client: Optional[LLMZeroShotClient] = None
 logger = logging.getLogger(__name__)
@@ -403,18 +412,24 @@ class LLMClient:
         with self._call_logs_lock:
             return [dict(item) for item in self._call_logs]
 
-    def _generate_raw_text(self, prompt: str) -> str:
+    def _generate_raw_text(
+        self,
+        prompt: str,
+        text_format: Optional[Dict[str, Any]] = None,
+    ) -> tuple[str, Dict[str, Any]]:
         gen_cfg = GenConfig(
             temperature=self._cfg.temperature,
             top_p=self._cfg.top_p,
             max_tokens=self._cfg.max_tokens,
             timeout=self._cfg.timeout,
             openrouter_provider=self._cfg.openrouter_provider,
+            text_format=text_format,
+            require_parameters=text_format is not None,
         )
-        return self._client.generate(
-            model=self._cfg.model,
-            prompt=prompt,
-            config=gen_cfg,
+        return self._client.generate_with_usage(
+            self._cfg.model,
+            prompt,
+            gen_cfg,
             max_retries=self._cfg.max_retries,
             retry_delay=self._cfg.retry_delay,
         )
@@ -426,25 +441,8 @@ class LLMClient:
         agent_name: Optional[str] = None,
         prompt_name: Optional[str] = None,
     ) -> str:
-        raw = self._generate_raw_text(prompt)
-        
-        usage = getattr(self._client, "_thread_local", None)
-        last_usage = getattr(usage, "last_usage", None) if usage else None
-        if not last_usage:
-            prompt_est = max(1, int(len(prompt.split()) * 1.4))
-            comp_est = max(1, int(len(raw.split()) * 1.4))
-            last_usage = {
-                "prompt_tokens": prompt_est,
-                "completion_tokens": comp_est,
-                "total_tokens": prompt_est + comp_est,
-            }
-            
-        cost_usd = _usage_cost_usd(self._cfg.model, last_usage)
-        
-        self.total_prompt_tokens += last_usage["prompt_tokens"]
-        self.total_completion_tokens += last_usage["completion_tokens"]
-        self.total_total_tokens += last_usage["total_tokens"]
-        self.total_cost_usd += cost_usd
+        raw, usage = self._generate_raw_text(prompt)
+        self._record_usage_totals(usage)
 
         _dump_raw_response(
             raw,
@@ -467,126 +465,93 @@ class LLMClient:
         )
         return raw
 
+    def generate_structured(
+        self,
+        prompt: str,
+        *,
+        schema: ResponseSchema,
+        agent_name: Optional[str] = None,
+        prompt_name: Optional[str] = None,
+    ) -> StructuredResult:
+        """Generate and validate one POMA-owned structured response."""
+        context = CallContext(
+            qa_id=self._qa_id,
+            agent_name=agent_name or "unknown",
+            prompt_name=prompt_name or "",
+            model=self._cfg.model,
+        )
+        mode = resolve_output_mode(self._cfg.model)
+        generator = StructuredGenerator(self._generate_raw_text)
+
+        try:
+            result = generator.generate(prompt, schema, context)
+        except Exception as exc:
+            self._record_call(
+                {
+                    "agent_name": context.agent_name,
+                    "prompt_name": context.prompt_name,
+                    "response_format": "structured",
+                    "model": self._cfg.model,
+                    "prompt_preview": _preview_prompt(prompt),
+                    "schema_name": schema.name,
+                    "schema_valid": False,
+                    "repair_attempted": isinstance(exc, StructuredGenerationError),
+                    "repair_succeeded": False,
+                    "mode": mode.value,
+                    "error": str(exc),
+                }
+            )
+            raise
+
+        self.total_prompt_tokens += result.prompt_tokens
+        self.total_completion_tokens += result.completion_tokens
+        self.total_total_tokens += result.total_tokens
+        if result.cost_usd is not None:
+            self.total_cost_usd += result.cost_usd
+
+        _dump_raw_response(
+            result.raw_response,
+            model=self._cfg.model,
+            reason="pre_parse_structured",
+            qa_id=self._qa_id,
+            agent_name=context.agent_name,
+            prompt_name=context.prompt_name,
+            response_format="structured",
+        )
+        self._record_call(
+            {
+                "agent_name": context.agent_name,
+                "prompt_name": context.prompt_name,
+                "response_format": "structured",
+                "model": self._cfg.model,
+                "prompt_preview": _preview_prompt(prompt),
+                "raw_response": result.raw_response,
+                "parsed_response": result.data,
+                "schema_name": result.schema_name,
+                "schema_valid": result.schema_valid,
+                "repair_attempted": result.repair_attempted,
+                "repair_succeeded": result.repair_succeeded,
+                "mode": mode.value,
+                "prompt_tokens": result.prompt_tokens,
+                "completion_tokens": result.completion_tokens,
+                "total_tokens": result.total_tokens,
+                "cost_usd": result.cost_usd,
+            }
+        )
+        return result
+
     def generate_json(
         self,
         prompt: str,
         *,
+        schema: ResponseSchema,
         agent_name: Optional[str] = None,
         prompt_name: Optional[str] = None,
     ) -> Dict[str, Any]:
-        raw = self._generate_raw_text(prompt)
-        self._record_usage_totals(self._last_usage_or_estimate(prompt, raw))
-
-        pre_parse_dump_path = _dump_raw_response(
-            raw,
-            model=self._cfg.model,
-            reason="pre_parse_json",
-            qa_id=self._qa_id,
+        """Compatibility wrapper for callers that already own a schema."""
+        return self.generate_structured(
+            prompt,
+            schema=schema,
             agent_name=agent_name,
             prompt_name=prompt_name,
-            response_format="json",
-        )
-        call_payload: Dict[str, Any] = {
-            "agent_name": agent_name or "unknown",
-            "prompt_name": prompt_name or "",
-            "response_format": "json",
-            "model": self._cfg.model,
-            "prompt_preview": _preview_prompt(prompt),
-            "raw_response": raw,
-        }
-        try:
-            parsed = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            candidate = _extract_json_candidate(raw)
-            if candidate and candidate != raw.strip():
-                try:
-                    parsed = _parse_json_object_from_raw(candidate)
-                    call_payload["json_recovered_from"] = "wrapped_response"
-                except (json.JSONDecodeError, TypeError):
-                    pass
-                else:
-                    call_payload["parsed_response"] = parsed
-                    self._record_call(call_payload)
-                    return parsed
-
-            parsed = _extract_labeled_json_fallback(raw)
-            if parsed is not None:
-                call_payload["json_recovered_from"] = "labeled_response"
-                call_payload["parsed_response"] = parsed
-                self._record_call(call_payload)
-                return parsed
-
-            parsed = _extract_specialist_jsonish_fallback(raw)
-            if parsed is not None:
-                call_payload["json_recovered_from"] = "jsonish_specialist_response"
-                call_payload["parsed_response"] = parsed
-                self._record_call(call_payload)
-                return parsed
-
-            repair_prompt = _build_json_repair_prompt(prompt, raw)
-            repair_raw = self._generate_raw_text(repair_prompt)
-            self._record_usage_totals(self._last_usage_or_estimate(repair_prompt, repair_raw))
-            call_payload["repair_response"] = repair_raw
-            _dump_raw_response(
-                repair_raw,
-                model=self._cfg.model,
-                reason="pre_parse_json_repair",
-                qa_id=self._qa_id,
-                agent_name=agent_name,
-                prompt_name=prompt_name,
-                response_format="json",
-            )
-            try:
-                parsed = _parse_json_object_with_candidate(repair_raw)
-            except (json.JSONDecodeError, TypeError):
-                parsed = _extract_specialist_jsonish_fallback(repair_raw)
-                if parsed is not None:
-                    call_payload["json_recovered_from"] = "repair_jsonish_specialist_response"
-                    call_payload["parsed_response"] = parsed
-                    self._record_call(call_payload)
-                    return parsed
-            else:
-                call_payload["json_recovered_from"] = "repair_retry"
-                call_payload["parsed_response"] = parsed
-                self._record_call(call_payload)
-                return parsed
-
-            call_payload["error"] = "invalid_json"
-            self._record_call(call_payload)
-            dump_path = _log_contract_error(
-                raw,
-                model=self._cfg.model,
-                reason="invalid_json",
-                qa_id=self._qa_id,
-                agent_name=agent_name,
-                prompt_name=prompt_name,
-                response_format="json",
-                dump_path=pre_parse_dump_path,
-            )
-            detail = "LLM response was not valid JSON"
-            if dump_path is not None:
-                detail = f"{detail}; raw response dumped to {dump_path}"
-            raise LLMContractError(detail) from exc
-
-        if not isinstance(parsed, dict):
-            call_payload["error"] = "non_object_json"
-            call_payload["parsed_response"] = parsed
-            self._record_call(call_payload)
-            dump_path = _log_contract_error(
-                raw,
-                model=self._cfg.model,
-                reason="non_object_json",
-                qa_id=self._qa_id,
-                agent_name=agent_name,
-                prompt_name=prompt_name,
-                response_format="json",
-                dump_path=pre_parse_dump_path,
-            )
-            detail = "LLM response must be a JSON object"
-            if dump_path is not None:
-                detail = f"{detail}; raw response dumped to {dump_path}"
-            raise LLMContractError(detail)
-
-        call_payload["parsed_response"] = parsed
-        self._record_call(call_payload)
-        return parsed
+        ).data

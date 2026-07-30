@@ -20,7 +20,7 @@ from evaluation.run import evaluate_files
 
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description='Run LLM zero-shot TableQA (OpenAI, OpenRouter): Flatten V1 table string + question'
+        description='Run structured direct-prompt TableQA (OpenAI, OpenRouter): Flatten V1 table string + question'
     )
     p.add_argument(
         '--qas',
@@ -138,7 +138,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         '--prompt-style',
         choices=list(PROMPT_STYLES),
         default='zero_shot',
-        help='zero_shot | cot | task_decomposition',
+        help='zero_shot | cot | task_decomposition | few_shot',
     )
     return p
 

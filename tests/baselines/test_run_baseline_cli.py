@@ -1,9 +1,81 @@
 import json
+import sys
 from pathlib import Path
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
 from scripts.run_baseline import build_parser
+
+
+class _DirectBaselineClient:
+    def __init__(self) -> None:
+        self.calls = []
+
+    def generate_with_usage(self, model, prompt, config, **kwargs):
+        self.calls.append((model, prompt, config, kwargs))
+        return (
+            '{"final_answer": "Guatemala"}',
+            {
+                "prompt_tokens": 10,
+                "completion_tokens": 2,
+                "total_tokens": 12,
+                "cost_usd": 0.000003,
+            },
+        )
+
+
+def test_direct_baseline_writes_canonical_structured_record(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Catch direct runs that retain heuristic answer-field artifacts."""
+    from baseline.llm_client import GenConfig
+    from baseline.run import process_one_qa
+
+    representation = ModuleType("preprocessing.representation")
+    representation.create_representation = lambda table: SimpleNamespace(
+        to_string=lambda: table["table_str"]
+    )
+    monkeypatch.setitem(sys.modules, "preprocessing.representation", representation)
+
+    output_path = tmp_path / "direct.jsonl"
+    client = _DirectBaselineClient()
+    process_one_qa(
+        {
+            "qa_id": "q1",
+            "table_id": "t1",
+            "question": "Which country is listed?",
+            "answer": "Guatemala",
+        },
+        {"t1": {"table_str": "Country <header>|Name <header>|Guatemala"}},
+        ["openai/gpt-4o-mini"],
+        {"openai/gpt-4o-mini": output_path},
+        client,
+        GenConfig(),
+        sleep_s=0.0,
+        prompt_style="few_shot",
+    )
+
+    record = json.loads(output_path.read_text(encoding="utf-8"))
+    assert record["prediction"] == ["Guatemala"]
+    assert "predicted_answer" not in record
+    assert record["schema_name"] == "baseline_few_shot.v1"
+    assert record["structured_output"] == {"final_answer": "Guatemala"}
+    assert client.calls[0][2].text_format["type"] == "json_schema"
+    assert client.calls[0][2].require_parameters is True
+
+
+def test_direct_baseline_skip_existing_uses_qa_id(tmp_path: Path) -> None:
+    from baseline.run import _load_existing_qa_ids
+
+    output_path = tmp_path / "direct.jsonl"
+    output_path.write_text(
+        json.dumps({"qa_id": "q1", "prediction": ["Guatemala"]}) + "\n",
+        encoding="utf-8",
+    )
+
+    assert _load_existing_qa_ids(output_path) == {"q1"}
 
 
 def test_cli_defaults_to_gpt4o_mini_and_one_worker() -> None:

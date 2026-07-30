@@ -1,4 +1,4 @@
-"""Parse model JSON output with reasoning + final_answer."""
+"""Read legacy direct-baseline JSON artifacts with heuristic fallbacks."""
 
 from __future__ import annotations
 
@@ -9,10 +9,11 @@ from .utils.json_parser import parse_json_response
 
 def parse_reasoning_final_answer(raw: str) -> Tuple[bool, str, str]:
     """
-    Parse LLM output for keys reasoning and final_answer.
+    Parse historical LLM output for keys reasoning and final_answer.
 
     Returns (parse_ok, reasoning, final_answer).
     On failure: parse_ok False, reasoning "", final_answer from last non-empty line heuristic.
+    New baseline runs use ``StructuredGenerator`` and must not call this reader.
     """
     text = raw or ""
     data = parse_json_response(text)

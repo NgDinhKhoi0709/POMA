@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Final, Tuple
 
 # Stored in JSONL as prompt_version (stable ids for experiments / analysis).
-PROMPT_VERSION_ZERO_SHOT = "v1_zs"
-PROMPT_VERSION_COT = "v1_cot"
-PROMPT_VERSION_TASK_DECOMPOSITION = "v1_td"
-PROMPT_VERSION_FEW_SHOT = "v1_fs"
+PROMPT_VERSION_ZERO_SHOT = "v2_zs_structured"
+PROMPT_VERSION_COT = "v2_cot_structured"
+PROMPT_VERSION_TASK_DECOMPOSITION = "v2_td_structured"
+PROMPT_VERSION_FEW_SHOT = "v2_fs_structured"
 
 PROMPT_STYLES: Final[tuple[str, ...]] = (
     "zero_shot",
@@ -76,6 +76,62 @@ def _json_schema_instructions_en() -> str:
         "final_answer rules: table-only; no fabrication; do not repeat the question; no markdown in final_answer.\n"
         "Example: "
         '{"final_answer":"42"}\n'
+    )
+
+
+def _cot_schema_instructions_vi() -> str:
+    return (
+        "DAU RA (BAT BUOC): Mot JSON hop le duy nhat (co the boc trong khoi ```json ... ```).\n"
+        "Khong them van ban ngoai JSON (hoac ngoai khoi ```json).\n"
+        "Schema:\n"
+        '  {"reasoning": "<giai thich ngan gon, co the kiem tra tu bang>", '
+        '"final_answer": "<mot gia tri ngan gon; hoac chuoi Null khi khong du thong tin trong bang>"}\n'
+        "reasoning la ly do ngan gon, co the kiem tra; chi neu hang/cot hoac phep tinh can thiet.\n"
+        "Khong xuat suy luan rieng tu hoac tung buoc suy nghi chi tiet.\n"
+        "final_answer chi dua TABLE_STR, khong markdown, va dung Null neu khong tra loi duoc.\n"
+    )
+
+
+def _cot_schema_instructions_en() -> str:
+    return (
+        "OUTPUT (MANDATORY): Exactly one valid JSON object (may be wrapped in ```json ... ```).\n"
+        "No text outside JSON (except optional ```json fence).\n"
+        "Schema:\n"
+        '  {"reasoning": "<concise, auditable table-grounded rationale>", '
+        '"final_answer": "<short single value; or Null if insufficient table data>"}\n'
+        "reasoning is a concise auditable rationale: name only the relevant table facts or calculation.\n"
+        "Do not provide private or detailed step-by-step thinking.\n"
+        "final_answer is table-only, has no markdown, and is Null if the table is insufficient.\n"
+    )
+
+
+def _task_decomposition_schema_instructions_vi() -> str:
+    return (
+        "DAU RA (BAT BUOC): Mot JSON hop le duy nhat (co the boc trong khoi ```json ... ```).\n"
+        "Khong them van ban ngoai JSON (hoac ngoai khoi ```json).\n"
+        "Schema:\n"
+        '  {"subproblems": ["<nhiem vu ngan gon>"], '
+        '"reasoning": "<giai thich ngan gon, co the kiem tra tu bang>", '
+        '"final_answer": "<mot gia tri ngan gon; hoac chuoi Null khi khong du thong tin trong bang>"}\n'
+        "subproblems la danh sach cac nhiem vu ngan gon de tra loi cau hoi.\n"
+        "reasoning la ly do ngan gon, co the kiem tra; chi neu hang/cot hoac phep tinh can thiet.\n"
+        "Khong xuat suy luan rieng tu hoac tung buoc suy nghi chi tiet.\n"
+        "final_answer chi dua TABLE_STR, khong markdown, va dung Null neu khong tra loi duoc.\n"
+    )
+
+
+def _task_decomposition_schema_instructions_en() -> str:
+    return (
+        "OUTPUT (MANDATORY): Exactly one valid JSON object (may be wrapped in ```json ... ```).\n"
+        "No text outside JSON (except optional ```json fence).\n"
+        "Schema:\n"
+        '  {"subproblems": ["<short task>"], '
+        '"reasoning": "<concise, auditable table-grounded rationale>", '
+        '"final_answer": "<short single value; or Null if insufficient table data>"}\n'
+        "subproblems is a list of short tasks needed to answer the question.\n"
+        "reasoning is a concise auditable rationale: name only the relevant table facts or calculation.\n"
+        "Do not provide private or detailed step-by-step thinking.\n"
+        "final_answer is table-only, has no markdown, and is Null if the table is insufficient.\n"
     )
 
 
@@ -153,20 +209,14 @@ def _build_cot(question: str, table_str: str, vi: bool) -> str:
             "\n"
             + _flatten_v1_notes_vi()
             + "\n"
-            + _json_schema_instructions_vi()
-            + "\n"
-            "PHUONG PHAP: Suy luan noi bo theo tung buoc nhung KHONG in ra dau ra.\n"
-            "Chi xuat JSON final_answer-only theo dung schema.\n"
+            + _cot_schema_instructions_vi()
         )
     else:
         instr = (
             "You are a table QA system. Use ONLY TABLE_STR.\n"
             + _flatten_v1_notes_en()
             + "\n"
-            + _json_schema_instructions_en()
-            + "\n"
-            "METHOD: Think step by step internally, but do not expose reasoning.\n"
-            "Output only final_answer JSON following the schema.\n"
+            + _cot_schema_instructions_en()
         )
 
     return f"{instr}\nTABLE_STR:\n{table_str}\n\nQUESTION: {question}\n"
@@ -179,20 +229,14 @@ def _build_task_decomposition(question: str, table_str: str, vi: bool) -> str:
             "\n"
             + _flatten_v1_notes_vi()
             + "\n"
-            + _json_schema_instructions_vi()
-            + "\n"
-            "PHUONG PHAP: Phan ra nhiem vu de suy luan noi bo, nhung khong xuat cac buoc do.\n"
-            "Dau ra chi gom JSON final_answer-only theo schema.\n"
+            + _task_decomposition_schema_instructions_vi()
         )
     else:
         instr = (
             "Table QA using ONLY TABLE_STR.\n"
             + _flatten_v1_notes_en()
             + "\n"
-            + _json_schema_instructions_en()
-            + "\n"
-            "METHOD: Perform task decomposition internally, but do not reveal it.\n"
-            "Output only final_answer JSON following the schema.\n"
+            + _task_decomposition_schema_instructions_en()
         )
 
     return f"{instr}\nTABLE_STR:\n{table_str}\n\nQUESTION: {question}\n"

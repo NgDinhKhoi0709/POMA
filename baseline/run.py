@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import concurrent.futures
+from dataclasses import replace
 import json
+import math
 import sys
 import threading
 import time
@@ -14,9 +16,10 @@ _PROJECT_ROOT = _BASELINE_DIR.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from .llm_client import GenConfig, LLMZeroShotClient, usage_cost_usd
-from .model_output_parse import parse_reasoning_final_answer
+from .llm_client import GenConfig, LLMZeroShotClient
 from .prompts import PROMPT_STYLES, build_tableqa_prompt
+from src.contracts import CallContext, schema_for_call
+from src.services import StructuredGenerator
 
 try:
     from tqdm import tqdm  # type: ignore
@@ -24,6 +27,13 @@ except Exception:  # pragma: no cover
     tqdm = None  # type: ignore
 
 _FILE_LOCK = threading.Lock()
+
+SCHEMA_BY_PROMPT_STYLE = {
+    "zero_shot": "baseline_zero_shot.v1",
+    "few_shot": "baseline_few_shot.v1",
+    "cot": "baseline_cot.v1",
+    "task_decomposition": "baseline_task_decomposition.v1",
+}
 
 
 def _ensure_dir(p: Path) -> None:
@@ -122,47 +132,6 @@ def _load_existing_qa_ids(path: Path) -> set[str]:
     return qa_ids
 
 
-def _estimate_tokens(text: str) -> int:
-    if not text:
-        return 0
-    return max(1, int(len(text.split()) * 1.4))
-
-
-def _usage_fields_from_last_call(
-    client: Any,
-    model: str,
-    prompt: str,
-    response_text: str,
-) -> Dict[str, Any]:
-    thread_local = getattr(client, "_thread_local", None)
-    last_usage = getattr(thread_local, "last_usage", None) if thread_local is not None else None
-    usage = dict(last_usage) if isinstance(last_usage, dict) else {}
-
-    prompt_tokens = int(usage.get("prompt_tokens") or 0)
-    completion_tokens = int(usage.get("completion_tokens") or 0)
-    total_tokens = int(usage.get("total_tokens") or 0)
-
-    if prompt_tokens <= 0:
-        prompt_tokens = _estimate_tokens(prompt)
-    if completion_tokens <= 0:
-        completion_tokens = _estimate_tokens(response_text)
-    if total_tokens <= 0:
-        total_tokens = prompt_tokens + completion_tokens
-
-    usage_for_cost = {
-        **usage,
-        "prompt_tokens": prompt_tokens,
-        "completion_tokens": completion_tokens,
-        "total_tokens": total_tokens,
-    }
-    return {
-        "prompt_tokens": prompt_tokens,
-        "completion_tokens": completion_tokens,
-        "total_tokens": total_tokens,
-        "cost_usd": round(usage_cost_usd(model, usage_for_cost), 6),
-    }
-
-
 def _calculate_batch_stats(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
     valid_recs = [r for r in predictions if isinstance(r, dict) and "error" not in r]
     n = len(valid_recs)
@@ -185,7 +154,15 @@ def _calculate_batch_stats(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
     total_prompt = sum(int(r.get("prompt_tokens") or 0) for r in valid_recs)
     total_completion = sum(int(r.get("completion_tokens") or 0) for r in valid_recs)
     total_tok = sum(int(r.get("total_tokens") or 0) for r in valid_recs)
-    total_cost = sum(float(r.get("cost_usd") or 0.0) for r in valid_recs)
+    costs = [r.get("cost_usd") for r in valid_recs]
+    has_unknown_cost = any(
+        isinstance(cost, bool)
+        or not isinstance(cost, (int, float))
+        or not math.isfinite(float(cost))
+        or float(cost) < 0
+        for cost in costs
+    )
+    total_cost = None if has_unknown_cost else sum(float(cost) for cost in costs)
 
     return {
         "total_elapsed_s": round(total_elapsed, 2),
@@ -196,8 +173,10 @@ def _calculate_batch_stats(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
         "average_completion_tokens": round(total_completion / n, 1),
         "total_tokens": total_tok,
         "average_total_tokens": round(total_tok / n, 1),
-        "total_cost_usd": round(total_cost, 6),
-        "average_cost_usd": round(total_cost / n, 6),
+        "total_cost_usd": None if total_cost is None else round(total_cost, 6),
+        "average_cost_usd": (
+            None if total_cost is None else round(total_cost / n, 6)
+        ),
         "count": n,
     }
 
@@ -277,33 +256,57 @@ def process_one_qa(
     if table_str not in prompt_text:
         raise ValueError(f"qa_id={qa_id}: prompt does not include rendered table string")
 
-    from .utils.llm_retry import call_llm_with_retry
-
     for model in models:
         started_at = time.time()
-        resp_text, _ok = call_llm_with_retry(
-            llm_client=client,
-            model=model,
-            prompt=prompt_text,
-            cfg=cfg,
-            max_retries=4,
-            caller_name="zeroshot",
+        schema_name = SCHEMA_BY_PROMPT_STYLE[ps]
+        schema = schema_for_call(schema_name)
+
+        def generate_once(
+            request_prompt: str,
+            text_format: Dict[str, Any],
+        ) -> tuple[str, Dict[str, Any]]:
+            structured_cfg = replace(
+                cfg,
+                text_format=dict(text_format),
+                require_parameters=True,
+            )
+            return client.generate_with_usage(
+                model,
+                request_prompt,
+                structured_cfg,
+                max_retries=4,
+                retry_delay=15,
+            )
+
+        result = StructuredGenerator(generate_once).generate(
+            prompt_text,
+            schema,
+            CallContext(
+                qa_id=qa_id,
+                agent_name="DirectPromptBaseline",
+                prompt_name=ps,
+                model=model,
+            ),
         )
         elapsed_s = round(time.time() - started_at, 2)
-        parse_ok, _reasoning, final_answer = parse_reasoning_final_answer(resp_text)
         rec = {
             "qa_id": qa_id,
             "table_id": table_id,
             "question": question,
             "groundtruth": ("" if groundtruth is None else groundtruth),
-            "predicted_answer": [final_answer],
-            "response_text": final_answer,
-            "final_answer": final_answer,
-            "parse_ok": parse_ok,
+            "prediction": [result.data["final_answer"]],
+            "schema_name": result.schema_name,
+            "structured_output": result.data,
+            "schema_valid": result.schema_valid,
+            "repair_attempted": result.repair_attempted,
+            "repair_succeeded": result.repair_succeeded,
             "prompt_version": prompt_version,
             "prompt_style": ps,
             "elapsed_s": elapsed_s,
-            **_usage_fields_from_last_call(client, model, prompt_text, resp_text),
+            "prompt_tokens": result.prompt_tokens,
+            "completion_tokens": result.completion_tokens,
+            "total_tokens": result.total_tokens,
+            "cost_usd": result.cost_usd,
         }
         _append_jsonl_record(outputs[model], rec)
 

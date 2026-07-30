@@ -56,6 +56,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Return an error instead of skipping a metric that cannot run.",
     )
+    parser.add_argument(
+        "--candidate-policy",
+        choices=("all", "first", "single-required"),
+        default="all",
+        help="Candidate policy used for scoring (default: all).",
+    )
     return parser
 
 
@@ -69,6 +75,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         output_path=args.output,
         metrics=args.metrics,
         fail_on_metric_error=args.fail_on_metric_error,
+        candidate_policy=args.candidate_policy,
     )
     for name, values in report["metrics"].items():
         print(f"{name}: {values}")

@@ -43,6 +43,8 @@ def resolve_output_mode(
         return override
 
     normalized = model.removeprefix("openrouter/")
+    if model.startswith(("local/", "local:")):
+        return StructuredOutputMode.JSON_TEXT_EXTRACT
     if normalized == "google/gemma-3-4b-it":
         return StructuredOutputMode.STRICT_JSON_SCHEMA
     if normalized in {"qwen/qwen3-8b", "qwen/qwen3-8b-04-28"}:
@@ -85,6 +87,52 @@ def _strip_optional_json_fence(raw_response: str) -> str:
     return match.group(1).strip() if match else raw_response
 
 
+def _extract_single_json_object(raw_response: str) -> tuple[str | None, str | None]:
+    """Return exactly one top-level JSON object from text, or an error."""
+    text = raw_response.strip()
+    objects: list[str] = []
+    start: int | None = None
+    depth = 0
+    in_string = False
+    escaped = False
+
+    for index, char in enumerate(text):
+        if start is None:
+            if char == "{":
+                start = index
+                depth = 1
+                in_string = False
+                escaped = False
+            continue
+
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                objects.append(text[start : index + 1])
+                start = None
+                if len(objects) > 1:
+                    return None, "multiple JSON objects found"
+
+    if start is not None:
+        return None, "unterminated JSON object"
+    if not objects:
+        return None, "no JSON object found"
+    return objects[0], None
+
+
 def _json_path(error: Any) -> str:
     path = "$"
     for part in error.absolute_path:
@@ -125,8 +173,14 @@ def _validation_errors(raw_response: str, schema: ResponseSchema) -> list[str]:
 def _decode_and_validate(
     raw_response: str,
     schema: ResponseSchema,
+    mode: StructuredOutputMode | None = None,
 ) -> tuple[dict[str, Any] | None, list[str]]:
     json_text = _strip_optional_json_fence(raw_response)
+    if mode is StructuredOutputMode.JSON_TEXT_EXTRACT:
+        extracted, extraction_error = _extract_single_json_object(json_text)
+        if extraction_error:
+            return None, [f"$: {extraction_error}"]
+        json_text = extracted or ""
     errors = _validation_errors(json_text, schema)
     if errors:
         return None, errors
@@ -243,13 +297,14 @@ class StructuredGenerator:
             in {
                 StructuredOutputMode.JSON_OBJECT,
                 StructuredOutputMode.PROMPT_ONLY,
+                StructuredOutputMode.JSON_TEXT_EXTRACT,
             }
             else prompt
         )
 
         raw_response, raw_usage = self._generate_once(request_prompt, text_format)
         usages = [_normalize_usage(raw_usage)]
-        data, validation_errors = _decode_and_validate(raw_response, schema)
+        data, validation_errors = _decode_and_validate(raw_response, schema, mode)
         if data is not None:
             return self._result(
                 data=data,
@@ -265,6 +320,7 @@ class StructuredGenerator:
         if mode in {
             StructuredOutputMode.JSON_OBJECT,
             StructuredOutputMode.PROMPT_ONLY,
+            StructuredOutputMode.JSON_TEXT_EXTRACT,
         }:
             repair_prompt = _qwen_prompt(repair_prompt, schema)
         repair_response, repair_usage = self._generate_once(
@@ -272,7 +328,11 @@ class StructuredGenerator:
             text_format,
         )
         usages.append(_normalize_usage(repair_usage))
-        repaired_data, repair_errors = _decode_and_validate(repair_response, schema)
+        repaired_data, repair_errors = _decode_and_validate(
+            repair_response,
+            schema,
+            mode,
+        )
         if repaired_data is None:
             detail = "; ".join(repair_errors)
             raise StructuredGenerationError(

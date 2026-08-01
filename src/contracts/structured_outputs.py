@@ -32,6 +32,7 @@ class StructuredOutputMode(str, Enum):
     STRICT_JSON_SCHEMA = "strict_json_schema"
     JSON_OBJECT = "json_object"
     PROMPT_ONLY = "prompt_only"
+    JSON_TEXT_EXTRACT = "json_text_extract"
 
 
 @dataclass(frozen=True)

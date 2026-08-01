@@ -86,6 +86,17 @@ def test_unknown_openrouter_model_requires_explicit_override():
     )
 
 
+def test_local_sea_lion_uses_json_text_extract_mode():
+    assert (
+        resolve_output_mode("local/sea-lion-v3-8b-it")
+        is StructuredOutputMode.JSON_TEXT_EXTRACT
+    )
+    assert (
+        resolve_output_mode("local/aisingapore/Llama-SEA-LION-v3-8B-IT")
+        is StructuredOutputMode.JSON_TEXT_EXTRACT
+    )
+
+
 def test_qwen_prompt_only_mode_omits_format_and_appends_compact_schema_instruction():
     generator, transport = _generator(
         [
@@ -174,6 +185,46 @@ def test_fenced_json_is_decoded_without_repair():
     assert result.data == {"answer": "yes"}
     assert result.schema_valid is True
     assert result.repair_attempted is False
+
+
+def test_text_wrapped_single_json_object_is_decoded_without_repair():
+    generator, transport = _generator(
+        [
+            (
+                'Here is the answer:\n{"answer": "yes"}\nDone.',
+                {"prompt_tokens": 2, "completion_tokens": 3, "total_tokens": 5},
+            )
+        ],
+        mode_override=StructuredOutputMode.JSON_TEXT_EXTRACT,
+    )
+
+    result = generator.generate("Answer.", SIMPLE_SCHEMA, _context("local/sea-lion-v3-8b-it"))
+
+    assert len(transport.calls) == 1
+    assert result.data == {"answer": "yes"}
+    assert result.repair_attempted is False
+
+
+def test_ambiguous_multiple_json_objects_repair_once():
+    generator, transport = _generator(
+        [
+            (
+                '{"answer": "first"}\n{"answer": "second"}',
+                {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            ),
+            (
+                '{"answer": "repaired"}',
+                {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            ),
+        ],
+        mode_override=StructuredOutputMode.JSON_TEXT_EXTRACT,
+    )
+
+    result = generator.generate("Answer.", SIMPLE_SCHEMA, _context("local/sea-lion-v3-8b-it"))
+
+    assert len(transport.calls) == 2
+    assert result.data == {"answer": "repaired"}
+    assert "multiple JSON objects" in transport.calls[1][0]
 
 
 def test_malformed_json_is_repaired_once_with_aggregated_known_usage():

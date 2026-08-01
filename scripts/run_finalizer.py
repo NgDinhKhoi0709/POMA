@@ -453,6 +453,13 @@ def main(
     *,
     llm_factory: FinalizerFactory | None = None,
 ) -> int:
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(PROJECT_ROOT / ".env", override=False)
+    except Exception:
+        pass
+
     parser = build_parser()
     args = parser.parse_args(argv)
 

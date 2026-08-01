@@ -289,12 +289,14 @@ def process_one_qa(
 
         def generate_once(
             request_prompt: str,
-            text_format: Dict[str, Any],
+            text_format: Optional[Dict[str, Any]],
         ) -> tuple[str, Dict[str, Any]]:
             structured_cfg = replace(
                 cfg,
-                text_format=dict(text_format),
-                require_parameters=True,
+                text_format=(
+                    None if text_format is None else dict(text_format)
+                ),
+                require_parameters=text_format is not None,
             )
             return client.generate_with_usage(
                 model,

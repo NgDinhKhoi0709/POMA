@@ -543,7 +543,7 @@ class LLMClient:
 
         def generate_once(
             request_prompt: str,
-            text_format: Dict[str, Any],
+            text_format: Optional[Dict[str, Any]],
         ) -> tuple[str, Dict[str, Any]]:
             nonlocal attempts_started
             attempts_started += 1

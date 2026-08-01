@@ -110,6 +110,22 @@ def test_openrouter_responses_merges_provider_only_with_require_parameters(clien
     assert provider == {"only": ["provider-a"]}
 
 
+def test_openrouter_responses_routes_qwen3_8b_to_alibaba_by_default(
+    client,
+    fake_post,
+):
+    client.generate(
+        model="openrouter/qwen/qwen3-8b",
+        prompt="prompt",
+        config=GenConfig(),
+        max_retries=1,
+        retry_delay=0,
+    )
+
+    body = fake_post.call_args.kwargs["json"]
+    assert body["provider"] == {"only": ["alibaba"]}
+
+
 def test_openrouter_responses_omits_structured_fields_for_plain_text(client, fake_post):
     client.generate(
         model="openrouter/google/gemma-3-4b-it",

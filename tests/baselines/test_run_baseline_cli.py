@@ -84,6 +84,41 @@ def test_direct_baseline_writes_canonical_structured_record(
     assert client.calls[0][2].require_parameters is True
 
 
+def test_qwen_direct_baseline_uses_prompt_only_structured_generation(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Catch Alibaba Qwen requests that enable its broken JSON-object mode."""
+    from baseline.llm_client import GenConfig
+    from baseline.run import process_one_qa
+
+    representation = ModuleType("preprocessing.representation")
+    representation.create_representation = lambda table: SimpleNamespace(
+        to_string=lambda: table["table_str"]
+    )
+    monkeypatch.setitem(sys.modules, "preprocessing.representation", representation)
+
+    output_path = tmp_path / "direct.jsonl"
+    client = _DirectBaselineClient()
+    process_one_qa(
+        {
+            "qa_id": "q1",
+            "table_id": "t1",
+            "question": "Which rank is listed?",
+            "answer": "5",
+        },
+        {"t1": {"table_str": "Rank <header>|Building <header>|5|Carlton Centre"}},
+        ["openrouter/qwen/qwen3-8b"],
+        {"openrouter/qwen/qwen3-8b": output_path},
+        client,
+        GenConfig(),
+        sleep_s=0.0,
+    )
+
+    assert client.calls[0][2].text_format is None
+    assert client.calls[0][2].require_parameters is False
+
+
 def test_direct_baseline_skip_existing_uses_qa_id(tmp_path: Path) -> None:
     from baseline.run import _load_existing_qa_ids
 

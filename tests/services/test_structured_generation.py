@@ -52,10 +52,10 @@ def _generator(responses, *, mode_override=None):
     return StructuredGenerator(transport, mode_override=mode_override), transport
 
 
-def test_qwen_uses_json_object_mode():
+def test_qwen_uses_prompt_only_mode():
     assert (
         resolve_output_mode("openrouter/qwen/qwen3-8b")
-        is StructuredOutputMode.JSON_OBJECT
+        is StructuredOutputMode.PROMPT_ONLY
     )
 
 
@@ -86,7 +86,7 @@ def test_unknown_openrouter_model_requires_explicit_override():
     )
 
 
-def test_qwen_format_uses_json_object_and_appends_compact_schema_instruction():
+def test_qwen_prompt_only_mode_omits_format_and_appends_compact_schema_instruction():
     generator, transport = _generator(
         [
             (
@@ -99,7 +99,7 @@ def test_qwen_format_uses_json_object_and_appends_compact_schema_instruction():
     generator.generate("Answer the question.", SIMPLE_SCHEMA, _context())
 
     prompt, text_format = transport.calls[0]
-    assert text_format == {"type": "json_object"}
+    assert text_format is None
     assert "Answer the question." in prompt
     assert '"additionalProperties":false' in prompt
 
@@ -156,6 +156,24 @@ def test_valid_first_response_makes_one_call_and_normalizes_known_cost():
         result.total_tokens,
     ) == (2, 3, 5)
     assert result.cost_usd == 0.25
+
+
+def test_fenced_json_is_decoded_without_repair():
+    generator, transport = _generator(
+        [
+            (
+                '```json\n{"answer": "yes"}\n```',
+                {"prompt_tokens": 2, "completion_tokens": 3, "total_tokens": 5},
+            )
+        ]
+    )
+
+    result = generator.generate("Answer.", SIMPLE_SCHEMA, _context())
+
+    assert len(transport.calls) == 1
+    assert result.data == {"answer": "yes"}
+    assert result.schema_valid is True
+    assert result.repair_attempted is False
 
 
 def test_malformed_json_is_repaired_once_with_aggregated_known_usage():
@@ -225,7 +243,7 @@ def test_qwen_repair_retains_original_context_and_schema_instruction():
     assert "The previous response failed validation." in repair_prompt
     assert "Validation errors:" in repair_prompt
     assert "Previous response:" in repair_prompt
-    assert repair_format == transport.calls[0][1] == {"type": "json_object"}
+    assert repair_format is transport.calls[0][1] is None
 
 
 def test_schema_invalid_json_is_repaired_once():

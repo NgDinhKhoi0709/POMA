@@ -21,6 +21,9 @@ class _FakeStructuredLLM:
             {
                 "prompt": prompt,
                 "schema_name": schema.name,
+                "decision_enum": schema.json_schema.get("properties", {})
+                .get("decision", {})
+                .get("enum"),
                 "agent_name": agent_name,
                 "prompt_name": prompt_name,
             }
@@ -154,21 +157,47 @@ def test_agent_rejects_null_decision_with_non_null_answer():
         agent.run(_request())
 
 
-def test_agent_rejects_selected_answer_not_in_candidates():
-    agent = GroundedSingleAnswerAgent(
-        _FakeStructuredLLM(
-            [
-                {
-                    "final_answer": "Hanoi",
-                    "supporting_evidence": ["Da Nang | 42"],
-                    "decision": "selected",
-                }
-            ]
-        )
+def test_agent_repairs_selected_answer_not_in_candidates_once():
+    invalid = {
+        "final_answer": "42",
+        "supporting_evidence": ["Da Nang | 42"],
+        "decision": "selected",
+    }
+    repaired = {
+        "final_answer": "42",
+        "supporting_evidence": ["Da Nang | 42"],
+        "decision": "synthesized",
+    }
+    agent = GroundedSingleAnswerAgent(_FakeStructuredLLM([invalid, repaired]))
+
+    result = agent.run(_request())
+
+    assert result.decision is GroundedDecision.SYNTHESIZED
+    assert len(agent._llm.calls) == 2
+    assert (
+        "selected final_answer must match an input candidate"
+        in agent._llm.calls[1]["prompt"]
     )
+    assert '"final_answer": "42"' in agent._llm.calls[1]["prompt"]
+    assert agent._llm.calls[1]["decision_enum"] == [
+        "corrected",
+        "synthesized",
+        "null",
+    ]
+
+
+def test_agent_rejects_selected_answer_not_in_candidates_after_one_repair():
+    invalid = {
+        "final_answer": "Hanoi",
+        "supporting_evidence": ["Da Nang | 42"],
+        "decision": "selected",
+    }
+    agent = GroundedSingleAnswerAgent(_FakeStructuredLLM([invalid, invalid]))
 
     with pytest.raises(LLMContractError, match="selected"):
         agent.run(_request())
+
+    assert len(agent._llm.calls) == 2
 
 
 @pytest.mark.parametrize("decision", ["selected", "corrected", "synthesized"])
@@ -210,3 +239,5 @@ def test_agent_uses_gsa_schema_and_private_prompt_context():
     assert call["prompt_name"] == "grounded_single_answer"
     assert '"source_name": "What"' in call["prompt"]
     assert '"answer": "Da Nang"' in call["prompt"]
+    assert "If it differs semantically from every input candidate" in call["prompt"]
+    assert "decision=`synthesized`, never `selected`" in call["prompt"]

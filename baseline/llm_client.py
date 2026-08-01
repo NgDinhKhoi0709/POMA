@@ -14,7 +14,7 @@ MODEL_ALIASES: Dict[str, Tuple[str, str]] = {
 }
 
 DEFAULT_OPENROUTER_PROVIDERS: Dict[str, Dict[str, List[str]]] = {
-    "qwen/qwen3-8b": {"only": ["atlas-cloud/fp8"]},
+    "qwen/qwen3-8b": {"only": ["alibaba"]},
     "meta-llama/llama-3.1-8b-instruct": {"only": ["deepinfra/bf16"]},
 }
 

@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from pathlib import Path
 
@@ -188,6 +189,61 @@ class _FakeLLMFactory:
             interrupt_qa_id=self.interrupt_qa_id,
             incremental_path=self.incremental_path,
         )
+
+
+def test_main_loads_project_dotenv_before_creating_llm(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Catch standalone finalizer processes losing credentials from .env."""
+    import scripts.run_finalizer as run_finalizer
+
+    source_path, qas_path, tables_path = _fixture_files(tmp_path)
+    output_path = tmp_path / "gsa.json"
+    incremental_path = tmp_path / "gsa.jsonl"
+    (tmp_path / ".env").write_text(
+        "OPENROUTER_API_KEY=dotenv-test-key\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(run_finalizer, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(run_finalizer, "_git_commit", lambda: "test-commit")
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEYS", raising=False)
+
+    delegate = _FakeLLMFactory(
+        interrupt_qa_id=None,
+        incremental_path=incremental_path,
+    )
+
+    def factory(config):
+        assert os.environ["OPENROUTER_API_KEY"] == "dotenv-test-key"
+        return delegate(config)
+
+    exit_code = run_finalizer.main(
+        [
+            "--source",
+            str(source_path),
+            "--source-kind",
+            "poma-specialists",
+            "--finalizer",
+            "gsa",
+            "--qas",
+            str(qas_path),
+            "--tables",
+            str(tables_path),
+            "--model",
+            "openrouter/qwen/qwen3-8b",
+            "--provider",
+            "openrouter",
+            "--output",
+            str(output_path),
+            "--max-workers",
+            "1",
+        ],
+        llm_factory=factory,
+    )
+
+    assert exit_code == 0
 
 
 class _BoundedInterruptLLM:

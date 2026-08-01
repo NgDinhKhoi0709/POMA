@@ -28,7 +28,10 @@ class StructuredGenerationError(RuntimeError):
     """Raised when a response remains invalid after one repair attempt."""
 
 
-GenerateOnce = Callable[[str, dict[str, Any]], tuple[str, dict[str, Any]]]
+GenerateOnce = Callable[
+    [str, dict[str, Any] | None],
+    tuple[str, dict[str, Any]],
+]
 
 
 def resolve_output_mode(
@@ -43,7 +46,7 @@ def resolve_output_mode(
     if normalized == "google/gemma-3-4b-it":
         return StructuredOutputMode.STRICT_JSON_SCHEMA
     if normalized in {"qwen/qwen3-8b", "qwen/qwen3-8b-04-28"}:
-        return StructuredOutputMode.JSON_OBJECT
+        return StructuredOutputMode.PROMPT_ONLY
     if model.startswith("openai/"):
         return StructuredOutputMode.STRICT_JSON_SCHEMA
     raise UnsupportedStructuredOutputModel(model)
@@ -69,6 +72,17 @@ def _qwen_prompt(prompt: str, schema: ResponseSchema) -> str:
         "Return one JSON object matching this JSON Schema: "
         f"{compact_schema}"
     )
+
+
+_JSON_FENCE_PATTERN = re.compile(
+    r"\A\s*```(?:json)?\s*(.*?)\s*```\s*\Z",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
+
+def _strip_optional_json_fence(raw_response: str) -> str:
+    match = _JSON_FENCE_PATTERN.fullmatch(raw_response)
+    return match.group(1).strip() if match else raw_response
 
 
 def _json_path(error: Any) -> str:
@@ -112,10 +126,11 @@ def _decode_and_validate(
     raw_response: str,
     schema: ResponseSchema,
 ) -> tuple[dict[str, Any] | None, list[str]]:
-    errors = _validation_errors(raw_response, schema)
+    json_text = _strip_optional_json_fence(raw_response)
+    errors = _validation_errors(json_text, schema)
     if errors:
         return None, errors
-    return json.loads(raw_response), []
+    return json.loads(json_text), []
 
 
 def _domain_error_path(schema_name: str, message: str) -> str:
@@ -216,14 +231,19 @@ class StructuredGenerator:
     ) -> StructuredResult:
         """Generate once, then repair exactly once when validation fails."""
         mode = resolve_output_mode(context.model, self._mode_override)
-        text_format = (
-            _strict_text_format(schema)
-            if mode is StructuredOutputMode.STRICT_JSON_SCHEMA
-            else {"type": "json_object"}
-        )
+        if mode is StructuredOutputMode.STRICT_JSON_SCHEMA:
+            text_format = _strict_text_format(schema)
+        elif mode is StructuredOutputMode.JSON_OBJECT:
+            text_format = {"type": "json_object"}
+        else:
+            text_format = None
         request_prompt = (
             _qwen_prompt(prompt, schema)
-            if mode is StructuredOutputMode.JSON_OBJECT
+            if mode
+            in {
+                StructuredOutputMode.JSON_OBJECT,
+                StructuredOutputMode.PROMPT_ONLY,
+            }
             else prompt
         )
 
@@ -242,7 +262,10 @@ class StructuredGenerator:
             )
 
         repair_prompt = _repair_prompt(prompt, validation_errors, raw_response)
-        if mode is StructuredOutputMode.JSON_OBJECT:
+        if mode in {
+            StructuredOutputMode.JSON_OBJECT,
+            StructuredOutputMode.PROMPT_ONLY,
+        }:
             repair_prompt = _qwen_prompt(repair_prompt, schema)
         repair_response, repair_usage = self._generate_once(
             repair_prompt,

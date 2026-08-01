@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 from typing import Any
 
@@ -13,7 +14,11 @@ from src.contracts.finalization import (
     GroundedAnswerRequest,
     GroundedDecision,
 )
-from src.contracts.structured_outputs import validate_domain_payload
+from src.contracts.structured_outputs import (
+    ResponseSchema,
+    schema_for_call,
+    validate_domain_payload,
+)
 from src.errors import LLMContractError
 
 
@@ -41,15 +46,58 @@ class GroundedSingleAnswerAgent(BaseAgent):
         data = self._call_llm_json(prompt)
         result = self._result_from_payload(data)
 
-        if result.decision is GroundedDecision.SELECTED:
-            normalized_answers = {
-                normalize_text(candidate.answer) for candidate in request.candidates
-            }
-            if normalize_text(result.final_answer) not in normalized_answers:
+        if not self._selected_answer_matches(result, request):
+            repair_prompt = (
+                f"{prompt}\n\n"
+                "The previous JSON response failed semantic validation:\n"
+                "GroundedSingleAnswer selected final_answer must match an input "
+                "candidate.\n"
+                "Previous JSON response:\n"
+                f"{json.dumps(data, ensure_ascii=False)}\n\n"
+                "Re-evaluate the decision label against the ordered candidates and "
+                "return one corrected JSON object. Keep the answer and evidence only "
+                "if they remain grounded in the table."
+            )
+            repaired_data = self._call_decision_repair(repair_prompt)
+            result = self._result_from_payload(repaired_data)
+            if not self._selected_answer_matches(result, request):
                 raise LLMContractError(
                     "GroundedSingleAnswer selected final_answer must match an input candidate"
                 )
         return result
+
+    @staticmethod
+    def _selected_answer_matches(
+        result: GroundedAnswer,
+        request: GroundedAnswerRequest,
+    ) -> bool:
+        if result.decision is not GroundedDecision.SELECTED:
+            return True
+        normalized_answers = {
+            normalize_text(candidate.answer) for candidate in request.candidates
+        }
+        return normalize_text(result.final_answer) in normalized_answers
+
+    def _call_decision_repair(self, prompt: str) -> dict[str, Any]:
+        base_schema = schema_for_call(self.response_schema_name)
+        repair_json_schema = deepcopy(base_schema.json_schema)
+        repair_json_schema["properties"]["decision"]["enum"] = [
+            "corrected",
+            "synthesized",
+            "null",
+        ]
+        repair_schema = ResponseSchema(
+            name=base_schema.name,
+            version=base_schema.version,
+            json_schema=repair_json_schema,
+        )
+        result = self._llm.generate_structured(
+            prompt,
+            schema=repair_schema,
+            agent_name=self.name,
+            prompt_name=self.prompt_name,
+        )
+        return result.data
 
     @staticmethod
     def _result_from_payload(data: dict[str, Any]) -> GroundedAnswer:

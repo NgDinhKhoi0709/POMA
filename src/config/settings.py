@@ -66,11 +66,23 @@ class LLMConfig:
 
 
 @dataclass(frozen=True)
+class LocalModelConfig:
+    model_id: str = "aisingapore/Llama-SEA-LION-v3-8B-IT"
+    max_model_len: int = 32768
+    max_input_tokens: int = 28672
+    quantization: str = "nf4"
+    max_new_tokens: int = 512
+    hint_preview_tokens: int = 1024
+
+
+@dataclass(frozen=True)
 class Settings:
     project_root: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent.parent)
     prompts_dir: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent / "prompts")
+    prompt_profile: str = "default"
 
     llm: LLMConfig = field(default_factory=LLMConfig)
+    local_model: LocalModelConfig = field(default_factory=LocalModelConfig)
     parallel_max_workers: int = 10
     answer_language: str = "vi"
     use_consensus_fusion: bool = False
@@ -86,7 +98,25 @@ def get_settings() -> Settings:
     if _settings is not None:
         return _settings
 
+    project_root = Path(
+        _env_str(
+            "POMA_PROJECT_ROOT",
+            str(Path(__file__).resolve().parent.parent.parent),
+        )
+    )
+    prompt_profile = _env_str("POMA_PROMPT_PROFILE", "default").strip().lower() or "default"
+    prompt_dir_override = os.environ.get("POMA_PROMPTS_DIR")
+    if prompt_dir_override:
+        prompts_dir = Path(prompt_dir_override)
+    elif prompt_profile == "compact":
+        prompts_dir = project_root / "src" / "prompts_compact"
+    else:
+        prompts_dir = project_root / "src" / "prompts"
+
     _settings = Settings(
+        project_root=project_root,
+        prompts_dir=prompts_dir,
+        prompt_profile=prompt_profile,
         llm=LLMConfig(
             model=_env_str("POMA_LLM_MODEL", LLMConfig.model),
             temperature=_env_float("POMA_LLM_TEMPERATURE", LLMConfig.temperature),
@@ -96,6 +126,14 @@ def get_settings() -> Settings:
             max_retries=_env_int("POMA_LLM_MAX_RETRIES", LLMConfig.max_retries),
             retry_delay=_env_int("POMA_LLM_RETRY_DELAY", LLMConfig.retry_delay),
             openrouter_provider=_env_openrouter_provider("POMA_OPENROUTER_PROVIDER"),
+        ),
+        local_model=LocalModelConfig(
+            model_id=_env_str("POMA_LOCAL_MODEL_ID", LocalModelConfig.model_id),
+            max_model_len=_env_int("POMA_LOCAL_MAX_MODEL_LEN", LocalModelConfig.max_model_len),
+            max_input_tokens=_env_int("POMA_LOCAL_MAX_INPUT_TOKENS", LocalModelConfig.max_input_tokens),
+            quantization=_env_str("POMA_LOCAL_QUANTIZATION", LocalModelConfig.quantization),
+            max_new_tokens=_env_int("POMA_LOCAL_MAX_NEW_TOKENS", LocalModelConfig.max_new_tokens),
+            hint_preview_tokens=_env_int("POMA_HINT_PREVIEW_TOKENS", LocalModelConfig.hint_preview_tokens),
         ),
         parallel_max_workers=_env_int("POMA_PARALLEL_WORKERS", Settings.parallel_max_workers),
         answer_language=_env_str("POMA_ANSWER_LANGUAGE", Settings.answer_language),

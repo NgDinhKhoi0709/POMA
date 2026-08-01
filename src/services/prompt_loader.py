@@ -16,6 +16,10 @@ from src.config.settings import get_settings
 _cache: Dict[str, str] = {}
 
 
+def reset_prompt_cache() -> None:
+    _cache.clear()
+
+
 def _prompts_dir() -> Path:
     return get_settings().prompts_dir
 

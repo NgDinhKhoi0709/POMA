@@ -69,6 +69,11 @@ def _record_selection(path: Path, selected: list[dict]) -> None:
     path.write_text(json.dumps([str(qa["qa_id"]) for qa in selected], ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def baseline_prediction(payload: dict) -> list[str]:
+    """Convert the baseline structured schema into evaluation candidates."""
+    return [str(payload["final_answer"])]
+
+
 def _pending_qas(selected: list[dict], done: set[str]) -> list[dict]:
     return [qa for qa in selected if str(qa["qa_id"]) not in done]
 
@@ -107,7 +112,7 @@ def run_zero_shot(config: RunConfig, selected: list[dict], table_idx: dict) -> P
             prompt, _ = build_tableqa_prompt(question=str(qa["question"]), table_str=table, prompt_style="zero_shot")
             generator = StructuredGenerator(client._generate_raw_text)
             result = generator.generate(prompt, schema_for_call("baseline_zero_shot.v1"), CallContext(qa_id=qa_id, agent_name="DirectPromptBaseline", prompt_name="zero_shot", model=config.model))
-            append_jsonl(predictions, {"qa_id": qa_id, "prediction": [result.data["answer"]], "schema_valid": result.schema_valid, "repair_attempted": result.repair_attempted, "repair_succeeded": result.repair_succeeded})
+            append_jsonl(predictions, {"qa_id": qa_id, "prediction": baseline_prediction(result.data), "schema_valid": result.schema_valid, "repair_attempted": result.repair_attempted, "repair_succeeded": result.repair_succeeded})
         except Exception as exc:
             append_jsonl(errors, {"qa_id": qa_id, "terminal": isinstance(exc, ContextOverflowError), "error_type": "context_overflow" if isinstance(exc, ContextOverflowError) else type(exc).__name__, "error": str(exc)})
     return predictions

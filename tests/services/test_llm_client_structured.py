@@ -4,6 +4,7 @@ import pytest
 
 from src.config.settings import LLMConfig
 from src.contracts import schema_for_call
+from src.services import llm_client as llm_client_module
 from src.services.llm_client import LLMClient
 from src.services.structured_generation import StructuredGenerationError
 
@@ -231,3 +232,37 @@ def test_generate_json_requires_schema_and_delegates_to_structured_generation():
     )
 
     assert data == {"predicted_hints": ["What"]}
+
+
+def test_local_model_routes_to_transformers_client(monkeypatch):
+    calls = []
+
+    class _FakeLocalClient:
+        def generate_with_usage(self, prompt, *, max_new_tokens=None):
+            calls.append((prompt, max_new_tokens))
+            return (
+                '{"predicted_hints": ["What"]}',
+                {
+                    "prompt_tokens": 2,
+                    "completion_tokens": 3,
+                    "total_tokens": 5,
+                    "cost_usd": None,
+                },
+            )
+
+    monkeypatch.setattr(
+        llm_client_module,
+        "_get_shared_local_client",
+        lambda config: _FakeLocalClient(),
+        raising=False,
+    )
+    client = LLMClient(LLMConfig(model="local/sea-lion-v3-8b-it", max_tokens=7))
+
+    result = client.generate_structured(
+        "prompt",
+        schema=schema_for_call("hint_predictor.v1"),
+    )
+
+    assert result.data == {"predicted_hints": ["What"]}
+    assert calls[0][1] == 7
+    assert client.total_cost_usd is None

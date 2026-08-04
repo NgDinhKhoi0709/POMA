@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 
 from baseline.llm_client import GenConfig, LLMZeroShotClient
 
-from src.config.settings import LLMConfig, get_settings
+from src.config.settings import LLMConfig, LocalModelConfig, get_settings
 from src.contracts import (
     CallContext,
     ResponseSchema,
@@ -28,6 +28,7 @@ from src.services.structured_generation import (
 )
 
 _shared_client: Optional[LLMZeroShotClient] = None
+_shared_local_client: Any = None
 logger = logging.getLogger(__name__)
 _RAW_RESPONSE_PREVIEW_CHARS = 500
 _PROMPT_PREVIEW_CHARS = 500
@@ -40,6 +41,15 @@ def _get_shared_client() -> LLMZeroShotClient:
     if _shared_client is None:
         _shared_client = LLMZeroShotClient()
     return _shared_client
+
+
+def _get_shared_local_client(config: LocalModelConfig) -> Any:
+    global _shared_local_client
+    if _shared_local_client is None:
+        from src.services.local_transformers_client import LocalTransformersClient
+
+        _shared_local_client = LocalTransformersClient.from_pretrained(config)
+    return _shared_local_client
 
 
 def _sanitize_filename(value: str) -> str:
@@ -474,6 +484,14 @@ class LLMClient:
         prompt: str,
         text_format: Optional[Dict[str, Any]] = None,
     ) -> tuple[str, Dict[str, Any]]:
+        if self._cfg.model.startswith(("local/", "local:")):
+            if text_format is not None:
+                raise ValueError("Local models use prompt-only JSON schema instructions")
+            return _get_shared_local_client(get_settings().local_model).generate_with_usage(
+                prompt,
+                max_new_tokens=self._cfg.max_tokens,
+            )
+
         gen_cfg = GenConfig(
             temperature=self._cfg.temperature,
             top_p=self._cfg.top_p,

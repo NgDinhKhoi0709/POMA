@@ -20,7 +20,7 @@ def table_length_bucket(token_count: int) -> str:
 def select_pilot_qas(qas: Sequence[dict[str, Any]], *, table_token_counts: Mapping[str, int], n: int = 200, seed: int = 42) -> list[dict[str, Any]]:
     if len(qas) < n:
         raise ValueError(f"Need at least {n} QAs, received {len(qas)}")
-    groups: dict[tuple[str, str], list[tuple[int, dict[str, Any]]] = defaultdict(list)
+    groups: dict[tuple[str, str], list[tuple[int, dict[str, Any]]]] = defaultdict(list)
     for index, qa in enumerate(qas):
         hints = qa.get("hints") or ["unknown"]
         hint = str(hints[0]) if hints else "unknown"

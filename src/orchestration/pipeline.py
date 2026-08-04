@@ -397,10 +397,16 @@ def run_pipeline(
                 logger.info("Using precomputed predicted hints: %s", active_hints)
             elif getattr(settings, "use_agent_hints", False):
                 from src.agents.hint_predictor import HintPredictorAgent
+                from src.kaggle_eval.table_preview import build_table_preview
+
                 predictor = HintPredictorAgent(llm=llm)
+                hint_table = build_table_preview(
+                    request.table_flattened,
+                    max_tokens=getattr(settings.local_model, "hint_preview_tokens", 1024),
+                )
                 active_hints = predictor.run(
                     question=request.question,
-                    table_flattened=request.table_flattened,
+                    table_flattened=hint_table,
                 )
                 logger.info("Using HintPredictorAgent predicted hints: %s", active_hints)
             else:

@@ -10,6 +10,11 @@ from typing import Literal
 from src.kaggle_eval.jsonl_io import append_jsonl, completed_qa_ids
 from src.kaggle_eval.selection import load_final_543_ids, select_pilot_qas
 
+try:
+    from tqdm.auto import tqdm
+except ImportError:  # pragma: no cover - Kaggle supplies tqdm
+    tqdm = None
+
 
 @dataclass(frozen=True)
 class RunConfig:
@@ -64,6 +69,24 @@ def _record_selection(path: Path, selected: list[dict]) -> None:
     path.write_text(json.dumps([str(qa["qa_id"]) for qa in selected], ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _pending_qas(selected: list[dict], done: set[str]) -> list[dict]:
+    return [qa for qa in selected if str(qa["qa_id"]) not in done]
+
+
+def _progress(qas: list[dict], *, description: str, skipped: int):
+    if tqdm is None:
+        print(f"{description}: {len(qas)} pending, {skipped} resumed/skipped")
+        return qas
+    return tqdm(
+        qas,
+        desc=description,
+        unit="qa",
+        dynamic_ncols=True,
+        initial=skipped,
+        total=len(qas) + skipped,
+    )
+
+
 def run_zero_shot(config: RunConfig, selected: list[dict], table_idx: dict) -> Path:
     from baseline.prompts import build_tableqa_prompt
     from preprocessing.representation import create_representation
@@ -75,11 +98,10 @@ def run_zero_shot(config: RunConfig, selected: list[dict], table_idx: dict) -> P
     predictions, errors = directory / "predictions.jsonl", directory / "errors.jsonl"
     _record_selection(directory / "selected_ids.json", selected)
     done = completed_qa_ids(predictions, errors)
+    pending = _pending_qas(selected, done)
     client = LLMClient()
-    for qa in selected:
+    for qa in _progress(pending, description="Zero-shot", skipped=len(selected) - len(pending)):
         qa_id = str(qa["qa_id"])
-        if qa_id in done:
-            continue
         try:
             table = create_representation(table_idx[str(qa["table_id"])]).to_string()
             prompt, _ = build_tableqa_prompt(question=str(qa["question"]), table_str=table, prompt_style="zero_shot")
@@ -99,10 +121,9 @@ def run_poma(config: RunConfig, selected: list[dict], table_idx: dict) -> Path:
     predictions, traces, errors = directory / "predictions.jsonl", directory / "traces.jsonl", directory / "errors.jsonl"
     _record_selection(directory / "selected_ids.json", selected)
     done = completed_qa_ids(predictions, errors)
-    for qa in selected:
+    pending = _pending_qas(selected, done)
+    for qa in _progress(pending, description="POMA", skipped=len(selected) - len(pending)):
         qa_id = str(qa["qa_id"])
-        if qa_id in done:
-            continue
         try:
             record = process_one(qa, table_idx)
             append_jsonl(predictions, {"qa_id": qa_id, "prediction": record.get("prediction", record.get("answers", []))})

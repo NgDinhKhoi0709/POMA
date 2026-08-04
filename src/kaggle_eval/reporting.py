@@ -7,6 +7,18 @@ from evaluation.io import align_records, load_json_records, load_qas_records
 from evaluation.run import evaluate_files
 
 def write_run_report(predictions_path, qas_path, output_path, *, tables_path=None):
+    predictions = Path(predictions_path)
+    if not predictions.exists():
+        report = {
+            "status": "no_predictions",
+            "inputs": {"predictions": str(predictions), "qas": str(qas_path)},
+            "coverage": {"evaluated_ids": [], "missing_predictions": [], "extra_predictions": []},
+            "metrics": {},
+        }
+        output = Path(output_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return report
     return evaluate_files(predictions_path, qas_path, tables_path=tables_path, output_path=output_path, candidate_policy="first")
 
 def write_comparison_report(poma_path, zero_path, qas_path, output_path):

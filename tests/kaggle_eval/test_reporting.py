@@ -1,6 +1,20 @@
 import json
 from src.kaggle_eval.jsonl_io import append_jsonl
-from src.kaggle_eval.reporting import write_comparison_report
+from src.kaggle_eval.reporting import write_comparison_report, write_run_report
+
+
+def test_write_run_report_handles_no_predictions_yet(tmp_path):
+    qas = tmp_path / "qas.json"
+    qas.write_text(json.dumps({"qas": []}), encoding="utf-8")
+
+    report = write_run_report(
+        tmp_path / "missing.jsonl",
+        qas,
+        tmp_path / "metrics.json",
+    )
+
+    assert report["status"] == "no_predictions"
+    assert (tmp_path / "metrics.json").exists()
 
 def test_write_comparison_report_aligns_same_ids_and_counts_wtl(tmp_path):
     qas = tmp_path / "qas.json"

@@ -93,3 +93,22 @@ def test_hint_predictor_documents_every_canonical_hint_and_refiner_contract():
     )
     for field in ["normalized_question", "target", "constraints"]:
         assert f"`{field}`" in refiner_text
+
+
+def test_compact_prompts_preserve_open_vitabqa_addition_semantics():
+    root = Path("src/prompts_compact")
+    hint_text = (root / "hint_predictor.md").read_text(encoding="utf-8")
+    assert "tính đúng/sai" in hint_text
+    assert "liệt kê hoặc sắp xếp" in hint_text
+    assert "tổng, hiệu, tích, trung bình, lớn nhất hoặc nhỏ nhất" in hint_text
+    assert "AND/OR" in hint_text
+    assert "không thể trả lời" in hint_text
+
+    multi_text = (root / "specialists/multi_conditions.md").read_text(
+        encoding="utf-8"
+    )
+    assert "với AND" in multi_text
+    assert "với OR" in multi_text
+
+    list_text = (root / "specialists/list.md").read_text(encoding="utf-8")
+    assert "thứ tự/sắp xếp" in list_text

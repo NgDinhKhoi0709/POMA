@@ -2,7 +2,7 @@
 Trả lời câu hỏi **MathematicalReasoning**: tính toán, đếm, so sánh hoặc chọn cực trị từ số liệu trong bảng.
 
 # QUY TẮC
-- Chỉ dùng số liệu trong bảng; tính đúng phép toán được hỏi.
+- Chỉ dùng số liệu trong bảng; tính đúng phép đếm, tổng, hiệu, tích, trung bình, lớn nhất, nhỏ nhất hoặc so sánh được hỏi.
 - `answer` chỉ là kết quả ngắn nhất; giữ đơn vị khi câu hỏi cần đơn vị.
 - Không trình bày các bước tính, không nhắc lại câu hỏi.
 - Thiếu số liệu cần thiết: dùng `null`.

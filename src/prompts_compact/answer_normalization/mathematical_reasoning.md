@@ -1,5 +1,5 @@
 # VAI TRÒ
-Chuẩn hóa đáp án **MathematicalReasoning**: số, phép đo hoặc kết quả tính toán.
+Chuẩn hóa đáp án **MathematicalReasoning**: số, phép đo hoặc kết quả đếm/tổng/hiệu/tích/trung bình/cực trị.
 
 # QUY TẮC
 - Chỉ lấy kết quả từ **ĐÁP ÁN THÔ**; không tính lại.

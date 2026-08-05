@@ -1,0 +1,543 @@
+\documentclass[]{interact}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{array}
+\usepackage{float}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{comment}
+\usepackage{url}
+\usepackage{csquotes}
+
+\usepackage[
+  backend=biber,
+  style=apa,
+  natbib=true,
+  sortcites=true,
+  sorting=nyt,
+  doi=true,
+  url=true,
+  isbn=false
+]{biblatex}
+\DeclareLanguageMapping{english}{english-apa}
+\addbibresource{jit-references.bib}
+\setlength\bibhang{12pt}
+\AtBeginBibliography{\fontsize{10}{12}\selectfont}
+
+\raggedbottom
+
+\begin{document}
+
+\title{POMA: A Parallel Multi-Agent Orchestration for Vietnamese Table Question Answering}
+
+\author{
+\name{Nguyen Dinh Khoi\textsuperscript{*}\thanks{Email: 23520774@gm.uit.edu.vn. ORCID: \protect\url{https://orcid.org/0009-0001-6385-3444}} and
+Dang Van Thin\textsuperscript{*}\thanks{CONTACT Dang Van Thin. Email: thindv@uit.edu.vn}}
+\affil{\textsuperscript{*}University of Information Technology - Vietnam National University Ho Chi Minh City, Ho Chi Minh City, Vietnam}
+}
+
+\maketitle
+
+\begin{abstract}
+Vietnamese Table Question Answering requires models to interpret semi-structured evidence, perform heterogeneous reasoning, recognize unsupported questions, and produce concise evaluation-compatible answers. Although large language models have demonstrated strong reasoning capabilities, direct prompting assigns evidence selection, reasoning, answerability assessment, and answer formatting to a single generation step, making the process vulnerable to grounding and output errors. To address these limitations, this paper proposes POMA, a training-free Parallel Multi-Agent Orchestration framework that predicts canonical question hints, refines each question into a structured query, deterministically routes it to appropriate specialist agents, executes the selected agents in parallel, and normalizes their outputs into final answer variants. POMA is evaluated on the official 992-instance Open-ViTabQA test split using Qwen3 8B and matched zero-shot, task-decomposition, chain-of-thought, and few-shot baselines. It achieves 80.24\% Exact Match, 88.23\% F1, 86.07\% ROUGE-1, and 84.50\% METEOR, exceeding the strongest matched few-shot baseline by 13.10, 9.59, 11.89, and 12.20 points, respectively. These results demonstrate the value of modular multi-agent orchestration for Vietnamese Table QA while highlighting remaining trade-offs in answerability and inference efficiency.
+\end{abstract}
+
+\begin{keywords}
+Vietnamese Table QA; large language models; multi-agent systems; prompt engineering; Open-ViTabQA
+\end{keywords}
+
+\section{Introduction}\label{sec:introduction}
+
+Question answering over tables is an important interface for accessing structured and semi-structured information. A user who asks a natural-language question about a table expects the system to identify the relevant schema, retrieve or derive supporting evidence, and return a concise answer without requiring SQL, spreadsheet formulas, or manual inspection. This setting is challenging because tables often encode hierarchy, grouping, aggregation, and implicit relations that are not visible from a single cell. The challenge is more pronounced in Vietnamese, where question words may appear at the beginning, middle, or end of a sentence, answer forms are often short and evaluation-sensitive, and public benchmarks remain scarce. Open-ViTabQA is the first large Vietnamese benchmark designed for table question answering over open-domain Wikipedia tables \citep{openvitabqa2025}. It contains 9,911 question-answer pairs derived from 329 tables across 41 domains and uses a table-disjoint train/development/test split to reduce table-level leakage across partitions. The dataset covers diverse question types, including wh-questions, yes/no questions, list queries, mathematical reasoning, multi-condition filtering, and unanswerable cases whose correct answer is the literal string Null, indicating that the table lacks sufficient evidence.
+
+Despite recent progress in large language models, Vietnamese Table QA remains difficult because direct prompting places heterogeneous operations into one generation step. We use direct prompting to refer to single-agent prompt baselines that ask one model call to solve the task from the serialized table and question. A model must interpret the question, recover the relevant table structure, select evidence, perform reasoning when needed, decide whether the question is answerable, and produce the expected surface form. These requirements are particularly demanding on Open-ViTabQA, where 55.6\% of tables contain merged cells, roughly 59\% of questions require complex multi-hop reasoning, and about 10\% involve reasoning over multiple entities. Direct prompting can therefore fail in two answerability directions: it may generate a plausible answer when the table does not support one, or it may return Null even though sufficient evidence is present. It can also count over the wrong subset of rows, treat a multi-condition query as a simple lookup, or produce a correct value in an evaluation-incompatible form. Chain-of-thought and few-shot prompting can improve reasoning, but they still leave one response responsible for all of these subproblems.
+
+To address this gap, we propose POMA, Parallel Multi-Agent Orchestration, a prompt-based multi-agent framework for Vietnamese Table QA. POMA is based on the observation that Open-ViTabQA question types correspond to different reasoning demands. Rather than using one prompt for all cases, POMA predicts canonical hints from the question and table, refines the question into a structured representation, deterministically routes the instance to specialist agents, executes the selected specialists in parallel, and normalizes their outputs into final answer variants. The framework does not retrain the model, replace the table parser, or introduce arbitrary runtime agents; routing is controlled by a fixed canonical hint vocabulary: What, Where, Who, When, Why, How, Yes \& No, List, Mathematical Reasoning, and Multiple Conditions.
+
+Our contributions are twofold. First, we develop POMA, a training-free multi-agent system for Vietnamese Table QA that integrates question-hint prediction, structured question refinement, deterministic specialist routing, parallel reasoning, and answer normalization. Second, we conduct a comprehensive evaluation and analysis on Open-ViTabQA by comparing POMA with matched prompting baselines and examining its performance across question types, answerability, table structures, hint sources, answer normalization, and inference efficiency.
+
+\section{Related Work}\label{sec:related}
+
+\subsection{Table Question Answering}
+
+Table question answering has been studied through semantic parsing, table-aware neural encoders, text-table hybrid reasoning, and more recently LLM prompting. Early semantic parsing datasets and systems such as WikiTableQuestions, WikiSQL, Spider, and SQA map a question into executable logical forms or SQL-like programs over structured or semi-structured tables \citep{pasupat-liang-2015-compositional,zhong-etal-2017-seq2sql,yu-etal-2018-spider,iyyer-etal-2017-search}. Related table reasoning datasets such as TabFact, HybridQA, OTT-QA, FeTaQA, and HiTab broaden the setting to fact verification, hybrid table-text reasoning, free-form answers, and hierarchical tables \citep{chen-etal-2020-tabfact,chen-etal-2020-hybridqa,chen-etal-2021-ottqa,nan-etal-2022-fetaqa,cheng-etal-2022-hitab}. These resources show that table QA is not only a cell lookup task but also a reasoning task involving schema alignment, aggregation, multi-hop evidence, and answer form control.
+
+Table-specialized encoders and pretraining methods attempt to represent table structure more directly. TAPAS extends BERT-like modeling to weakly supervised table parsing, TaBERT jointly pretrains over text and tables, TAPEX uses synthetic SQL execution as a pretraining signal, and OmniTab combines natural and synthetic supervision for few-shot table QA \citep{herzig-etal-2020-tapas,yin-etal-2020-tabert,liu-etal-2022-tapex,jiang-etal-2022-omnitab}. Other neural approaches, including row-column intersection modeling, emphasize explicit table-cell grounding \citep{glass-etal-2021-capturing}. These models have improved performance on several table benchmarks, yet their context limits and training assumptions can be problematic for long, irregular, open-domain tables. POMA focuses on an inference-time prompt-based setting, but it inherits the same need to preserve row-column evidence and avoid unconstrained free-form generation.
+
+\subsection{Vietnamese Question Answering and Open-ViTabQA}
+
+Vietnamese NLP remains comparatively low-resource relative to English. Vietnamese question answering requires sensitivity to tone marks, word segmentation, flexible word order, and question-particle placement. General Vietnamese language resources and models such as UIT-ViQuAD, PhoBERT, ViT5, and ViNLI have supported progress in machine reading comprehension, Vietnamese representation learning, generation, and natural language inference \citep{nguyen-etal-2020-vietnamese,nguyen-nguyen-2020-phobert,phan-etal-2022-vit5,huynh-etal-2022-vinli}. Open-ViTabQA addresses a major gap by introducing a Vietnamese Table QA benchmark built from Wikipedia tables \citep{openvitabqa2025}. The dataset paper reports strong baselines from Vietnamese pretrained models, table-aware models, and prompting LLMs, but also shows a large gap to human performance. In particular, models struggle with merged-cell tables, abstract answers, mathematical operations, and unanswerable questions. POMA uses Open-ViTabQA as the target benchmark and treats its hint taxonomy as an important signal for routing and specialization.
+
+\subsection{LLM Prompting for Structured Data Reasoning}
+
+LLMs can reason over serialized structured data using zero-shot, few-shot, chain-of-thought (CoT), self-consistency, or tool-like decomposition \citep{brown-etal-2020-language,wei-etal-2022-chain,wang-etal-2023-selfconsistency,yao-etal-2023-react}. Recent table-oriented LLM methods explicitly study whether language models can understand serialized tables, bind natural-language questions to symbolic programs, decompose table evidence, or evolve the table itself through a reasoning chain \citep{sui-etal-2024-table,cheng-etal-2023-binder,ye-etal-2023-dater,wang-etal-2024-chain}. Prompting avoids retraining and enables rapid adaptation across model backbones, including commercial and open-weight LLMs \citep{openai-2024-gpt4,dubey-etal-2024-llama,qwen-team-2025-qwen3}. However, prompting over tables has two recurring failure modes. First, the model may not preserve structural grounding when the flattened table is long or irregular. Second, even when the model identifies the right evidence, it may output an answer in a form that is semantically acceptable but evaluation-incompatible. These issues are acute in Open-ViTabQA because the expected answers are concise and Vietnamese surface forms vary.
+
+\subsection{Multi-agent LLM Systems}
+
+Multi-agent LLM systems decompose a problem across role-specialized agents, reviewers, voters, or verifiers. Self-refinement and reflexive feedback show that LLM outputs can be improved through iterative critique, while AutoGen and MetaGPT demonstrate broader multi-agent conversation and role assignment patterns \citep{madaan-etal-2023-selfrefine,shinn-etal-2023-reflexion,wu-etal-2023-autogen,hong-etal-2024-metagpt}. Recent surveys further characterize multi-agent LLM systems as a family of inference-time coordination methods \citep{guo-etal-2024-multiagent}. Such systems can improve robustness by encouraging independent reasoning paths, but they also increase orchestration complexity and inference cost.
+
+Recent work has applied multi-agent coordination directly to tabular reasoning. CoAgt organizes inference as a sequential chain in which each agent builds on the output produced by its predecessor \citep{alrayzah-alqhtani-2025-coagt}. Chain-of-Query (CoQ) combines multi-agent collaboration with intermediate SQL-aided queries for table understanding and question answering \citep{sui-etal-2025-coq}. These systems illustrate sequential and query-assisted coordination, respectively. POMA instead predicts canonical hints, routes each question deterministically, executes the selected specialists in parallel, and normalizes their outputs into evaluation-ready answer variants.
+
+\subsection{Routing, specialization, and answer normalization}
+
+Routing and specialization are common design patterns for complex QA systems. A router can decide whether a question should be answered by a retriever, calculator, verifier, or generator. In POMA, routing is deterministic once canonical hints are known. The more task-specific component is answer normalization. For Vietnamese Table QA, this module must handle yes/no variants, numeric units, date forms, list permutations, ranking expressions, and Null predictions. We treat answer normalization as a first-class stage because exact-match and overlap metrics such as R1 and MET are sensitive to surface form and semantic equivalence \citep{lin-2004-rouge,banerjee-lavie-2005-meteor}.
+
+\section{Methodology}\label{sec:method}
+
+This section formalizes Vietnamese Table QA on Open-ViTabQA and presents the proposed POMA framework. POMA is an inference-time orchestration method: it does not update model parameters, add a task-specific encoder, or require gold question-type annotations at test time. Given a flattened table and a Vietnamese question, the framework predicts canonical hints, refines the question into a structured query, routes the instance to specialist agents, executes the selected agents in parallel, and normalizes their outputs into evaluation-ready answer variants. Figure~\ref{fig:poma-pipeline} illustrates the overall pipeline.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{figures/pipeline.png}
+\caption{Architecture of POMA. The system receives a Vietnamese question and a flattened table. hint predictor predicts canonical hints, question refiner produces a structured query without answering, and router deterministically maps canonical hints to specialist agents. Routed specialists execute in parallel and return answer, evidence, confidence, and reason fields. answer normalization then consolidates raw outputs and generates evaluation-ready surface variants, including Null when appropriate.}\label{fig:poma-pipeline}
+\end{figure}
+
+\subsection{Problem Formulation}
+
+Let $D=\{(T_i,q_i,y_i)\}_{i=1}^{N}$ denote a set of Vietnamese Table QA instances, where $T_i$ is a table, $q_i$ is a Vietnamese natural-language question, and $y_i$ is the reference answer. In Open-ViTabQA, an answer may be a grounded textual value supported by the table or the literal string Null when the table does not contain sufficient evidence. unanswerable questions are those whose gold answer is Null because the table lacks sufficient evidence. We therefore define the output space as $y_i \in \mathcal{Y}_{\mathrm{ans}} \cup \{\text{Null}\}$, where $\mathcal{Y}_{\mathrm{ans}}$ denotes the set of table-grounded answers.
+
+Before inference, each table $T_i$ is converted into a flattened textual representation $\tilde{T}_i$. Given the input pair $(\tilde{T}_i,q_i)$, POMA implements an inference function $f_{\theta}$ using a frozen LLM backbone $\theta$: $\hat{Y}_i=f_{\theta}(\tilde{T}_i,q_i)$, where $\hat{Y}_i=\{\hat{y}_{i}^{1},\ldots,\hat{y}_{i}^{K}\}$ is a set of $K$ candidate answer variants produced after answer normalization. The evaluation script compares this candidate set with the gold answer $y_i$ and selects the best-matching candidate for metrics such as EM, F1, R1, and MET. This formulation is suitable for Vietnamese Table QA because correct answers may have multiple acceptable surface forms, while unanswerable questions require an explicit Null prediction.
+
+\subsection{Table Representation}
+
+POMA follows the Flatten V1 representation used in Open-ViTabQA \citep{openvitabqa2025}. Let $g(\cdot)$ denote the table-flattening function. For each raw HTML table $T$, the serialized input is defined as $\tilde{T}=g(T)$. The process first resolves the table into a rectangular logical grid by distinguishing header cells (\texttt{<th>}) from data cells (\texttt{<td>}). Values covered by \texttt{rowspan} or \texttt{colspan} are propagated to every logical position that they span, and missing positions are padded with empty strings. The text of every cell is then normalized by collapsing repeated whitespace and trimming its boundaries.
+
+The resolved grid is serialized row by row. If the expanded table has $m$ logical rows, then $\tilde{T}=[\ell_0,\ell_1,\ldots,\ell_{m-1}]$, where each $\ell_i$ is one logical row. Thus, the list contains the logical rows of the table after merged-cell expansion. The cells in a row are joined using the delimiter \texttt{|}; a cell that functions as a row or column header receives the suffix \texttt{<header>}. Consequently, multi-level headers, row labels, and data values remain in their original row-column arrangement after conversion to text. POMA does not modify this parser during inference. All downstream modules therefore operate over the same row-oriented Flatten V1 representation rather than over isolated cell records, preserving the structural evidence needed for table-grounded reasoning.
+
+\subsection{Hint Predictor}
+
+The hint predictor serves as the first reasoning-oriented component in POMA. Given a Vietnamese question and its flattened table context, it identifies one or more canonical hint labels that describe the expected reasoning behavior of the instance. Let $\mathcal{H}$ denote the fixed Open-ViTabQA hint vocabulary, which includes What, Where, Who, When, Why, How, YesNo, List, MathematicalReasoning, and MultiConditions. The hint predictor $P_{\theta}$ maps the input pair $(\tilde{T},q)$ to a non-empty subset of canonical hints, written as $\hat{H}=P_{\theta}(\tilde{T},q)$ with $\hat{H}\subseteq\mathcal{H}$.
+
+This constrained prediction space prevents the system from creating arbitrary task labels and ensures that all subsequent modules operate over a shared, interpretable set of reasoning categories. The predicted hints provide the initial control signal for question refinement and routing. In this way, POMA can operate at test time without relying on dataset-provided annotations. For analysis, we additionally report a dataset-hint diagnostic setting in which gold annotated hints replace predicted hints, written as $\hat{H}_{\mathrm{gold}}=H^{\mathrm{gold}}$. This diagnostic comparison allows us to examine whether the hint predictor provides an effective runtime substitute for dataset annotations and whether predicted hints contribute positively to the overall reasoning pipeline.
+
+\subsection{Question Refiner}
+
+The question refiner converts the raw question into a structured query while preserving its original meaning. Given the question $q$ and predicted hint set $\hat{H}$, the refiner $R_{\theta}$ produces a structured representation $s=R_{\theta}(q,\hat{H}), \quad s=(\bar{q},t,c)$. Here, $\bar{q}$ is the normalized question, $t$ is the target information being requested, and $c$ is the set of constraints that must be satisfied. These constraints may include entity filters, temporal restrictions, comparisons, negation, counting requirements, or multi-condition logic.
+
+The refiner is explicitly instructed not to answer the question. Its role is to make the intent of the query more explicit before evidence selection begins. This separation is important because direct prompting often entangles question interpretation and answer generation in a single step. By isolating intent structuring from answer production, POMA reduces ambiguity for downstream specialists and provides a more stable interface for routing.
+
+\subsection{Hint-Based Router}
+
+The router is a deterministic component that maps canonical hints to specialist agents. Let $\mathcal{A}$ denote the set of available specialists: $\mathcal{A}=\{a_{\text{What}},a_{\text{Where}},a_{\text{Who}},a_{\text{When}},a_{\text{Why}},a_{\text{How}},a_{\text{YesNo}},a_{\text{List}},a_{\text{Math}},a_{\text{Multi}}\}$. The router implements a fixed mapping function $\rho:\mathcal{H}\rightarrow \mathcal{A}$. Given the predicted hint set $\hat{H}$, the selected agent set is $\hat{A}=\{\rho(h)\mid h\in\hat{H}\}$.
+
+Because $\rho$ is deterministic, routing behavior is reproducible once the hints are fixed. The router does not call an LLM, create new agents, or introduce ad hoc tools. This design keeps the orchestration interpretable: each activated specialist can be traced back to a predicted reasoning category.
+
+\subsection{Parallel Specialist Agents}
+
+Each specialist is a prompt-conditioned reasoning module associated with one canonical question category. Given the flattened table $\tilde{T}$ and the refined query $s$, each selected specialist $a_k\in\hat{A}$ produces a structured result $z_k=a_k(\tilde{T},s), \quad z_k=(\alpha_k,e_k,\gamma_k,r_k)$. Here, $\alpha_k$ is the specialist's answer candidate, $e_k$ is the supporting evidence, $\gamma_k$ is a confidence signal, and $r_k$ is a short explanation of the specialist's reasoning. The answer candidate may be Null when the specialist cannot find sufficient table evidence.
+
+\begin{table}[!t]
+\caption{Specialist agents and primary roles in POMA.}\label{tab:hint-specialist}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}p{0.36\textwidth}p{0.58\textwidth}}
+\toprule
+\textbf{Specialist} & \textbf{Primary role} \\
+\midrule
+WhatAgent & Extract short surface-form table values, attributes, or entities when direct evidence is available. \\
+WhereAgent & Extract explicitly stated locations, places, or positions without adding unsupported description. \\
+WhoAgent & Identify people or human subjects satisfying the conditions, including multiple matches or table-grounded negative answers. \\
+WhenAgent & Extract time points or time intervals, including simple durations when the table provides enough temporal evidence. \\
+WhyAgent & Extract table-grounded reasons or causes only when the table explicitly supports the explanation. \\
+HowAgent & Extract methods, procedures, manners, states, or relations only when the table directly describes them. \\
+YesNoAgent & Verify a proposition against the table and return a Vietnamese yes/no label or Null. \\
+ListAgent & Enumerate all items satisfying the conditions, with sorting, deduplication, or an explicit no-match answer when supported. \\
+MathematicalReasoningAgent & Lock relevant rows and columns, then perform counting, arithmetic, comparison, ranking, duration reasoning, or numeric lookup. \\
+MultiConditionsAgent & Combine multiple row, column, or cell conditions with the correct logical semantics before producing the final answer. \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+When multiple hints are active, POMA executes the corresponding specialists in parallel: $Z=\{z_k\mid a_k\in\hat{A}\}$. Parallel execution is useful because Open-ViTabQA questions often combine reasoning demands. For example, a list question may also require temporal filtering, a yes/no question may require multi-condition verification, and a mathematical question may require row selection before computation. Running multiple specialists allows POMA to collect complementary hypotheses before final consolidation. If one specialist fails while others succeed, that specialist can abstain without terminating the entire pipeline.
+
+\subsection{Answer Normalization}
+
+The final module consolidates specialist outputs into evaluation-ready answer variants. Let $N_{\theta}$ denote the answer normalization function. Given the set of specialist results $Z$, the final prediction is $\hat{Y}=N_{\theta}(Z)$. The answer normalization module removes redundant reasoning traces, standardizes whitespace, regularizes list separators, canonicalizes Vietnamese yes/no forms, and preserves Null when the evidence is insufficient. The goal is not to introduce new reasoning but to convert the specialist outputs into concise answer forms that match the benchmark's evaluation format.
+
+This step is important because Vietnamese Table QA answers are often short and surface-sensitive. A raw specialist response may contain the correct value together with an explanation, or it may express the same polarity using a longer phrase than the reference answer. By producing a compact set of variants, answer normalization improves alignment between the reasoning result and automatic evaluation while preserving the table-grounded content selected by the specialists.
+
+
+\section{Experimental Setup}\label{sec:setup}
+
+\subsection{Evaluation Dataset and Metrics}
+
+We evaluate all systems on the official test split of Open-ViTabQA \citep{openvitabqa2025}. The benchmark contains 9,911 question--answer pairs constructed from 329 Vietnamese Wikipedia tables across 41 domains. It follows a table-disjoint split, with 7,928 training examples, 991 development examples, and 992 test examples. In this study, we use the 992 test instances for final evaluation. The training and development splits are reported only to describe the benchmark setting and are not used to train, tune, or select any component of POMA. Following the Open-ViTabQA evaluation protocol~\citep{openvitabqa2025}, each system receives only the serialized table $\tilde{T}$ and the Vietnamese question $q$ as input. Gold annotations, including question type and answerability labels, are excluded from the main inference pipeline. They are used only for post-hoc analysis and for the auxiliary dataset-hint diagnostic setting described later.
+
+We report the same metrics used in prior studies~\citep{openvitabqa2025,lin-2004-rouge,banerjee-lavie-2005-meteor}: exact match (EM), F1, ROUGE-1 (R1), and METEOR (MET). These metrics capture complementary aspects of answer quality. EM measures whether the predicted answer exactly matches the reference answer, which is particularly important for concise table-grounded outputs such as entities, dates, numerical values, and \texttt{Null} predictions. F1 and ROUGE-1 provide more tolerant lexical-overlap measures, while METEOR offers an additional similarity-oriented assessment of surface realization. Reporting all four metrics is therefore important for Vietnamese Table QA, where answers may require exact cell extraction as well as more flexible forms, such as lists, yes/no responses, and short explanatory answers.
+
+
+\subsection{Baseline Comparison}
+
+We compare POMA with systems reported in the Open-ViTabQA benchmark paper and with controlled prompting baselines constructed in this study. The comparison is designed to distinguish between two types of evidence. Results against external systems reported in Open-ViTabQA serve as benchmark reference points, but they are less controlled because the systems differ in model architecture, training data, prompting conditions, and implementation details. In contrast, the main evidence for the effectiveness of POMA comes from matched within-backbone comparisons, where POMA and the corresponding single-agent prompting baselines use Qwen3-8B and differ primarily in the inference framework. We restrict the controlled experiments to this open-source backbone because the available experimental budget did not allow a broader multi-backbone evaluation.
+
+\begin{itemize}
+\item \textbf{Prompt-based LLMs.} This category includes zero-shot prompting results reported by Open-ViTabQA for Gemini 2.0 Flash Experimental, Gemini 1.5 Pro, Mistral Nemo 2407, Mistral 7B v0.3, Llama 3.1, and Llama 2. We also include controlled prompting baselines using Qwen3-8B under four prompting strategies: zero-shot prompting, task-decomposition prompting, chain-of-thought prompting, and few-shot prompting. For simplicity, we abbreviate these baselines as ZS, TD, CoT, and FS, respectively, in subsequent sections.
+
+\item \textbf{Fine-tuned PLMs.} This category follows the Open-ViTabQA paper and includes ViT5-Base, ViT5-Large, TAPAS-Base, and TAPAS-Large. These systems represent task-specific fine-tuning of pretrained language models for table QA.
+
+\item \textbf{Fine-tuned LLMs.} This category includes the fine-tuned Llama and Mistral variants reported by Open-ViTabQA, namely Llama 3.1, Llama 2, Mistral 7B v0.3, and Mistral Nemo 2407.
+
+\item \textbf{Other methods.} This category includes RGCN-RCI and KorWikiTQ, which are non-POMA table-QA baselines reported in the dataset paper.
+
+\item \textbf{Multi-agent systems.} We reimplemented CoAgt \citep{alrayzah-alqhtani-2025-coagt} and CoQ \citep{sui-etal-2025-coq} and evaluated both systems on the same Open-ViTabQA test instances. They provide multi-agent reference points, whereas the Qwen3-8B prompting baselines remain the backbone-matched controlled comparisons for POMA.
+\end{itemize}
+
+Among the single-agent Qwen3-8B prompting baselines, few-shot prompting achieves the strongest performance in Table~\ref{tab:overall-results}. We therefore use the matched few-shot baseline as the primary controlled comparison in the fine-grained analyses, since it provides a stronger and more conservative reference point than zero-shot prompting, task-decomposition prompting, or chain-of-thought prompting with the same backbone. In all main comparisons, POMA uses the hint predictor before question refinement. We additionally report a dataset-hint diagnostic setting, where annotated dataset hints replace predicted hints, to isolate the effect of the hint source. This diagnostic setting is not treated as the main runtime configuration because such annotations are not available during ordinary inference-time deployment.
+
+\subsection{Configuration}
+
+We access Qwen3-8B through OpenRouter. All Qwen3-8B baselines and POMA variants are implemented with the same generation wrapper, ensuring consistent retry handling, token accounting, and output parsing across experiments. This design minimizes implementation-level variation and supports a controlled comparison between direct prompting and POMA. For all POMA stages and matched prompting baselines, we use deterministic decoding with temperature $0.0$ and top-p $1.0$. The maximum generation length is set to 4096 tokens. Each request is assigned a 60-second timeout, and failed requests are retried up to four times with a 15-second interval between attempts. Specialist agents in POMA are executed in parallel using up to 10 worker threads.
+
+
+\section{Results and Analysis}\label{sec:results}
+
+\subsection{Overall Results}
+
+The overall results show that POMA improves upon direct prompting when the comparison is controlled within the same backbone. Table~\ref{tab:overall-results} reports performance on the Open-ViTabQA test set using the same benchmark-style grouping as prior work: prompt-based LLMs, fine-tuned PLMs, fine-tuned LLMs, other table-QA methods, multi-agent systems, and POMA. Rows marked with an asterisk are reference results reported in Open-ViTabQA; the controlled Qwen3 8B rows and the multi-agent reimplementations are experiments conducted in this study.
+
+The reference results identify the two Gemini configurations as the strongest prompt-based LLM results reported in the original Open-ViTabQA evaluation: Gemini 2.0 Flash Experimental has the highest reported F1 and MET, whereas Gemini 1.5 Pro has the highest reported EM and R1. We include these values to situate POMA within the published benchmark landscape. Because the Gemini results come from a different model family and experimental setup, they are not used as the primary evidence for POMA's effectiveness; the controlled evidence is the matched Qwen3 8B comparison reported below. POMA obtains 80.24 EM, 88.23 F1, 86.07 R1, and 84.50 MET under its own evaluation configuration.
+
+\begin{table}[!t]
+\small
+\caption{Overall performance on the Open-ViTabQA test set. All metrics are percentages. Systems marked with * are reference results reported in previous study \citep{openvitabqa2025}; CoAgt and CoQ are our reimplementations. The best score is bold.}
+\label{tab:overall-results}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}p{0.22\textwidth}p{0.25\textwidth}rrrr}
+\toprule
+\textbf{Category} & \textbf{System} & \textbf{EM} & \textbf{F1} & \textbf{R1} & \textbf{MET} \\
+\midrule
+\multirow{10}{=}{\raggedright\textbf{Prompt-based LLMs}}
+& Llama 2* & 6.00 & 4.20 & 8.80 & 5.80 \\
+& Llama 3.1* & 34.30 & 34.20 & 44.00 & 32.50 \\
+& Mistral 7B v0.3* & 35.00 & 34.90 & 44.80 & 32.80 \\
+& Mistral Nemo 2407* & 35.60 & 35.50 & 45.20 & 33.50 \\
+& Gemini 1.5 Pro* & 60.80 & 59.80 & 71.90 & 49.80 \\
+& Gemini 2.0 Flash Exp.* & 60.20 & 60.50 & 70.10 & 50.00 \\
+& Qwen3 8B ZS & 62.40 & 76.16 & 69.06 & 67.52 \\
+& Qwen3 8B TD & 59.38 & 74.01 & 65.99 & 64.15 \\
+& Qwen3 8B CoT & 59.17 & 74.03 & 66.55 & 64.45 \\
+& Qwen3 8B FS & 67.14 & 78.64 & 74.18 & 72.30 \\
+\midrule
+\multirow{4}{=}{\raggedright\textbf{Fine-tuned PLMs}}
+& TAPAS-Base* & 30.29 & 30.62 & 41.10 & 28.27 \\
+& TAPAS-Large* & 31.44 & 31.56 & 40.02 & 27.96 \\
+& ViT5-Base* & 42.24 & 42.35 & 50.35 & 36.81 \\
+& ViT5-Large* & 45.13 & 45.22 & 51.87 & 37.12 \\
+\midrule
+\multirow{4}{=}{\raggedright\textbf{Fine-tuned LLMs}}
+& Llama 2* & 7.85 & 5.69 & 9.58 & 6.42 \\
+& Llama 3.1* & 36.89 & 37.73 & 51.17 & 38.54 \\
+& Mistral 7B v0.3* & 41.83 & 41.28 & 50.76 & 37.08 \\
+& Mistral Nemo 2407* & 42.14 & 43.11 & 53.71 & 40.38 \\
+\midrule
+\multirow{2}{=}{\raggedright\textbf{Other methods}}
+& RGCN-RCI* & 17.70 & 18.12 & 23.24 & 16.71 \\
+& KorWikiTQ* & 46.00 & 46.00 & 52.90 & 37.80 \\
+\midrule
+\multirow{2}{=}{\raggedright\textbf{Multi-agent systems}}
+& CoAgt & 32.36 & 68.87 & 45.32 & 46.89 \\
+& CoQ & 57.86 & 73.20 & 66.36 & 67.20 \\
+\midrule
+\textbf{POMA (Ours)}
+& Qwen3 8B & \textbf{80.24} & \textbf{88.23} & \textbf{86.07} & \textbf{84.50} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+The controlled comparison shows that POMA substantially outperforms the strongest matched few-shot baseline, Qwen3-8B FS, with absolute gains of 13.10 EM, 9.59 F1, 11.89 ROUGE-1, and 12.20 METEOR points. These improvements are especially notable because the increase in EM is accompanied by consistent gains in overlap-based metrics, suggesting that POMA not only improves partial lexical matching but also more frequently generates the exact answer form required by the benchmark. The Gemini results should therefore be interpreted as published reference points rather than directly comparable baselines. Although POMA achieves numerically higher scores than the reported Gemini systems across these metrics, the comparisons are cross-study and involve differences in model architecture, prompting protocol, and implementation settings. Accordingly, we do not draw causal conclusions or claim model-level superiority from these results.
+
+POMA also records higher numerical scores than our CoAgt and CoQ reimplementations. Relative to CoAgt, the differences are 47.88 EM, 19.36 F1, 40.75 R1, and 37.61 MET points; relative to CoQ, they are 22.38 EM, 15.03 F1, 19.71 R1, and 17.30 MET points. These comparisons are descriptive because the two reimplemented multi-agent systems use a separate experimental configuration. The matched Qwen3-8B few-shot comparison therefore remains the primary controlled evidence for the effect of POMA's orchestration framework.
+
+\subsection{Analysis by Question Type}
+
+\begin{table}[!t]
+\centering
+\caption{R1 comparison between models by question type on the Open-ViTabQA test set. The best scores are bold.}
+\label{tab:question-type-analysis}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|*{10}{c}}
+\toprule
+\multirow[l]{2}{*}{\textbf{Model}}
+& \multirow[c]{2}{*}{Who}
+& \multirow[c]{2}{*}{What}
+& \multirow[c]{2}{*}{When}
+& \multirow[c]{2}{*}{Where}
+& \multirow[c]{2}{*}{How}
+& \multirow[c]{2}{*}{Why}
+& \multirow[c]{2}{*}{Yes/No}
+& \multirow[c]{2}{*}{List}
+& Mathematical
+& Multi- \\
+& & & & & & & & & Reasoning & conditions \\
+\midrule
+Qwen3 8B FS
+& 75.85 & 81.80 & 81.09 & 80.99 & 45.91 & \textbf{69.18}
+& 56.35 & 63.16 & 73.97 & 77.88 \\
+
+ViT5 Large
+& 28.24 & 46.20 & 64.02 & 56.53 & \textbf{63.44} & 66.31
+& 50.71 & 31.72 & 32.28 & 52.43 \\
+
+Mistral Nemo 2407
+& 51.51 & 68.48 & 65.95 & 69.53 & 30.17 & 26.20
+& 40.33 & 56.75 & 34.56 & 52.21 \\
+
+Gemini 1.5 Pro
+& 73.17 & 82.02 & 80.00 & 74.70 & 22.73 & 10.30
+& 60.13 & 79.95 & 61.61 & 75.26 \\
+
+POMA (Ours)
+& \textbf{79.60} & \textbf{88.14} & \textbf{93.35} & \textbf{84.99}
+& 62.69 & 55.94 & \textbf{89.68} & \textbf{88.05}
+& \textbf{88.38} & \textbf{82.93} \\
+
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+As shown in Table~\ref{tab:question-type-analysis}, POMA improves over Qwen3-8B-FS method on 9 of 10 question types. The largest absolute gains are observed for Yes/No questions (+33.33 R1 points, from 56.35 to 89.68), List questions (+24.89, from 63.16 to 88.05), How questions (+16.78, from 45.91 to 62.69), Mathematical Reasoning questions (+14.41, from 73.97 to 88.38), and When questions (+12.26, from 81.09 to 93.35). More moderate gains are obtained for What (+6.34), Multi-conditions (+5.05), Where (+4.00), and Who (+3.75). These trends are consistent with the design of POMA: the hint predictor and question refiner make the expected reasoning behavior more explicit, specialist agents reduce the burden on a single response, and answer normalization maps verbose outputs to answer forms that better match the evaluation target. In Vietnamese Table QA, this is particularly important because a correct reasoning path can still be penalized when the final answer is too verbose, uses an inconsistent polarity form, or fails to present a list compactly.
+
+Among the reference results reported in the Open-ViTabQA dataset paper, Gemini-1.5-Pro$^{\dagger}$ achieves the highest reported R1 on Who, What, When, Where, Yes/No, List, Mathematical Reasoning, and Multi-conditions, whereas ViT5-Large$^{\dagger}$ achieves the highest reported R1 on How and Why. Table~\ref{tab:question-type-analysis} places these published figures alongside POMA for descriptive context. The numerical pattern is favorable to POMA across several categories, although ViT5-Large$^{*}$ reports higher R1 on How (63.44 versus 62.69) and Why (66.31 versus 55.94). Since these reference systems were not rerun under the same setup, this table should not be interpreted as a controlled head-to-head comparison. The improvements are not uniform, however: our model decreases on Why questions, from 69.18 to 55.94 R1. Inspection of the error cases identifies two distinct failure modes.
+
+\begin{itemize}
+    \item \textbf{Routing error.} The hint predictor can be distracted by numerical comparisons in a Why question and route it to MathematicalReasoning. For example, for a question asking why Arabic has more than 400,000 speakers with limited English proficiency, the system compares 460,216 with 400,000 and returns a positive answer. The table supplies a count but no causal explanation, so the correct output is Null.
+    \item \textbf{Causal-evidence error.} Even when the instance is routed to WhyAgent, our approach can treat a factual statement in the table as an explanation for itself. In a question asking why 5 February 2000 belongs to the Canh Thin year rather than Ky Mao, a table may confirm the date--year association but does not explain the lunar-calendar basis for that association. Restating that the date belongs to Canh Thin is therefore not a causal answer and should again lead to Null. These cases show that Why questions require an explicit causal-evidence check: numerical relevance is not causal support, and a table fact must not be recast as its own reason.
+
+\end{itemize}
+
+
+\subsection{Analysis by Answerability}
+
+Answerability is a central difficulty in Open-ViTabQA because a model must not only find evidence when it exists but also abstain when the table does not support the question. Following the Open-ViTabQA analysis of unanswerable-question recognition, we evaluate answerability as a binary classification problem rather than as answer-string generation. Questions whose reference answer is Null are labeled as Unanswerable, while all remaining questions are labeled as Answerable. For model outputs, a prediction is treated as Unanswerable if the normalized candidate set contains Null; otherwise, it is treated as Answerable. We then report the class-wise F1-score for each answerability label.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/answerability_f1.png}
+\caption{Class-wise F1-scores for answerability classification.}
+\label{fig:answerability-analysis}
+\end{figure}
+
+Figure~\ref{fig:answerability-analysis} shows that Qwen3-8B performs strongly on answerable questions, achieving class-wise F1 scores above 95\%. The few-shot baseline reaches an F1 score of 97.38 on the Answerable class, compared with 96.49 for POMA. This small difference suggests that answerable instances are already relatively well identified by strong direct prompting. POMA primarily changes how the final answer is reasoned about and normalized, rather than substantially altering the binary decision of whether an answer exists. For comparison, the reported Answerable-class F1 scores of the three reference models are 96.75\% for ViT5-Large, 97.07 for Mistral-Nemo-2407, and 98.25\% for Gemini-1.5-Pro. Qwen3-8B POMA achieves an F1 score of 96.49\%, which is 0.26 points below ViT5-Large, 0.58 points below Mistral-Nemo-2407, and 1.76 points below Gemini-1.5-Pro. The Qwen3-8B few-shot baseline attains an F1 score of 97.38\%, exceeding ViT5-Large by 0.63 points and Mistral-Nemo-2407 by 0.31 points, while remaining 0.87 points below Gemini-1.5-Pro.
+
+The more difficult distinction appears on the Unanswerable class, where Qwen3 8B POMA reaches 51.13 F1 compared with 56.64 for its few-shot baseline. The corresponding reported F1-scores are 44.04 for ViT5 Large, 24.32 for Mistral Nemo 2407, and 66.67 for Gemini 1.5 Pro. On this class, POMA is 7.09 points higher than ViT5 Large and 26.81 points higher than Mistral Nemo 2407, but 15.54 points lower than Gemini 1.5 Pro. The few-shot baseline is 12.60 points higher than ViT5 Large and 32.32 points higher than Mistral Nemo 2407, while remaining 10.03 points below Gemini 1.5 Pro. These class-level scores alone do not reveal the direction of the errors, so we inspect all 946 answerable and 46 unanswerable test instances. A false abstention occurs when POMA returns Null for an answerable question; a hallucinated answer occurs when it returns a non-Null answer for an unanswerable question. Qwen3 8B POMA falsely abstains on 53 answerable questions and produces unsupported non-Null answers on 11 unanswerable questions. Thus, false abstention is the dominant error direction: it occurs about 4.8 times more often than hallucinated answering. POMA is therefore generally conservative rather than indiscriminately generative. This conservatism limits unsupported answers, but it also causes the system to miss questions for which the table contains sufficient evidence.
+
+Overall, these results show that answerability detection remains distinct from answer generation. POMA improves the full Table QA task through routing, decomposition, and answer normalization, but faithful abstention is still sensitive to the underlying model and to how intermediate stages interpret evidence. Unanswerable questions test whether the system can respect the boundary between table-grounded evidence and unsupported inference, while answerable questions test whether it can avoid prematurely abandoning available evidence. Future versions of POMA should therefore include an evidence-support verifier that explicitly addresses both false abstentions on answerable questions and hallucinated answers on unanswerable ones.
+
+\subsection{Analysis by Table Structure}
+
+The table-structure analysis examines whether POMA remains effective when the input table contains irregular layouts. Table~\ref{tab:table-structure-analysis} reports F1, EM, R1, and MET for the three table structures used in this analysis: Normal, Header merge, and Value merge. This analysis is important because merged cells are a defining feature of realistic table understanding: a model must reconstruct implicit row--column relations that are visually clear in the original table but only indirectly represented in serialized text.
+
+\begin{table}[!t]
+\small
+\centering
+\caption{Performance by table structure. The number (\#) indicates the number of question--answer pairs for each table type. Models marked with $^{*}$ use results reported in the previous work \citep{openvitabqa2025}.}
+\label{tab:table-structure-analysis}
+\begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}}l r c c c c}
+\toprule
+\textbf{Table contain} & \textbf{\#} & \textbf{F1-score} & \textbf{EM} & \textbf{R1} & \textbf{MET} \\
+\midrule
+\multicolumn{6}{c}{\textbf{Qwen3 8B (Few-shot)}} \\
+\cmidrule(lr){1-6}
+\textit{all normal cells}    & 461 & 83.00 & 72.67 & 79.54 & 77.78 \\
+\textit{merged header cell}  & 269 & 71.69 & 62.24 & 65.17 & 64.36 \\
+\textit{merged value cell}   & 388 & 73.98 & 58.78 & 67.05 & 65.01 \\
+\midrule
+\multicolumn{6}{c}{\textbf{Qwen3 8B (POMA)}} \\
+\cmidrule(lr){1-6}
+\textit{all normal cells}    & 461 & 90.64 & 83.51 & 88.37 & 87.26 \\
+\textit{merged header cell}  & 269 & 86.36 & 80.42 & 84.43 & 83.16 \\
+\textit{merged value cell}   & 388 & 86.45 & 75.95 & 83.09 & 81.35 \\
+\midrule
+\multicolumn{6}{c}{\textbf{ViT5 Large$^{*}$}} \\
+\cmidrule(lr){1-6}
+\textit{all normal cells}    & 461 & 52.74 & 52.10 & 58.77 & 49.54 \\
+\textit{merged header cell}  & 269 & 40.92 & 39.37 & 47.99 & 38.27 \\
+\textit{merged value cell}   & 388 & 33.21 & 34.03 & 45.53 & 35.05 \\
+\midrule
+\multicolumn{6}{c}{\textbf{Mistral Nemo 2407$^{*}$}} \\
+\cmidrule(lr){1-6}
+\textit{all normal cells}    & 461 & 51.22 & 50.76 & 60.05 & 44.79 \\
+\textit{merged header cell}  & 269 & 39.01 & 38.29 & 46.49 & 37.26 \\
+\textit{merged value cell}   & 388 & 33.48 & 32.99 & 49.12 & 36.16 \\
+\midrule
+\multicolumn{6}{c}{\textbf{Gemini 1.5 Pro$^{*}$}} \\
+\cmidrule(lr){1-6}
+\textit{all normal cells}    & 461 & 66.55 & 65.51 & 74.19 & 55.36 \\
+\textit{merged header cell}  & 269 & 56.68 & 56.13 & 67.08 & 52.11 \\
+\textit{merged value cell}   & 388 & 51.77 & 50.52 & 68.39 & 51.67 \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+As shown in Table~\ref{tab:table-structure-analysis}, POMA improves all four metrics across all three table structures. The strongest gains occur on Header-merge tables: F1 increases by 14.67 points, EM by 18.18 points, R1 by 19.26 points, and MET by 18.80 points. Value-merge tables exhibit the same pattern, with gains of 12.47 F1, 17.17 EM, 16.04 R1, and 16.34 MET points. By comparison, the gains on Normal tables range from 7.64 F1 points to 10.84 EM points. Thus, the improvements on merged-cell structures are roughly 1.6--2.2 times larger than those on Normal tables, depending on the metric.
+Table~\ref{tab:table-structure-analysis} also positions POMA alongside the reference models reported in the dataset paper. These values provide descriptive benchmark context only, as the reference systems were not rerun with the same backbone, prompting conditions, or implementation. The controlled comparison of interest is with Qwen3-8B few-shot: POMA improves all four metrics on Normal, Header-merge, and Value-merge tables, with the largest gains on Header-merge tables. Accordingly, we do not interpret the numerical gaps relative to the reported ViT5, Mistral, or Gemini results as head-to-head estimates of relative system performance.
+
+The baseline results illustrate why these cases are difficult. Relative to Normal tables, the few-shot F1 decreases from 83.00 to 71.69 on Header-merge tables and to 73.98 on Value-merge tables, with EM values of 72.67, 62.24, and 58.78, respectively. When a table is serialized, merged headers and repeated values can render the row--column scope implicit rather than local to each row. The broad POMA gains in EM, as well as in R1 and MET, therefore indicate more than partial lexical overlap: they are consistent with improved recovery of the answer form and the evidence relations required for exact answers. The remaining gaps also demonstrate that structural complexity is not fully resolved: POMA reaches 80.42 EM on Header-merge tables and 75.95 EM on Value-merge tables, both below its 83.51 EM on Normal tables. More structure-aware representations and explicit evidence verification remain promising directions for queries that require several indirect row--column links.
+
+\subsection{Predicted versus Dataset Hints}
+
+The hint-source comparison tests whether POMA depends on gold metadata or can operate with predicted hints at runtime. Table~\ref{tab:predicted-dataset-hints} compares the main POMA pipeline, which uses hint predictor, with an auxiliary dataset-hint diagnostic setting. In this comparison, the Predicted setting corresponds to runs where hints are generated by the hint predictor, while the Dataset setting corresponds to runs where annotated dataset hints are provided directly. The dataset-hint setting is used only to isolate the effect of the hint source; it is not the main POMA runtime assumption.
+
+\begin{table}[!t]
+\centering
+\small
+\setlength{\tabcolsep}{7pt}
+\caption{Predicted hints versus dataset-provided hints for Qwen3 8B POMA. Higher is better for accuracy metrics; lower is better for cost, runtime, and token usage.}
+\label{tab:predicted-dataset-hints}
+\begin{tabular}{llcc}
+\toprule
+{\textbf{Group}}
+& {\textbf{Metric}}
+& \textbf{Original} & \textbf{POMA} \\
+\midrule
+\multirow{4}{*}{Accuracy}
+& EM & 80.04 & \textbf{80.24} \\
+& F1 & 87.77 & \textbf{88.23} \\
+& R1 & 85.74 & \textbf{86.07} \\
+& MET & 84.04 & \textbf{84.50} \\
+\midrule
+\multirow{2}{*}{Cost}
+& Total & \textbf{\$1.39} & \$2.06 \\
+& Avg. & \textbf{\$0.00140} & \$0.00208 \\
+\midrule
+\multirow{2}{*}{Time}
+& Total & \textbf{49,149s} & 70,674s \\
+& Avg. & \textbf{49.55s} & 71.24s \\
+\midrule
+\multirow{2}{*}{Tokens}
+& Total & \textbf{11,213,901} & 19,077,260 \\
+& Avg. & \textbf{11,304.3} & 19,231.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With Qwen3 8B, predicted hints provide a small but consistent improvement over dataset-provided hints: EM increases from 80.04 to 80.24, F1 from 87.77 to 88.23, R1 from 85.74 to 86.07, and MET from 84.04 to 84.50. This suggests that the hint predictor does not merely replace gold annotations, but can produce hints that are better aligned with the downstream question refiner and deterministic router.
+
+The benefit is accompanied by a clear efficiency cost. Predicted hints increase total cost from \$1.39 to \$2.06, total latency from 49,149s to 70,674s, and total token usage from 11,213,901 to 19,077,260. Therefore, the dataset-hint setting is useful as a diagnostic reference, while the main POMA pipeline remains a predicted-hint setting whose accuracy gains must be interpreted together with the additional cost, latency, and token budget introduced by the hint predictor stage.
+
+\subsection{Ablation of Answer Normalization}
+
+answer normalization has a substantial effect on the final quality of POMA, indicating that Vietnamese Table QA is sensitive not only to reasoning accuracy but also to the surface form of the returned answer. Table~\ref{tab:norm-ablation} compares POMA outputs before and after the answer normalization module. The setting \textit{w/o AN} denotes raw specialist aggregation, while \textit{with AN} denotes the final normalized output.
+
+\begin{table}[!t]
+\centering
+\caption{Ablation results of answer normalization in our POMA architecture. \textit{w/o AN} denotes raw specialist aggregation, while \textit{with AN} denotes the final normalized outputs. All metrics are reported as percentages.}
+\label{tab:norm-ablation}
+\setlength{\tabcolsep}{12pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Setting} & \textbf{EM} & \textbf{F1} & \textbf{R1} & \textbf{MET} \\
+\midrule
+\textit{w/o AN}  & 68.41 & 81.31 & 78.98 & 75.60 \\
+\textit{with AN} & \textbf{80.24} & \textbf{88.23} & \textbf{86.07} & \textbf{84.50} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+For Qwen3 8B, answer normalization improves EM from 68.41 to 80.24 and F1 from 81.31 to 88.23. These improvements suggest that the answer normalization module contributes beyond superficial cleanup: it helps convert the outputs of specialist agents into concise answer forms that better match the benchmark references. Trace-level analysis on the 992 test instances shows how this improvement arises. answer normalization changes 177 raw specialist outputs from incorrect to correct, corresponding to 17.84\% of the test set. No raw specialist output that is already correct becomes incorrect after answer normalization. This behavior follows the design of POMA: the raw answer is retained in the candidate set and answer normalization adds safe surface variants instead of replacing the original output.
+
+This effect is particularly important for short table-grounded answers, where small formatting differences can cause large metric penalties. Raw specialist aggregation may preserve redundant explanations, inconsistent list separators, verbose reasoning traces, or non-standard expressions for Null predictions. By retaining the raw answer and adding normalized variants, POMA better aligns final predictions with the expected answer format while reducing the risk that a correct specialist result is discarded. For explanatory or multi-item answers, future work should still strengthen evidence-preserving constraints, particularly for Why, How, and List questions.
+
+\subsection{Accuracy and Cost Analysis}
+
+While POMA yields substantial improvements in accuracy, these gains come with increased inference cost, latency, and token usage due to multi-agent orchestration. This analysis compares POMA with the strongest single-agent prompt baseline, namely few-shot prompting, on the same official test split using accuracy metrics and resource measurements.
+
+Table~\ref{tab:accuracy-cost-analysis} summarizes this trade-off for Qwen3 8B. POMA improves EM by 13.10 points and F1 by 9.59 points, while the total cost increases from \$0.54 to \$2.06, and the average token count per instance increases from 5,547.9 to 19,231.1. This indicates a clear cost-accuracy trade-off. The modular design of POMA requires multiple LLM calls per instance for hint prediction, question refinement, specialist reasoning, and answer normalization. The routing step is deterministic and does not call an LLM. Relative to few-shot prompting with Qwen3 8B, POMA uses approximately 3.8\texttimes{} more cost and 3.5\texttimes{} more tokens. The absolute cost per instance remains low in this experimental setup, suggesting that POMA may be practical for applications that prioritize accuracy over strict budget or latency constraints.
+
+\begin{table}[!t]
+\centering
+\small
+\setlength{\tabcolsep}{10pt}
+\caption{Accuracy, cost, latency, and token usage comparison on the Open-ViTabQA test set. Cost is measured in USD. Higher is better for accuracy metrics; lower is better for cost, runtime, and token usage.}
+\label{tab:accuracy-cost-analysis}
+\begin{tabular}{llcc}
+\toprule
+{\textbf{Group}}
+& {\textbf{Metric}}
+& \textbf{Few-shot} & \textbf{POMA} \\
+\midrule
+\multirow{4}{*}{Accuracy}
+& EM & 67.14 & \textbf{80.24} \\
+& F1 & 78.64 & \textbf{88.23} \\
+& R1 & 74.18 & \textbf{86.07} \\
+& MET & 72.30 & \textbf{84.50} \\
+\midrule
+\multirow{2}{*}{Cost}
+& Total & \textbf{\$0.54} & \$2.06 \\
+& Avg. & \textbf{\$0.00054} & \$0.00208 \\
+\midrule
+\multirow{2}{*}{Time}
+& Total & \textbf{19,462s} & 70,674s \\
+& Avg. & \textbf{19.62s} & 71.24s \\
+\midrule
+\multirow{2}{*}{Tokens}
+& Total & \textbf{5,503,513} & 19,077,260 \\
+& Avg. & \textbf{5,547.9} & 19,231.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{comment}
+\section{Limitations}
+
+Although POMA improves over matched direct-prompting baselines on Open-ViTabQA, several limitations remain.
+
+First, difficult reasoning conditions continue to be challenging, particularly answerability detection and structurally complex tables. Open-ViTabQA includes questions whose correct answer is Null, requiring the system to abstain when the table does not provide sufficient evidence. Our error analysis shows that POMA can fail in both directions: it may falsely abstain on answerable questions or produce an unsupported non-Null answer for unanswerable questions. False abstentions occur more frequently in our analysis, indicating that the framework can be overly conservative when evidence is present but difficult to recover from the serialized table. In addition, causal Why questions remain problematic because numerical relevance or factual association does not necessarily constitute causal evidence. Future work should incorporate an explicit evidence-support verifier that checks whether the selected table evidence is sufficient for the proposed answer and whether a causal explanation is directly supported rather than inferred.
+
+Second, although POMA improves performance on tables with merged headers or merged values, these structures still make row--column scopes indirect in a flattened textual representation. Merged cells may encode hierarchical relations that are visually apparent in the original table but less explicit after serialization. The current framework relies on the Flatten V1 representation used by Open-ViTabQA and does not modify the underlying parser or introduce an explicit structural encoder. More structure-aware approaches, such as layout-aware, graph-based, or program-guided table representations, may therefore further improve evidence grounding on irregular tables.
+
+Third, POMA is less efficient than direct prompting because it invokes multiple LLM-based components, including hint prediction, question refinement, specialist reasoning, and answer normalization. Although the routing step is deterministic once the hint set is fixed, the surrounding modules increase total cost, latency, and token usage. This trade-off is important for large-scale or real-time deployment, particularly in low-resource settings where API access, compute resources, or response-time budgets are constrained. Future work should explore selective routing, early stopping, specialist pruning, caching, and smaller task-specific components to reduce inference cost while preserving accuracy.
+
+Finally, the evaluation is limited to Qwen3 8B and to a single Vietnamese Table QA benchmark, Open-ViTabQA, in an inference-time, no-fine-tuning setting. Public Vietnamese benchmarks specifically designed for table question answering remain limited; therefore, the present results should be interpreted as evidence for the Open-ViTabQA setting rather than as proof of generalization across all Vietnamese tabular domains. The available experimental budget did not support a broader multi-backbone study, so the experiments establish the effect of POMA within Qwen3 8B but do not demonstrate that the same gains transfer to other model families, parameter scales, or serving environments. We include zero-shot, task-decomposition, chain-of-thought, and few-shot prompting as matched single-agent baselines; among them, few-shot prompting is used as the primary controlled comparison because it achieves the strongest single-agent performance with Qwen3 8B. Future work should evaluate POMA across additional open-source model families and scales, such as Qwen, Llama, and Mistral, and assess transfer through future Vietnamese Table QA benchmarks, domain-specific table collections, and human evaluation.
+
+\end{comment}
+
+\section{Conclusion}\label{sec:conclusion}
+
+This paper presented POMA, a training-free Parallel Multi-Agent Orchestration system for Vietnamese Table QA. The system integrates hint prediction, question refinement, deterministic specialist routing, parallel reasoning, and answer normalization. We evaluated POMA on the Open-ViTabQA test set against matched prompting baselines and analyzed its behavior across question types, answerability, table structures, hint sources, answer normalization, and inference efficiency. With Qwen3 8B, POMA achieves 80.24 exact match and 88.23 F1, while the analyses demonstrate the benefits of modular orchestration and identify remaining limitations in causal reasoning, answerability, and computational cost.
+
+Future work should evaluate POMA across multiple open-source model families and sizes, investigate adaptive routing and confidence-aware specialist selection, strengthen causal and evidence-grounding verification, incorporate deterministic symbolic tools for counting and ranking, and extend evaluation to Vietnamese structured-QA benchmarks beyond Open-ViTabQA.
+
+
+\section*{Disclosure statement}
+
+The authors report no conflict of interest.
+
+\section*{Funding}
+
+This work was supported by Vietnam National University Ho Chi Minh City (VNU-HCM) under Grant C2026-26-10.
+
+\section*{Data availability statement}
+
+The Open-ViTabQA dataset analyzed in this study is described in the cited benchmark paper. Experimental outputs supporting the findings are available from the corresponding author upon reasonable request.
+
+\section*{Code availability statement}
+
+The source code used in this study is publicly available at \url{https://github.com/NgDinhKhoi0709/POMA.git}.
+
+\section*{Author contributions}
+
+Nguyen Dinh Khoi contributed to the conceptualization, methodology, implementation, experiments, and manuscript writing. Dang Van Thin contributed to supervision, validation, critical review, and manuscript editing. All authors read and approved the final manuscript.
+
+\section*{Biographical note}
+
+Nguyen Dinh Khoi is a third-year student in the Artificial Intelligence program at the University of Information Technology, Vietnam National University Ho Chi Minh City (UIT, VNU-HCM).
+
+\section*{ORCID}
+
+\textit{Nguyen Dinh Khoi} \url{https://orcid.org/0009-0001-6385-3444}
+
+\printbibliography
+
+\appendix
+\input{jit-appendix}
+
+\end{document}
+
+
+

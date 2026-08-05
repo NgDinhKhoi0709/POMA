@@ -97,6 +97,25 @@ def test_local_sea_lion_uses_json_text_extract_mode():
     )
 
 
+def test_local_mode_uses_concise_contract_instead_of_full_json_schema():
+    generator, transport = _generator(
+        [
+            (
+                '{"answer":"yes"}',
+                {"prompt_tokens": 2, "completion_tokens": 3, "total_tokens": 5},
+            )
+        ],
+        mode_override=StructuredOutputMode.JSON_TEXT_EXTRACT,
+    )
+
+    generator.generate("Answer.", SIMPLE_SCHEMA, _context("local/sea-lion-v3-8b-it"))
+
+    prompt, text_format = transport.calls[0]
+    assert text_format is None
+    assert 'JSON: {"answer":"string"}' in prompt
+    assert "additionalProperties" not in prompt
+
+
 def test_qwen_prompt_only_mode_omits_format_and_appends_compact_schema_instruction():
     generator, transport = _generator(
         [

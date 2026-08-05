@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Literal
 
 from src.kaggle_eval.jsonl_io import append_jsonl, completed_qa_ids
-from src.kaggle_eval.selection import load_final_543_ids, select_pilot_qas
+from src.kaggle_eval.selection import (
+    load_final_543_ids,
+    select_longest_table_qa,
+    select_pilot_qas,
+)
 
 try:
     from tqdm.auto import tqdm
@@ -20,7 +24,7 @@ except ImportError:  # pragma: no cover - Kaggle supplies tqdm
 class RunConfig:
     repo_root: Path
     output_root: Path
-    phase: Literal["smoke", "pilot", "final"] = "pilot"
+    phase: Literal["smoke", "pilot", "final", "longest_test"] = "pilot"
     mode: Literal["zero_shot", "poma", "both"] = "both"
     model: str = "local/sea-lion-v3-8b-it"
     prompt_profile: str = "compact"
@@ -41,7 +45,8 @@ def prepare_run_dirs(config: RunConfig) -> dict[str, Path]:
 
 
 def _dataset_paths(config: RunConfig) -> tuple[Path, Path]:
-    qas = config.repo_root / "dataset" / ("qas_test.json" if config.phase == "final" else "qas_dev.json")
+    use_test = config.phase in {"final", "longest_test"}
+    qas = config.repo_root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
     return qas, config.repo_root / "dataset" / "table.json"
 
 
@@ -58,6 +63,21 @@ def select_qas(config: RunConfig) -> tuple[list[dict], dict]:
     elif config.phase == "pilot":
         counts = {key: len(create_representation(value).to_string().split()) for key, value in table_idx.items()}
         selected = select_pilot_qas(qas, table_token_counts=counts, n=config.pilot_n, seed=config.seed)
+    elif config.phase == "longest_test":
+        counts = {
+            key: len(create_representation(value).to_string())
+            for key, value in table_idx.items()
+        }
+        selected = [
+            select_longest_table_qa(qas, table_char_counts=counts)
+        ]
+        qa = selected[0]
+        table_id = str(qa["table_id"])
+        print(
+            "Longest-test preflight: "
+            f"table_id={table_id}, qa_id={qa['qa_id']}, "
+            f"flatten_v1_chars={counts[table_id]}"
+        )
     else:
         selected = qas[:1]
     if config.limit is not None:
@@ -115,6 +135,8 @@ def run_zero_shot(config: RunConfig, selected: list[dict], table_idx: dict) -> P
             append_jsonl(predictions, {"qa_id": qa_id, "prediction": baseline_prediction(result.data), "schema_valid": result.schema_valid, "repair_attempted": result.repair_attempted, "repair_succeeded": result.repair_succeeded})
         except Exception as exc:
             append_jsonl(errors, {"qa_id": qa_id, "terminal": isinstance(exc, ContextOverflowError), "error_type": "context_overflow" if isinstance(exc, ContextOverflowError) else type(exc).__name__, "error": str(exc)})
+            if config.phase == "longest_test":
+                raise
     return predictions
 
 
@@ -135,4 +157,6 @@ def run_poma(config: RunConfig, selected: list[dict], table_idx: dict) -> Path:
             append_jsonl(traces, {"qa_id": qa_id, "trace": record.get("trace", {})})
         except Exception as exc:
             append_jsonl(errors, {"qa_id": qa_id, "terminal": isinstance(exc, ContextOverflowError), "error_type": "context_overflow" if isinstance(exc, ContextOverflowError) else type(exc).__name__, "error": str(exc)})
+            if config.phase == "longest_test":
+                raise
     return predictions

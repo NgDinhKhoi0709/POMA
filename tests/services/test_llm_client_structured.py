@@ -266,3 +266,42 @@ def test_local_model_routes_to_transformers_client(monkeypatch):
     assert result.data == {"predicted_hints": ["What"]}
     assert calls[0][1] == 7
     assert client.total_cost_usd is None
+
+
+def test_local_model_caps_generation_at_local_token_budget(monkeypatch, tmp_path):
+    calls = []
+
+    class _FakeLocalClient:
+        def generate_with_usage(self, prompt, *, max_new_tokens=None):
+            calls.append(max_new_tokens)
+            return (
+                '{"predicted_hints": ["What"]}',
+                {
+                    "prompt_tokens": 2,
+                    "completion_tokens": 3,
+                    "total_tokens": 5,
+                    "cost_usd": None,
+                },
+            )
+
+    local_config = SimpleNamespace(max_new_tokens=512)
+    monkeypatch.setattr(
+        llm_client_module,
+        "get_settings",
+        lambda: SimpleNamespace(local_model=local_config, project_root=tmp_path),
+    )
+    monkeypatch.setattr(
+        llm_client_module,
+        "_get_shared_local_client",
+        lambda config: _FakeLocalClient(),
+    )
+    client = LLMClient(
+        LLMConfig(model="local/sea-lion-v3-8b-it", max_tokens=4096)
+    )
+
+    client.generate_structured(
+        "prompt",
+        schema=schema_for_call("hint_predictor.v1"),
+    )
+
+    assert calls == [512]

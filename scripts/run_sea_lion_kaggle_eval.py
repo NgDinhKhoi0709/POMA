@@ -14,7 +14,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", required=True)
     parser.add_argument("--output-root", required=True)
-    parser.add_argument("--phase", choices=("smoke", "pilot", "final"), default="pilot")
+    parser.add_argument(
+        "--phase",
+        choices=("smoke", "pilot", "final", "longest_test"),
+        default="pilot",
+    )
     parser.add_argument("--mode", choices=("zero_shot", "poma", "both"), default="both")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--final-ids-path", type=Path)
@@ -33,7 +37,8 @@ def main() -> int:
     from src.kaggle_eval.reporting import write_comparison_report, write_run_report
     config = RunConfig(repo_root=root, output_root=Path(args.output_root), phase=args.phase, mode=args.mode, model=args.model, final_ids_path=args.final_ids_path, limit=args.limit)
     selected, tables = select_qas(config)
-    qas_path = root / "dataset" / ("qas_test.json" if args.phase == "final" else "qas_dev.json")
+    use_test = args.phase in {"final", "longest_test"}
+    qas_path = root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
     dirs = prepare_run_dirs(config)
     if args.mode in ("zero_shot", "both"):
         zero_path = run_zero_shot(config, selected, tables)

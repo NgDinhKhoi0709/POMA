@@ -44,6 +44,36 @@ def select_pilot_qas(qas: Sequence[dict[str, Any]], *, table_token_counts: Mappi
     return [qa for _, qa in sorted(selected, key=lambda item: item[0])]
 
 
+def select_longest_table_qa(
+    qas: Sequence[dict[str, Any]],
+    *,
+    table_char_counts: Mapping[str, int],
+) -> dict[str, Any]:
+    """Select a deterministic stress QA from the longest referenced table."""
+    if not qas:
+        raise ValueError("Cannot select a longest-table QA from an empty dataset")
+
+    referenced = {
+        str(qa.get("table_id", ""))
+        for qa in qas
+        if str(qa.get("table_id", "")) in table_char_counts
+    }
+    if not referenced:
+        raise ValueError("No QA references a table with a measured character count")
+
+    longest_table_id = max(
+        referenced,
+        key=lambda table_id: (table_char_counts[table_id], table_id),
+    )
+    candidates = [
+        qa for qa in qas if str(qa.get("table_id", "")) == longest_table_id
+    ]
+    return max(
+        candidates,
+        key=lambda qa: (len(str(qa.get("question", ""))), str(qa.get("qa_id", ""))),
+    )
+
+
 def load_final_543_ids(path: Path | None = None) -> list[str]:
     candidate = path or Path("outputs/q2_revision/openrouter_google_gemma-3-4b-it/full/reports/poma_vs_zero_shot_543.json")
     if not candidate.exists():

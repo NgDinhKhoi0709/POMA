@@ -16,3 +16,7 @@ outputs/baselines/
 tmp/
 baselines/**/tmp/
 baselines/**/*.db
+
+# Generated experiment results, traces, and local analysis artifacts
+outputs/
+.codegraph/

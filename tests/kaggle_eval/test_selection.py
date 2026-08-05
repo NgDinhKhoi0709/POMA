@@ -1,4 +1,8 @@
-from src.kaggle_eval.selection import select_pilot_qas, table_length_bucket
+from src.kaggle_eval.selection import (
+    select_longest_table_qa,
+    select_pilot_qas,
+    table_length_bucket,
+)
 
 
 def _qa(index, hint, table_id):
@@ -19,3 +23,22 @@ def test_select_pilot_qas_is_seeded_and_unique():
     assert [qa["qa_id"] for qa in first] == [qa["qa_id"] for qa in second]
     assert len({qa["qa_id"] for qa in first}) == 12
     assert {"What", "Who"} <= {qa["hints"][0] for qa in first}
+
+
+def test_select_longest_table_qa_uses_longest_question_as_stress_case():
+    qas = [
+        {"qa_id": "short-question", "table_id": "long", "question": "Who?"},
+        {
+            "qa_id": "long-question",
+            "table_id": "long",
+            "question": "Who is the person named in this complete table?",
+        },
+        {"qa_id": "other", "table_id": "short", "question": "What?"},
+    ]
+
+    selected = select_longest_table_qa(
+        qas,
+        table_char_counts={"long": 50_000, "short": 100},
+    )
+
+    assert selected["qa_id"] == "long-question"

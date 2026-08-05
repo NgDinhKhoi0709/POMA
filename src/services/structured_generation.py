@@ -63,7 +63,42 @@ def _strict_text_format(schema: ResponseSchema) -> dict[str, Any]:
     }
 
 
-def _qwen_prompt(prompt: str, schema: ResponseSchema) -> str:
+def _example_value(definition: dict[str, Any]) -> Any:
+    if "enum" in definition:
+        return definition["enum"][0]
+    if "oneOf" in definition:
+        non_null = next(
+            (item for item in definition["oneOf"] if item.get("type") != "null"),
+            definition["oneOf"][0],
+        )
+        return _example_value(non_null)
+    kind = definition.get("type")
+    if kind == "array":
+        item = definition.get("items", {"type": "string"})
+        if "oneOf" in item:
+            item = item["oneOf"][0]
+        return [_example_value(item)]
+    if kind == "object":
+        properties = definition.get("properties", {})
+        return {key: _example_value(value) for key, value in properties.items()}
+    if kind in {"number", "integer"}:
+        return 0
+    if kind == "boolean":
+        return False
+    return "string"
+
+
+def _qwen_prompt(
+    prompt: str,
+    schema: ResponseSchema,
+    *,
+    concise: bool = False,
+) -> str:
+    if concise:
+        example = _example_value(schema.json_schema)
+        compact_example = json.dumps(example, ensure_ascii=False, separators=(",", ":"))
+        return f"{prompt}\nJSON: {compact_example}"
+
     compact_schema = json.dumps(
         schema.json_schema,
         ensure_ascii=False,
@@ -292,7 +327,11 @@ class StructuredGenerator:
         else:
             text_format = None
         request_prompt = (
-            _qwen_prompt(prompt, schema)
+            _qwen_prompt(
+                prompt,
+                schema,
+                concise=mode is StructuredOutputMode.JSON_TEXT_EXTRACT,
+            )
             if mode
             in {
                 StructuredOutputMode.JSON_OBJECT,
@@ -322,7 +361,11 @@ class StructuredGenerator:
             StructuredOutputMode.PROMPT_ONLY,
             StructuredOutputMode.JSON_TEXT_EXTRACT,
         }:
-            repair_prompt = _qwen_prompt(repair_prompt, schema)
+            repair_prompt = _qwen_prompt(
+                repair_prompt,
+                schema,
+                concise=mode is StructuredOutputMode.JSON_TEXT_EXTRACT,
+            )
         repair_response, repair_usage = self._generate_once(
             repair_prompt,
             text_format,

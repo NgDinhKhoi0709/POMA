@@ -487,9 +487,14 @@ class LLMClient:
         if self._cfg.model.startswith(("local/", "local:")):
             if text_format is not None:
                 raise ValueError("Local models use prompt-only JSON schema instructions")
-            return _get_shared_local_client(get_settings().local_model).generate_with_usage(
+            local_config = get_settings().local_model
+            max_new_tokens = min(
+                self._cfg.max_tokens,
+                local_config.max_new_tokens,
+            )
+            return _get_shared_local_client(local_config).generate_with_usage(
                 prompt,
-                max_new_tokens=self._cfg.max_tokens,
+                max_new_tokens=max_new_tokens,
             )
 
         gen_cfg = GenConfig(

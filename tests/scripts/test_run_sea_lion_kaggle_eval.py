@@ -6,6 +6,24 @@ def test_parser_defaults_to_pilot_mode():
     assert args.limit is None
     assert args.model == "local/sea-lion-v3-8b-it"
 
+
+def test_parser_accepts_longest_test_preflight_phase():
+    args = build_parser().parse_args(
+        [
+            "--repo-root",
+            ".",
+            "--output-root",
+            "out",
+            "--phase",
+            "longest_test",
+            "--mode",
+            "poma",
+        ]
+    )
+
+    assert args.phase == "longest_test"
+    assert args.mode == "poma"
+
 def test_resolve_repo_root_dataset_mode(tmp_path):
     repo = tmp_path / "POMA"
     (repo / "dataset").mkdir(parents=True)

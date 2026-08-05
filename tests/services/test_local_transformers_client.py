@@ -1,4 +1,6 @@
 from types import SimpleNamespace
+import sys
+from types import ModuleType
 
 import pytest
 
@@ -6,6 +8,7 @@ from src.services.local_transformers_client import (
     ContextOverflowError,
     LocalTransformersClient,
 )
+from src.config.settings import LocalModelConfig
 
 
 class _FakeBatch(dict):
@@ -71,3 +74,40 @@ def test_context_overflow_raises_before_generation():
 
     with pytest.raises(ContextOverflowError, match="max_input_tokens=2"):
         client.generate_with_usage("one two three")
+
+
+def test_from_pretrained_requests_memory_efficient_attention(monkeypatch):
+    calls = {}
+
+    class FakeBitsAndBytesConfig:
+        def __init__(self, **kwargs):
+            calls["quantization"] = kwargs
+
+    class FakeTokenizer:
+        pad_token_id = None
+        eos_token_id = 2
+
+    class FakeAutoTokenizer:
+        @staticmethod
+        def from_pretrained(*args, **kwargs):
+            calls["tokenizer"] = (args, kwargs)
+            return FakeTokenizer()
+
+    class FakeAutoModel:
+        @staticmethod
+        def from_pretrained(*args, **kwargs):
+            calls["model"] = (args, kwargs)
+            return _FakeModel()
+
+    fake_torch = ModuleType("torch")
+    fake_torch.float16 = "float16"
+    fake_transformers = ModuleType("transformers")
+    fake_transformers.AutoModelForCausalLM = FakeAutoModel
+    fake_transformers.AutoTokenizer = FakeAutoTokenizer
+    fake_transformers.BitsAndBytesConfig = FakeBitsAndBytesConfig
+    monkeypatch.setitem(sys.modules, "torch", fake_torch)
+    monkeypatch.setitem(sys.modules, "transformers", fake_transformers)
+
+    LocalTransformersClient.from_pretrained(LocalModelConfig())
+
+    assert calls["model"][1]["attn_implementation"] == "sdpa"

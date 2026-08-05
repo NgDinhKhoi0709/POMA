@@ -64,6 +64,7 @@ class LocalTransformersClient:
             device_map="auto",
             torch_dtype=torch.float16,
             trust_remote_code=True,
+            attn_implementation="sdpa",
         )
         return cls(
             tokenizer=tokenizer,

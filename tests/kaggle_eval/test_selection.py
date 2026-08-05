@@ -25,6 +25,28 @@ def test_select_pilot_qas_is_seeded_and_unique():
     assert {"What", "Who"} <= {qa["hints"][0] for qa in first}
 
 
+def test_select_pilot_qas_preserves_joint_stratum_distribution():
+    qas = [
+        *[_qa(index, "What", "short") for index in range(50)],
+        *[_qa(index + 50, "Who", "medium") for index in range(30)],
+        *[_qa(index + 80, "Why", "long") for index in range(20)],
+    ]
+    selected = select_pilot_qas(
+        qas,
+        table_token_counts={"short": 99, "medium": 1000, "long": 4000},
+        n=10,
+        seed=42,
+    )
+
+    strata = [
+        (qa["hints"][0], table_length_bucket({"short": 99, "medium": 1000, "long": 4000}[qa["table_id"]]))
+        for qa in selected
+    ]
+    assert strata.count(("What", "short")) == 5
+    assert strata.count(("Who", "medium")) == 3
+    assert strata.count(("Why", "long")) == 2
+
+
 def test_select_longest_table_qa_uses_longest_question_as_stress_case():
     qas = [
         {"qa_id": "short-question", "table_id": "long", "question": "Who?"},

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import random
-from collections import defaultdict, deque
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -17,7 +17,14 @@ def table_length_bucket(token_count: int) -> str:
     return "long"
 
 
-def select_pilot_qas(qas: Sequence[dict[str, Any]], *, table_token_counts: Mapping[str, int], n: int = 200, seed: int = 42) -> list[dict[str, Any]]:
+def select_pilot_qas(
+    qas: Sequence[dict[str, Any]],
+    *,
+    table_token_counts: Mapping[str, int],
+    n: int = 200,
+    seed: int = 42,
+) -> list[dict[str, Any]]:
+    """Select a seeded sample proportional to hint and table-length strata."""
     if len(qas) < n:
         raise ValueError(f"Need at least {n} QAs, received {len(qas)}")
     groups: dict[tuple[str, str], list[tuple[int, dict[str, Any]]]] = defaultdict(list)
@@ -27,20 +34,21 @@ def select_pilot_qas(qas: Sequence[dict[str, Any]], *, table_token_counts: Mappi
         bucket = table_length_bucket(int(table_token_counts.get(str(qa.get("table_id", "")), 0)))
         groups[(hint, bucket)].append((index, qa))
     rng = random.Random(seed)
-    queues = []
+    total = len(qas)
+    quotas: dict[tuple[str, str], int] = {}
+    remainders: list[tuple[float, tuple[str, str]]] = []
+    for key, items in groups.items():
+        exact = len(items) * n / total
+        quotas[key] = int(exact)
+        remainders.append((exact - quotas[key], key))
+
+    for _, key in sorted(remainders, key=lambda item: (-item[0], item[1]))[: n - sum(quotas.values())]:
+        quotas[key] += 1
+
+    selected: list[tuple[int, dict[str, Any]]] = []
     for key in sorted(groups):
         items = groups[key]
-        rng.shuffle(items)
-        queues.append(deque(items))
-    selected: list[tuple[int, dict[str, Any]]] = []
-    while len(selected) < n:
-        advanced = False
-        for queue in queues:
-            if queue and len(selected) < n:
-                selected.append(queue.popleft())
-                advanced = True
-        if not advanced:
-            break
+        selected.extend(rng.sample(items, quotas[key]))
     return [qa for _, qa in sorted(selected, key=lambda item: item[0])]
 
 

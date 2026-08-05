@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover - Kaggle supplies tqdm
 class RunConfig:
     repo_root: Path
     output_root: Path
-    phase: Literal["smoke", "pilot", "final", "longest_test"] = "pilot"
+    phase: Literal["smoke", "pilot100", "pilot", "final", "longest_test"] = "pilot"
     mode: Literal["zero_shot", "poma", "both"] = "both"
     model: str = "local/sea-lion-v3-8b-it"
     prompt_profile: str = "compact"
@@ -60,9 +60,10 @@ def select_qas(config: RunConfig) -> tuple[list[dict], dict]:
         selected = [qa for qa in qas if str(qa.get("qa_id")) in wanted]
         if len(selected) != len(wanted):
             raise ValueError("Some final QA IDs are absent from qas_test.json")
-    elif config.phase == "pilot":
+    elif config.phase in {"pilot100", "pilot"}:
         counts = {key: len(create_representation(value).to_string().split()) for key, value in table_idx.items()}
-        selected = select_pilot_qas(qas, table_token_counts=counts, n=config.pilot_n, seed=config.seed)
+        sample_size = 100 if config.phase == "pilot100" else config.pilot_n
+        selected = select_pilot_qas(qas, table_token_counts=counts, n=sample_size, seed=config.seed)
     elif config.phase == "longest_test":
         counts = {
             key: len(create_representation(value).to_string())

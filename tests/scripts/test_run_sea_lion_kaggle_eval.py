@@ -24,6 +24,14 @@ def test_parser_accepts_longest_test_preflight_phase():
     assert args.phase == "longest_test"
     assert args.mode == "poma"
 
+
+def test_parser_accepts_pilot100_phase():
+    args = build_parser().parse_args(
+        ["--repo-root", ".", "--output-root", "out", "--phase", "pilot100"]
+    )
+
+    assert args.phase == "pilot100"
+
 def test_resolve_repo_root_dataset_mode(tmp_path):
     repo = tmp_path / "POMA"
     (repo / "dataset").mkdir(parents=True)

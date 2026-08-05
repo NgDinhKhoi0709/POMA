@@ -16,7 +16,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-root", required=True)
     parser.add_argument(
         "--phase",
-        choices=("smoke", "pilot", "final", "longest_test"),
+        choices=("smoke", "pilot100", "pilot", "final", "longest_test"),
         default="pilot",
     )
     parser.add_argument("--mode", choices=("zero_shot", "poma", "both"), default="both")

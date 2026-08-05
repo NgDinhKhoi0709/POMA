@@ -6,8 +6,9 @@ def test_kaggle_notebook_is_valid_json_and_has_required_config_cells():
     assert data["nbformat"] == 4
     assert 'MODEL_ID = "aisingapore/Llama-SEA-LION-v3-8B-IT"' in sources
     assert "RUN_FINAL_543 = False" in sources
-    assert "RUN_LONGEST_TEST = True" in sources
-    assert 'longest_test_command[longest_test_command.index("pilot")] = "longest_test"' in sources
+    assert "RUN_LONGEST_TEST = False" in sources
+    assert '"--phase", "pilot100"' in sources
+    assert 'longest_test_command[longest_test_command.index("pilot100")] = "longest_test"' in sources
     assert "POMA_PROMPT_PROFILE" in sources
     assert 'POMA_LOCAL_BACKEND": "vllm"' in sources
     assert "vllm" in sources

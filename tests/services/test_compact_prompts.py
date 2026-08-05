@@ -41,3 +41,16 @@ def test_complex_specialists_have_two_short_examples():
         text = (root / f"{name}.md").read_text(encoding="utf-8")
         assert text.count("EXAMPLE ") == 2
         assert "null" in text
+
+
+def test_answer_prompts_require_minimal_non_restated_answers():
+    paths = [
+        Path("src/prompts_compact/answer_normalization.md"),
+        Path("src/prompts_compact/grounded_single_answer.md"),
+        *Path("src/prompts_compact/specialists").glob("*.md"),
+        *Path("src/prompts_compact/answer_normalization").glob("*.md"),
+    ]
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        assert "QUY TẮC ĐẦU RA" in text
+        assert "không lặp lại" in text.lower()

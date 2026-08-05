@@ -40,7 +40,6 @@ _PARENTHETICAL_RE = re.compile(r"\s*\([^()]*\)")
 _UNITS_WITHOUT_SPACE = {"%"}
 _UNITS_WITH_OPTIONAL_SPACE = {"m", "cm", "ft", "km2", "km²", "m2", "m²", "kg", "ha"}
 _VAGUE_INFERRED_UNITS = {"năm", "tháng", "ngày"}
-_LIST_DELIMITERS = (", ", ",", "; ", ";", " ")
 _BOOLEAN_TRUE_VARIANTS = ("CĂ³", "ÄĂºng", "Pháº£i")
 _BOOLEAN_FALSE_VARIANTS = ("Không", "Sai", "Không phải")
 _BOOLEAN_TRUE_NORMALIZED = {
@@ -452,43 +451,14 @@ def _text_spacing_variants(answer: str) -> List[str]:
     return _dedup_match_equivalent(variants)
 
 
-def _adjacent_swap_list_variants(items: Sequence[str]) -> List[str]:
-    if len(items) <= 2 or len(items) > 8:
-        return []
-
-    variants: List[str] = []
-    for idx in range(len(items) - 1):
-        swapped = list(items)
-        swapped[idx], swapped[idx + 1] = swapped[idx + 1], swapped[idx]
-        variants.extend(_join_list_items(swapped))
-    return variants
-
-
-def _join_list_items(items: Sequence[str]) -> List[str]:
-    return [delimiter.join(items) for delimiter in _LIST_DELIMITERS]
-
-
 def _list_variants(answer: str) -> List[str]:
-    variants = [answer]
-    items = _coerce_list_items(answer)
-    if not items:
-        return _dedup_match_equivalent(variants)
+    """Preserve the specialist's list order as one evaluation candidate.
 
-    variants.extend(_join_list_items(items))
-    variants.extend(_adjacent_swap_list_variants(items))
-    if len(items) == 2:
-        reversed_items = list(reversed(items))
-        variants.extend(_join_list_items(reversed_items))
-
-    recovered_items = [_recover_spacing_in_item(item) for item in items]
-    if recovered_items != items:
-        variants.extend(_join_list_items(recovered_items))
-        variants.extend(_adjacent_swap_list_variants(recovered_items))
-        if len(recovered_items) == 2:
-            reversed_recovered = list(reversed(recovered_items))
-            variants.extend(_join_list_items(reversed_recovered))
-
-    return _dedup_match_equivalent(variants)
+    List and sorting questions encode order semantically.  Generating delimiter
+    variants or swapped permutations turns one prediction into many different
+    answers and can make an incorrect ordering appear as a candidate.
+    """
+    return [answer]
 
 
 def _extract_unit_candidates(text: Optional[str]) -> List[str]:

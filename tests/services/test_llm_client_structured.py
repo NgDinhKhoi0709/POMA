@@ -284,7 +284,7 @@ def test_local_model_caps_generation_at_local_token_budget(monkeypatch, tmp_path
                 },
             )
 
-    local_config = SimpleNamespace(max_new_tokens=512)
+    local_config = SimpleNamespace(backend="transformers", max_new_tokens=512)
     monkeypatch.setattr(
         llm_client_module,
         "get_settings",
@@ -305,3 +305,23 @@ def test_local_model_caps_generation_at_local_token_budget(monkeypatch, tmp_path
     )
 
     assert calls == [512]
+
+
+def test_vllm_backend_routes_to_vllm_client(monkeypatch):
+    calls = []
+
+    class _FakeVLLMClient:
+        @classmethod
+        def from_pretrained(cls, config):
+            calls.append(config)
+            return "vllm-client"
+
+    monkeypatch.setattr(
+        "src.services.local_vllm_client.LocalVLLMClient",
+        _FakeVLLMClient,
+    )
+    monkeypatch.setattr(llm_client_module, "_shared_local_client", None)
+
+    config = SimpleNamespace(backend="vllm")
+    assert llm_client_module._get_shared_local_client(config) == "vllm-client"
+    assert calls == [config]

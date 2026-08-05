@@ -9,5 +9,7 @@ def test_kaggle_notebook_is_valid_json_and_has_required_config_cells():
     assert "RUN_LONGEST_TEST = True" in sources
     assert 'longest_test_command[longest_test_command.index("pilot")] = "longest_test"' in sources
     assert "POMA_PROMPT_PROFILE" in sources
+    assert 'POMA_LOCAL_BACKEND": "vllm"' in sources
+    assert "vllm" in sources
     assert "run_sea_lion_kaggle_eval.py" in sources
     assert "/kaggle/working" in sources

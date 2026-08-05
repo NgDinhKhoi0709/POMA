@@ -46,9 +46,20 @@ def _get_shared_client() -> LLMZeroShotClient:
 def _get_shared_local_client(config: LocalModelConfig) -> Any:
     global _shared_local_client
     if _shared_local_client is None:
-        from src.services.local_transformers_client import LocalTransformersClient
+        backend = config.backend.strip().lower()
+        if backend == "transformers":
+            from src.services.local_transformers_client import LocalTransformersClient
 
-        _shared_local_client = LocalTransformersClient.from_pretrained(config)
+            _shared_local_client = LocalTransformersClient.from_pretrained(config)
+        elif backend == "vllm":
+            from src.services.local_vllm_client import LocalVLLMClient
+
+            _shared_local_client = LocalVLLMClient.from_pretrained(config)
+        else:
+            raise ValueError(
+                "POMA_LOCAL_BACKEND must be 'transformers' or 'vllm', "
+                f"got {config.backend!r}"
+            )
     return _shared_local_client
 
 

@@ -68,11 +68,13 @@ class LLMConfig:
 @dataclass(frozen=True)
 class LocalModelConfig:
     model_id: str = "aisingapore/Llama-SEA-LION-v3-8B-IT"
+    backend: str = "transformers"
     max_model_len: int = 32768
     max_input_tokens: int = 28672
     quantization: str = "nf4"
     max_new_tokens: int = 512
     hint_preview_tokens: int = 1024
+    vllm_gpu_memory_utilization: float = 0.90
 
 
 @dataclass(frozen=True)
@@ -129,11 +131,16 @@ def get_settings() -> Settings:
         ),
         local_model=LocalModelConfig(
             model_id=_env_str("POMA_LOCAL_MODEL_ID", LocalModelConfig.model_id),
+            backend=_env_str("POMA_LOCAL_BACKEND", LocalModelConfig.backend),
             max_model_len=_env_int("POMA_LOCAL_MAX_MODEL_LEN", LocalModelConfig.max_model_len),
             max_input_tokens=_env_int("POMA_LOCAL_MAX_INPUT_TOKENS", LocalModelConfig.max_input_tokens),
             quantization=_env_str("POMA_LOCAL_QUANTIZATION", LocalModelConfig.quantization),
             max_new_tokens=_env_int("POMA_LOCAL_MAX_NEW_TOKENS", LocalModelConfig.max_new_tokens),
             hint_preview_tokens=_env_int("POMA_HINT_PREVIEW_TOKENS", LocalModelConfig.hint_preview_tokens),
+            vllm_gpu_memory_utilization=_env_float(
+                "POMA_VLLM_GPU_MEMORY_UTILIZATION",
+                LocalModelConfig.vllm_gpu_memory_utilization,
+            ),
         ),
         parallel_max_workers=_env_int("POMA_PARALLEL_WORKERS", Settings.parallel_max_workers),
         answer_language=_env_str("POMA_ANSWER_LANGUAGE", Settings.answer_language),

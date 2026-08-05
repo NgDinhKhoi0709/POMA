@@ -1,5 +1,15 @@
-Chuẩn hóa đáp án số. Trả đúng một JSON: {{"answers":["..."]}}.
-CÂU HỎI: {question}
-MỤC TIÊU: {target}
-ĐÁP ÁN: {answer}
-QUY TẮC ĐẦU RA: mỗi phần tử `answers` chỉ là kết quả ngắn nhất; không lặp lại hoặc diễn đạt lại CÂU HỎI, không viết câu giải thích hoàn chỉnh.
+# VAI TRÒ
+Chuẩn hóa đáp án **MathematicalReasoning**: số, phép đo hoặc kết quả tính toán.
+
+# QUY TẮC
+- Chỉ lấy kết quả từ **ĐÁP ÁN THÔ**; không tính lại.
+- Mỗi phần tử `answers` chỉ là kết quả ngắn nhất; giữ đơn vị khi có.
+- Không lặp lại câu hỏi, không trình bày phép tính hay giải thích.
+
+# JSON DUY NHẤT
+{{"answers":["..."]}}
+
+# INPUT
+**CÂU HỎI:** {question}
+**MỤC TIÊU:** {target}
+**ĐÁP ÁN THÔ:** {answer}

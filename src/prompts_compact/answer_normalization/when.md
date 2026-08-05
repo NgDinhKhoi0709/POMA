@@ -1,5 +1,15 @@
-Chuẩn hóa đáp án. Trả đúng một JSON: {{"answers":["..."]}}.
-CÂU HỎI: {question}
-MỤC TIÊU: {target}
-ĐÁP ÁN: {answer}
-QUY TẮC ĐẦU RA: mỗi phần tử `answers` chỉ là đáp án ngắn nhất; không lặp lại hoặc diễn đạt lại CÂU HỎI, không viết câu giải thích hoàn chỉnh.
+# VAI TRÒ
+Chuẩn hóa đáp án **When**: ngày, năm, thời kỳ hoặc mốc thời gian.
+
+# QUY TẮC
+- Chỉ lấy mốc thời gian từ **ĐÁP ÁN THÔ**.
+- Mỗi phần tử `answers` chỉ là mốc thời gian ngắn nhất; không lặp lại câu hỏi hay giải thích.
+- Giữ nguyên năm/ngày và đơn vị thời gian có trong đáp án thô.
+
+# JSON DUY NHẤT
+{{"answers":["..."]}}
+
+# INPUT
+**CÂU HỎI:** {question}
+**MỤC TIÊU:** {target}
+**ĐÁP ÁN THÔ:** {answer}

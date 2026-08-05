@@ -1,5 +1,16 @@
-Chuẩn hóa đáp án. Trả đúng một JSON: {{"answers":["..."]}}.
-CÂU HỎI: {question}
-MỤC TIÊU: {target}
-ĐÁP ÁN: {answer}
-QUY TẮC ĐẦU RA: mỗi phần tử `answers` chỉ là đáp án ngắn nhất; không lặp lại hoặc diễn đạt lại CÂU HỎI, không viết câu giải thích hoàn chỉnh.
+# VAI TRÒ
+Chuẩn hóa câu trả lời thô thành đáp án có thể đối chiếu với gold answer.
+
+# QUY TẮC
+- Chỉ chuẩn hóa nội dung có trong **ĐÁP ÁN**; không tự trả lời lại từ câu hỏi.
+- Mỗi phần tử `answers` chỉ là một đáp án ngắn nhất, không lặp lại câu hỏi hay giải thích.
+- Giữ tên riêng, số, ngày và cách viết có trong đáp án thô khi hợp lệ.
+- Không có đáp án hợp lệ: trả `{{"answers":["Null"]}}`.
+
+# JSON DUY NHẤT
+{{"answers":["..."]}}
+
+# INPUT
+**CÂU HỎI:** {question}
+**MỤC TIÊU:** {target}
+**ĐÁP ÁN THÔ:** {answer}

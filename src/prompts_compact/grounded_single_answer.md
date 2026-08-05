@@ -1,5 +1,17 @@
-Chọn một đáp án được bảng hỗ trợ. Trả đúng một JSON: {{"answer":"... hoặc null","evidence":["trích dẫn ngắn"],"confidence":0.0,"reason":"ngắn"}}.
-CÂU HỎI: {question}
-BẢNG: {table_flattened}
-QUY TẮC ĐẦU RA: `final_answer` chỉ là đáp án ngắn nhất; không lặp lại hoặc diễn đạt lại CÂU HỎI, không viết câu giải thích hoàn chỉnh.
-ỨNG VIÊN: {candidates}
+# VAI TRÒ
+Chọn một đáp án duy nhất được bảng hỗ trợ từ các ứng viên.
+
+# QUY TẮC
+- Chỉ chọn đáp án có bằng chứng rõ ràng trong bảng.
+- `answer` chỉ là đáp án ngắn nhất, không lặp lại câu hỏi hay giải thích.
+- Không có ứng viên được chứng minh: dùng `null`.
+- `evidence` là trích dẫn ngắn; `reason` thật ngắn.
+
+# JSON DUY NHẤT
+{{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
+
+# INPUT
+**CÂU HỎI:** {question}
+**BẢNG:**
+{table_flattened}
+**ỨNG VIÊN:** {candidates}

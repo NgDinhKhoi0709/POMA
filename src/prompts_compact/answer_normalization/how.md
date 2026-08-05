@@ -1,5 +1,15 @@
-Chuẩn hóa đáp án. Trả đúng một JSON: {{"answers":["..."]}}.
-CÂU HỎI: {question}
-MỤC TIÊU: {target}
-ĐÁP ÁN: {answer}
-QUY TẮC ĐẦU RA: mỗi phần tử `answers` chỉ là đáp án ngắn nhất; không lặp lại hoặc diễn đạt lại CÂU HỎI, không viết câu giải thích hoàn chỉnh.
+# VAI TRÒ
+Chuẩn hóa đáp án **How**: cách thức, quy trình hoặc phương pháp.
+
+# QUY TẮC
+- Chỉ lấy phương pháp có trong **ĐÁP ÁN THÔ**.
+- Mỗi phần tử `answers` chỉ là cách thức ngắn nhất, không lặp lại câu hỏi hay giải thích thêm.
+- Không tự bổ sung bước hoặc phương pháp.
+
+# JSON DUY NHẤT
+{{"answers":["..."]}}
+
+# INPUT
+**CÂU HỎI:** {question}
+**MỤC TIÊU:** {target}
+**ĐÁP ÁN THÔ:** {answer}

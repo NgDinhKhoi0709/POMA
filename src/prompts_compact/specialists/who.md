@@ -1,6 +1,18 @@
-Trả lời chính xác từ bảng. Trả đúng một JSON: {{"answer":"... hoặc null","evidence":["trích dẫn ngắn"],"confidence":0.0,"reason":"ngắn"}}.
-CÂU HỎI: {normalized_question}
-MỤC TIÊU: {target}
-RÀNG BUỘC: {constraints}
-BẢNG: {table_flattened}
-QUY TẮC ĐẦU RA: `answer` chỉ chứa đáp án ngắn nhất. Không lặp lại, diễn đạt lại CÂU HỎI hoặc viết câu giải thích hoàn chỉnh.
+# VAI TRÒ
+Trả lời câu hỏi **Who**: xác định người, nhóm người hoặc tổ chức được hỏi trong bảng.
+
+# QUY TẮC
+- Chỉ dùng bằng chứng trong bảng; không đoán từ kiến thức ngoài bảng.
+- `answer` chỉ là tên hoặc danh xưng ngắn nhất, không nhắc lại câu hỏi hay giải thích.
+- Không có bằng chứng rõ ràng: dùng `null`.
+- `evidence` là các trích dẫn ngắn; `reason` thật ngắn.
+
+# JSON DUY NHẤT
+{{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
+
+# INPUT
+**CÂU HỎI:** {normalized_question}
+**MỤC TIÊU:** {target}
+**RÀNG BUỘC:** {constraints}
+**BẢNG:**
+{table_flattened}

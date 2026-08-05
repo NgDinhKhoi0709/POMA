@@ -1,5 +1,15 @@
-Chuẩn hóa đáp án thành Có hoặc Không khi phù hợp. Trả đúng một JSON: {{"answers":["..."]}}.
-CÂU HỎI: {question}
-MỤC TIÊU: {target}
-ĐÁP ÁN: {answer}
-QUY TẮC ĐẦU RA: mỗi phần tử `answers` chỉ là đáp án ngắn nhất; không lặp lại hoặc diễn đạt lại CÂU HỎI, không viết câu giải thích hoàn chỉnh.
+# VAI TRÒ
+Chuẩn hóa đáp án **YesNo** thành nhãn khẳng định hoặc phủ định.
+
+# QUY TẮC
+- Chỉ trả `Có`, `Không` hoặc `Null`.
+- Không lặp lại câu hỏi, không viết câu giải thích.
+- Chỉ dùng `Có`/`Không` khi **ĐÁP ÁN THÔ** đã thể hiện rõ khẳng định/phủ định.
+
+# JSON DUY NHẤT
+{{"answers":["Có hoặc Không hoặc Null"]}}
+
+# INPUT
+**CÂU HỎI:** {question}
+**MỤC TIÊU:** {target}
+**ĐÁP ÁN THÔ:** {answer}

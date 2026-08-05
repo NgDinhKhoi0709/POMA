@@ -52,5 +52,44 @@ def test_answer_prompts_require_minimal_non_restated_answers():
     ]
     for path in paths:
         text = path.read_text(encoding="utf-8")
-        assert "QUY TẮC ĐẦU RA" in text
-        assert "không lặp lại" in text.lower()
+        assert "# QUY TẮC" in text
+        lowered = text.lower()
+        assert "không lặp lại" in lowered or "không nhắc lại" in lowered
+
+
+def test_specialist_and_normalization_prompts_have_clear_structured_sections():
+    paths = [
+        *Path("src/prompts_compact/specialists").glob("*.md"),
+        *Path("src/prompts_compact/answer_normalization").glob("*.md"),
+    ]
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        assert "# VAI TRÒ" in text
+        assert "# QUY TẮC" in text
+        assert "# JSON DUY NHẤT" in text
+        assert "# INPUT" in text
+
+
+def test_hint_predictor_documents_every_canonical_hint_and_refiner_contract():
+    hint_text = Path("src/prompts_compact/hint_predictor.md").read_text(
+        encoding="utf-8"
+    )
+    for hint in [
+        "What",
+        "Where",
+        "Who",
+        "When",
+        "Why",
+        "How",
+        "YesNo",
+        "List",
+        "MathematicalReasoning",
+        "MultiConditions",
+    ]:
+        assert f"`{hint}`" in hint_text
+
+    refiner_text = Path("src/prompts_compact/question_refiner.md").read_text(
+        encoding="utf-8"
+    )
+    for field in ["normalized_question", "target", "constraints"]:
+        assert f"`{field}`" in refiner_text

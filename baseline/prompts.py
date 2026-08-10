@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Final, Tuple
 
 # Stored in JSONL as prompt_version (stable ids for experiments / analysis).
-PROMPT_VERSION_ZERO_SHOT = "v2_zs_structured"
+PROMPT_VERSION_ZERO_SHOT = "v3_zs_minimal"
 PROMPT_VERSION_COT = "v2_cot_structured"
 PROMPT_VERSION_TASK_DECOMPOSITION = "v2_td_structured"
 PROMPT_VERSION_FEW_SHOT = "v2_fs_structured"
@@ -179,27 +179,15 @@ def build_tableqa_prompt(
 
 def _build_zero_shot(question: str, table_str: str, vi: bool) -> str:
     if vi:
-        instr = (
-            "Ban la he thong hoi-dap dua tren bang.\n"
-            "Bang duoc cung cap duoi dang Flatten V1 string trong TABLE_STR.\n"
-            "CHI duoc dung thong tin trong TABLE_STR de tra loi.\n"
-            "\n"
-            + _flatten_v1_notes_vi()
-            + "\n"
-            + _json_schema_instructions_vi()
-        )
+        instr = "Dua vao bang, tra loi cau hoi. Neu bang khong du thong tin, tra ve null."
+        table_label = "BANG"
+        question_label = "CAU HOI"
     else:
-        instr = (
-            "You are a table question-answering system.\n"
-            "The table is provided as Flatten V1 string in TABLE_STR.\n"
-            "Use ONLY TABLE_STR to answer.\n"
-            "\n"
-            + _flatten_v1_notes_en()
-            + "\n"
-            + _json_schema_instructions_en()
-        )
+        instr = "Answer the question using the table. Return null if the table lacks enough information."
+        table_label = "TABLE"
+        question_label = "QUESTION"
 
-    return f"{instr}\nTABLE_STR:\n{table_str}\n\nQUESTION: {question}\n"
+    return f"{instr}\n\n{table_label}:\n{table_str}\n\n{question_label}: {question}\n"
 
 
 def _build_cot(question: str, table_str: str, vi: bool) -> str:

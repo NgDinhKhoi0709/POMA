@@ -8,9 +8,9 @@ from baseline.prompts import build_tableqa_prompt
     [
         (
             "zero_shot",
-            "v2_zs_structured",
-            ('"final_answer"',),
-            ('"reasoning"', '"subproblems"'),
+            "v3_zs_minimal",
+            (),
+            ('"final_answer"', '"reasoning"', '"subproblems"'),
         ),
         (
             "few_shot",
@@ -51,3 +51,17 @@ def test_structured_prompt_styles_request_only_their_contract_fields(
         assert field in prompt
     for field in forbidden_fields:
         assert field not in prompt
+
+
+def test_zero_shot_prompt_contains_only_minimal_answering_instruction_and_inputs() -> None:
+    prompt, _ = build_tableqa_prompt(
+        question="Thu do la gi?",
+        table_str="Quoc gia <header>|Thu do <header>|Ha Noi",
+        prompt_style="zero_shot",
+    )
+
+    assert prompt == (
+        "Dua vao bang, tra loi cau hoi. Neu bang khong du thong tin, tra ve null.\n\n"
+        "BANG:\nQuoc gia <header>|Thu do <header>|Ha Noi\n\n"
+        "CAU HOI: Thu do la gi?\n"
+    )

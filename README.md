@@ -135,6 +135,14 @@ python run_baseline.py \
   --id qwen3-8b-zero-shot
 ```
 
+For the reproducible 500-item zero-shot experiment, use the committed stratified
+subset. It preserves the test set's normalized hint-signature distribution with
+seed `20260810`:
+
+```powershell
+.\scripts\run_zeroshot_500.ps1 -Model openrouter/qwen/qwen3-8b
+```
+
 CoAgt and Chain-of-Query are available through a separate unified runner. Install
 their additional dependencies first:
 

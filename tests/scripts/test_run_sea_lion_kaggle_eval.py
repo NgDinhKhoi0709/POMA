@@ -32,6 +32,14 @@ def test_parser_accepts_pilot100_phase():
 
     assert args.phase == "pilot100"
 
+
+def test_parser_accepts_stratified_test500_phase():
+    args = build_parser().parse_args(
+        ["--repo-root", ".", "--output-root", "out", "--phase", "test500"]
+    )
+
+    assert args.phase == "test500"
+
 def test_resolve_repo_root_dataset_mode(tmp_path):
     repo = tmp_path / "POMA"
     (repo / "dataset").mkdir(parents=True)

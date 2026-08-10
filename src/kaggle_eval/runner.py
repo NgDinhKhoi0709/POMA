@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover - Kaggle supplies tqdm
 class RunConfig:
     repo_root: Path
     output_root: Path
-    phase: Literal["smoke", "pilot100", "pilot", "final", "longest_test"] = "pilot"
+    phase: Literal["smoke", "pilot100", "pilot", "test500", "final", "longest_test"] = "pilot"
     mode: Literal["zero_shot", "poma", "both"] = "both"
     model: str = "local/sea-lion-v3-8b-it"
     prompt_profile: str = "compact"
@@ -45,8 +45,11 @@ def prepare_run_dirs(config: RunConfig) -> dict[str, Path]:
 
 
 def _dataset_paths(config: RunConfig) -> tuple[Path, Path]:
-    use_test = config.phase in {"final", "longest_test"}
-    qas = config.repo_root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
+    if config.phase == "test500":
+        qas = config.repo_root / "dataset" / "qas_test_500_stratified.json"
+    else:
+        use_test = config.phase in {"final", "longest_test"}
+        qas = config.repo_root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
     return qas, config.repo_root / "dataset" / "table.json"
 
 
@@ -79,8 +82,10 @@ def select_qas(config: RunConfig) -> tuple[list[dict], dict]:
             f"table_id={table_id}, qa_id={qa['qa_id']}, "
             f"flatten_v1_chars={counts[table_id]}"
         )
-    else:
+    elif config.phase == "smoke":
         selected = qas[:1]
+    else:
+        selected = qas
     if config.limit is not None:
         selected = selected[:config.limit]
     return selected, table_idx

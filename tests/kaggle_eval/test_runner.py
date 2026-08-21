@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from src.kaggle_eval.runner import RunConfig, _dataset_paths, baseline_prediction
+from src.kaggle_eval.runner import (
+    RunConfig,
+    _dataset_paths,
+    baseline_prediction,
+    prepare_run_dirs,
+)
 
 
 def test_baseline_prediction_reads_final_answer_from_schema_payload():
@@ -9,6 +14,20 @@ def test_baseline_prediction_reads_final_answer_from_schema_payload():
 
 def test_baseline_prediction_preserves_json_null_as_no_candidate():
     assert baseline_prediction({"final_answer": None}) == []
+
+
+def test_few_shot_results_use_separate_directory(tmp_path: Path) -> None:
+    config = RunConfig(
+        repo_root=tmp_path,
+        output_root=tmp_path / "out",
+        phase="test",
+        mode="zero_shot",
+        prompt_style="few_shot",
+    )
+
+    assert prepare_run_dirs(config)["few_shot"] == (
+        tmp_path / "out" / "sea_lion_v3_8b_it" / "test" / "few_shot"
+    )
 
 
 def test_full_test_phase_uses_complete_test_dataset(tmp_path: Path) -> None:

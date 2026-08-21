@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover - Kaggle supplies tqdm
 class RunConfig:
     repo_root: Path
     output_root: Path
-    phase: Literal["smoke", "pilot100", "pilot", "test500", "final", "longest_test"] = "pilot"
+    phase: Literal["smoke", "pilot100", "pilot", "test500", "test", "final", "longest_test"] = "pilot"
     mode: Literal["zero_shot", "poma", "both"] = "both"
     model: str = "local/sea-lion-v3-8b-it"
     prompt_profile: str = "compact"
@@ -48,7 +48,7 @@ def _dataset_paths(config: RunConfig) -> tuple[Path, Path]:
     if config.phase == "test500":
         qas = config.repo_root / "dataset" / "qas_test_500_stratified.json"
     else:
-        use_test = config.phase in {"final", "longest_test"}
+        use_test = config.phase in {"test", "final", "longest_test"}
         qas = config.repo_root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
     return qas, config.repo_root / "dataset" / "table.json"
 
@@ -97,7 +97,8 @@ def _record_selection(path: Path, selected: list[dict]) -> None:
 
 def baseline_prediction(payload: dict) -> list[str]:
     """Convert the baseline structured schema into evaluation candidates."""
-    return [str(payload["final_answer"])]
+    answer = payload["final_answer"]
+    return [] if answer is None else [str(answer)]
 
 
 def _pending_qas(selected: list[dict], done: set[str]) -> list[dict]:
@@ -135,7 +136,7 @@ def run_zero_shot(config: RunConfig, selected: list[dict], table_idx: dict) -> P
         qa_id = str(qa["qa_id"])
         try:
             table = create_representation(table_idx[str(qa["table_id"])]).to_string()
-            prompt, _ = build_tableqa_prompt(question=str(qa["question"]), table_str=table, prompt_style="zero_shot")
+            prompt = build_tableqa_prompt(question=str(qa["question"]), table_str=table, prompt_style="zero_shot")
             generator = StructuredGenerator(client._generate_raw_text)
             result = generator.generate(prompt, schema_for_call("baseline_zero_shot.v1"), CallContext(qa_id=qa_id, agent_name="DirectPromptBaseline", prompt_name="zero_shot", model=config.model))
             append_jsonl(predictions, {"qa_id": qa_id, "prediction": baseline_prediction(result.data), "schema_valid": result.schema_valid, "repair_attempted": result.repair_attempted, "repair_succeeded": result.repair_succeeded})

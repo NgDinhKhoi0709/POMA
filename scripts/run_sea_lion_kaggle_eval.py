@@ -16,7 +16,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-root", required=True)
     parser.add_argument(
         "--phase",
-        choices=("smoke", "pilot100", "pilot", "test500", "final", "longest_test"),
+        choices=("smoke", "pilot100", "pilot", "test500", "test", "final", "longest_test"),
         default="pilot",
     )
     parser.add_argument("--mode", choices=("zero_shot", "poma", "both"), default="both")
@@ -40,7 +40,7 @@ def main() -> int:
     if args.phase == "test500":
         qas_path = root / "dataset" / "qas_test_500_stratified.json"
     else:
-        use_test = args.phase in {"final", "longest_test"}
+        use_test = args.phase in {"test", "final", "longest_test"}
         qas_path = root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
     dirs = prepare_run_dirs(config)
     if args.mode in ("zero_shot", "both"):

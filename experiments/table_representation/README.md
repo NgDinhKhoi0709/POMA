@@ -11,6 +11,7 @@ This package:
 1. Re-serializes the **same parsed Open-ViTabQA grid** into 16 prompt formats.
 2. Records a literature report from papers crawled on 2026-09-17.
 3. Writes side-by-side samples so a later QA run can swap only the table string.
+4. Prunes rows/columns to the question (`PRUNING.md`) so 8B calls send fewer tokens.
 
 ## Layout
 
@@ -18,9 +19,12 @@ This package:
 experiments/table_representation/
   README.md              # this file
   REPORT.md              # literature survey and POMA mapping
+  PRUNING.md             # query-aware row/column shrinking
   sources.md             # crawled URLs and access dates
   encodings.py           # serializers
+  pruning.py             # lexical sub-table filter
   run_encode.py          # CLI to dump encodings
+  run_prune.py           # CLI to dump pruned sub-tables
   screenshots/           # browser captures from the paper crawl
   samples/               # example encodings from Open-ViTabQA tables
 ```
@@ -62,11 +66,24 @@ Repeat `--table-id` for more tables, or pass `--limit 5` to encode the first fiv
 ## Tests
 
 ```bash
-python -m pytest tests/experiments/test_table_representation.py -q
+python -m pytest tests/experiments/test_table_representation.py tests/experiments/test_table_pruning.py -q
 ```
 
 Tests use tiny HTML fixtures and do not call an LLM.
 
+## Query-aware shrinking
+
+To cut prompt tokens, prune rows and columns that do not overlap the question **before** serialization. See `PRUNING.md`.
+
+```bash
+python -m experiments.table_representation.run_prune \
+  --qa-id 37_1_23 \
+  --output experiments/table_representation/samples/pruned \
+  --compare
+```
+
+`lexical_subtable` is the default for lookup questions (no extra LLM call). Aggregation questions such as “bao nhiêu” keep all rows and only drop columns.
+
 ## What this folder does not do
 
-It does not run POMA, does not call a model, and does not claim a winner. Use `REPORT.md` to choose a small comparison set, then pass the dumped strings into an existing baseline or POMA prompt in a later experiment.
+It does not run POMA, does not call a model, and does not claim a winner. Use `REPORT.md` and `PRUNING.md` to choose a small comparison set, then pass the dumped strings into an existing baseline or POMA prompt in a later experiment.

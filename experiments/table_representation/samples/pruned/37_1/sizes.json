@@ -1,0 +1,164 @@
+[
+  {
+    "method": "identity",
+    "table_id": "37_1",
+    "question": "Album có tựa đề album1 xếp hạng thứ mấy trên bảng xếp hạng US Heat?",
+    "kept_row_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "kept_col_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "n_rows_before": 4,
+    "n_cols_before": 5,
+    "n_rows_after": 4,
+    "n_cols_after": 5,
+    "n_chars_before": 496,
+    "n_chars_after": 496,
+    "cell_keep_ratio": 1.0,
+    "char_save_ratio": 0.0,
+    "skipped_row_prune": false,
+    "path": "experiments/table_representation/samples/pruned/37_1/identity.txt"
+  },
+  {
+    "method": "clean_only",
+    "table_id": "37_1",
+    "question": "Album có tựa đề album1 xếp hạng thứ mấy trên bảng xếp hạng US Heat?",
+    "kept_row_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "kept_col_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "n_rows_before": 4,
+    "n_cols_before": 5,
+    "n_rows_after": 4,
+    "n_cols_after": 5,
+    "n_chars_before": 496,
+    "n_chars_after": 496,
+    "cell_keep_ratio": 1.0,
+    "char_save_ratio": 0.0,
+    "skipped_row_prune": false,
+    "path": "experiments/table_representation/samples/pruned/37_1/clean_only.txt"
+  },
+  {
+    "method": "even_sample",
+    "table_id": "37_1",
+    "question": "Album có tựa đề album1 xếp hạng thứ mấy trên bảng xếp hạng US Heat?",
+    "kept_row_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "kept_col_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "n_rows_before": 4,
+    "n_cols_before": 5,
+    "n_rows_after": 4,
+    "n_cols_after": 5,
+    "n_chars_before": 496,
+    "n_chars_after": 496,
+    "cell_keep_ratio": 1.0,
+    "char_save_ratio": 0.0,
+    "skipped_row_prune": false,
+    "path": "experiments/table_representation/samples/pruned/37_1/even_sample.txt"
+  },
+  {
+    "method": "lexical_rows",
+    "table_id": "37_1",
+    "question": "Album có tựa đề album1 xếp hạng thứ mấy trên bảng xếp hạng US Heat?",
+    "kept_row_indices": [
+      0,
+      1,
+      2
+    ],
+    "kept_col_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "n_rows_before": 4,
+    "n_cols_before": 5,
+    "n_rows_after": 3,
+    "n_cols_after": 5,
+    "n_chars_before": 496,
+    "n_chars_after": 359,
+    "cell_keep_ratio": 0.75,
+    "char_save_ratio": 0.2762,
+    "skipped_row_prune": false,
+    "path": "experiments/table_representation/samples/pruned/37_1/lexical_rows.txt"
+  },
+  {
+    "method": "lexical_cols",
+    "table_id": "37_1",
+    "question": "Album có tựa đề album1 xếp hạng thứ mấy trên bảng xếp hạng US Heat?",
+    "kept_row_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "kept_col_indices": [
+      0,
+      2,
+      3
+    ],
+    "n_rows_before": 4,
+    "n_cols_before": 5,
+    "n_rows_after": 4,
+    "n_cols_after": 3,
+    "n_chars_before": 496,
+    "n_chars_after": 212,
+    "cell_keep_ratio": 0.6,
+    "char_save_ratio": 0.5726,
+    "skipped_row_prune": false,
+    "path": "experiments/table_representation/samples/pruned/37_1/lexical_cols.txt"
+  },
+  {
+    "method": "lexical_subtable",
+    "table_id": "37_1",
+    "question": "Album có tựa đề album1 xếp hạng thứ mấy trên bảng xếp hạng US Heat?",
+    "kept_row_indices": [
+      0,
+      1,
+      2
+    ],
+    "kept_col_indices": [
+      0,
+      2,
+      3
+    ],
+    "n_rows_before": 4,
+    "n_cols_before": 5,
+    "n_rows_after": 3,
+    "n_cols_after": 3,
+    "n_chars_before": 496,
+    "n_chars_after": 190,
+    "cell_keep_ratio": 0.45,
+    "char_save_ratio": 0.6169,
+    "skipped_row_prune": false,
+    "path": "experiments/table_representation/samples/pruned/37_1/lexical_subtable.txt"
+  }
+]

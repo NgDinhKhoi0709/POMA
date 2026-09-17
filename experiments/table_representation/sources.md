@@ -37,6 +37,22 @@ Browser and HTML fetches used for `REPORT.md`. Screenshots live in `screenshots/
 | Improving Agents: 11 table formats | https://www.improvingagents.com/blog/best-input-data-format-for-llms/ |
 | Semantic Scholar search | https://www.semanticscholar.org/search?q=table%20serialization%20LLM%20markdown%20HTML&sort=relevance |
 
+## Table shrinking / pruning papers (2026-09-17)
+
+| Paper | URL |
+|---|---|
+| TAP4LLM (Sui et al., EMNLP 2024 Findings) | https://aclanthology.org/2024.findings-emnlp.603.pdf |
+| DATER (Ye et al., 2023) | https://arxiv.org/pdf/2301.13808 |
+| StructGPT (Jiang et al., EMNLP 2023) | https://aclanthology.org/2023.emnlp-main.574.pdf |
+| ATF Adaptive Table Filtering (2025) | https://arxiv.org/html/2506.23463 |
+| TableRAG (Chen et al., 2024) | https://arxiv.org/pdf/2410.04739 |
+| TabSQLify (Nahid & Rafiei, NAACL 2024) | https://arxiv.org/html/2404.10150v1 |
+| ITR Inner Table Retriever (Lin et al., ACL 2023) | https://aclanthology.org/2023.acl-long.551/ |
+| CABINET (ICLR 2024) | https://proceedings.iclr.cc/paper_files/paper/2024/file/19a42d5885e25e51852aca8144e5af0d-Paper-Conference.pdf |
+| TabTrim (ACL 2026) | https://aclanthology.org/2026.acl-long.591/ |
+| STR / TripletQL (2026) | https://arxiv.org/html/2605.31550v1 |
+| TaBERT content snapshot (Yin et al., ACL 2020) | https://aclanthology.org/2020.acl-main.745.pdf |
+
 ## Access notes
 
 - Crawl date: 2026-09-17.

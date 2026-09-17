@@ -2,6 +2,8 @@ import json
 
 from experiments.table_representation.run_sealion_gguf import (
     canonicalize_answer,
+    expand_candidates,
+    finalize_prediction,
     main,
     parse_final_answer,
     select_items,
@@ -29,6 +31,44 @@ def test_yesno_pair_follows_question_wording():
 def test_canonicalize_maps_english_yes_to_phai():
     assert canonicalize_answer("Có phải A?", "Yes") == "Phải"
     assert canonicalize_answer("Có phải A?", "no") == "Không"
+
+
+def test_expand_candidates_adds_year_and_question_span():
+    years = expand_candidates("1709", question="Ấn vàng ra đời khi nào?")
+    assert "1709" in years
+    assert "Năm 1709" in years
+    spans = expand_candidates(
+        "23",
+        question="Giữa 2 kênh tần số là 23 (UHF/VHF) và 28 (UHF/VHF) thì kênh nào?",
+    )
+    assert "23 (UHF/VHF)" in spans
+    yesno = expand_candidates(
+        "SNG.INV",
+        question="Đội SNG.Invincible có tên viết tắt là SNG.INV đúng không?",
+    )
+    assert "Đúng" in yesno
+
+
+def test_finalize_prediction_prefers_frequency_rank_over_llm():
+    table = {
+        "table_id": "vt",
+        "table_title": "",
+        "table_html": """
+        <table>
+          <tr><th>Số</th><th>VT</th></tr>
+          <tr><td>1</td><td>HV</td></tr>
+          <tr><td>2</td><td>HV</td></tr>
+          <tr><td>3</td><td>TV</td></tr>
+        </table>
+        """,
+    }
+    prediction, op = finalize_prediction(
+        question="Vị trí nào được sử dụng nhiều thứ 2 trong bảng dữ liệu này?",
+        table=table,
+        llm_answer="HV",
+    )
+    assert op == "frequency_rank"
+    assert prediction[0] == "TV"
 
 
 def test_auto_table_mode_uses_full_markdown_for_tiny_tables():

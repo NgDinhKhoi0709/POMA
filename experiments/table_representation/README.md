@@ -23,8 +23,10 @@ experiments/table_representation/
   sources.md             # crawled URLs and access dates
   encodings.py           # serializers
   pruning.py             # lexical sub-table filter
+  table_ops.py           # question-gated count/list/min-max tools
   run_encode.py          # CLI to dump encodings
   run_prune.py           # CLI to dump pruned sub-tables
+  run_sealion_gguf.py    # CPU GGUF SEA-LION runner + table ops
   screenshots/           # browser captures from the paper crawl
   samples/               # example encodings from Open-ViTabQA tables
 ```
@@ -66,7 +68,7 @@ Repeat `--table-id` for more tables, or pass `--limit 5` to encode the first fiv
 ## Tests
 
 ```bash
-python -m pytest tests/experiments/test_table_representation.py tests/experiments/test_table_pruning.py -q
+python -m pytest tests/experiments/test_table_representation.py tests/experiments/test_table_pruning.py tests/experiments/test_table_ops.py tests/experiments/test_run_sealion_gguf.py -q
 ```
 
 Tests use tiny HTML fixtures and do not call an LLM.

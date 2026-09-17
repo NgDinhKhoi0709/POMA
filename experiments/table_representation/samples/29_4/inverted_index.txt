@@ -1,0 +1,47 @@
+{
+  "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+  "value_to_addresses": {
+    "Tỉnh thành": [
+      "A1"
+    ],
+    "Kênh tần số (UHF/VHF)": [
+      "B1"
+    ],
+    "Trạm phát (chính)": [
+      "C1"
+    ],
+    "Chú thích": [
+      "D1"
+    ],
+    "Hà Nội": [
+      "A2"
+    ],
+    "22 ➡ 4 ➡ 2": [
+      "B2"
+    ],
+    "Trung tâm phát hình Giảng Võ (cũ)": [
+      "C2"
+    ],
+    "2000s - 2010s": [
+      "D2"
+    ],
+    "Đà Nẵng": [
+      "A3"
+    ],
+    "27": [
+      "B3"
+    ],
+    "Trạm phát sóng truyền hình Sơn Trà": [
+      "C3"
+    ],
+    "TP. Hồ Chí Minh": [
+      "A4"
+    ],
+    "24": [
+      "B4"
+    ],
+    "Đài Truyền hình TPHCM": [
+      "C4"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+TITLE: Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3
+- row: 1
+  Tỉnh thành: Hà Nội
+  Kênh tần số (UHF/VHF): 22 ➡ 4 ➡ 2
+  Trạm phát (chính): Trung tâm phát hình Giảng Võ (cũ)
+  Chú thích: 2000s - 2010s
+
+- row: 2
+  Tỉnh thành: Đà Nẵng
+  Kênh tần số (UHF/VHF): 27
+  Trạm phát (chính): Trạm phát sóng truyền hình Sơn Trà
+  Chú thích: 
+
+- row: 3
+  Tỉnh thành: TP. Hồ Chí Minh
+  Kênh tần số (UHF/VHF): 24
+  Trạm phát (chính): Đài Truyền hình TPHCM
+  Chú thích: 

@@ -1,0 +1,65 @@
+{
+  "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+  "triples": [
+    {
+      "row": "Hà Nội",
+      "column": "Tỉnh thành",
+      "value": "Hà Nội"
+    },
+    {
+      "row": "Hà Nội",
+      "column": "Kênh tần số (UHF/VHF)",
+      "value": "22 ➡ 4 ➡ 2"
+    },
+    {
+      "row": "Hà Nội",
+      "column": "Trạm phát (chính)",
+      "value": "Trung tâm phát hình Giảng Võ (cũ)"
+    },
+    {
+      "row": "Hà Nội",
+      "column": "Chú thích",
+      "value": "2000s - 2010s"
+    },
+    {
+      "row": "Đà Nẵng",
+      "column": "Tỉnh thành",
+      "value": "Đà Nẵng"
+    },
+    {
+      "row": "Đà Nẵng",
+      "column": "Kênh tần số (UHF/VHF)",
+      "value": "27"
+    },
+    {
+      "row": "Đà Nẵng",
+      "column": "Trạm phát (chính)",
+      "value": "Trạm phát sóng truyền hình Sơn Trà"
+    },
+    {
+      "row": "Đà Nẵng",
+      "column": "Chú thích",
+      "value": ""
+    },
+    {
+      "row": "TP. Hồ Chí Minh",
+      "column": "Tỉnh thành",
+      "value": "TP. Hồ Chí Minh"
+    },
+    {
+      "row": "TP. Hồ Chí Minh",
+      "column": "Kênh tần số (UHF/VHF)",
+      "value": "24"
+    },
+    {
+      "row": "TP. Hồ Chí Minh",
+      "column": "Trạm phát (chính)",
+      "value": "Đài Truyền hình TPHCM"
+    },
+    {
+      "row": "TP. Hồ Chí Minh",
+      "column": "Chú thích",
+      "value": ""
+    }
+  ]
+}

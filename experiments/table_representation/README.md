@@ -84,6 +84,12 @@ python -m experiments.table_representation.run_prune \
 
 `lexical_subtable` is the default for lookup questions (no extra LLM call). Aggregation questions such as “bao nhiêu” keep all rows and only drop columns.
 
+CPU smoke (no GPU): mmap official `Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf` and run 10 zero-shot items:
+
+```bash
+python -m experiments.table_representation.run_sealion_gguf --limit 10 --table-mode lexical_subtable
+```
+
 ## What this folder does not do
 
 It does not run POMA, does not call a model, and does not claim a winner. Use `REPORT.md` and `PRUNING.md` to choose a small comparison set, then pass the dumped strings into an existing baseline or POMA prompt in a later experiment.

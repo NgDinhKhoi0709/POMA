@@ -124,6 +124,12 @@ def test_tokenize_drops_stopwords_and_keeps_entities():
     assert "có" not in tokens
 
 
+def test_tokenize_keeps_grouped_thousands_together():
+    tokens = tokenize("5.539.949")
+    assert "5" not in tokens
+    assert "5.539.949" in tokens
+
+
 def test_tokenize_keeps_vietnamese_words_intact():
     tokens = tokenize("xếp hạng thứ mấy trên bảng")
     assert "xếp" in tokens
@@ -179,6 +185,35 @@ def test_narrative_detail_cells_do_not_keep_unrelated_rows():
     assert "bitbird" not in pruned.text
     assert "NLD" not in pruned.text
     assert "US Heat" in pruned.text
+
+
+def test_rank_lookup_keeps_entity_name_column_not_just_numeric_index():
+    table = {
+        "table_id": "cities",
+        "table_title": "Hoa Kỳ",
+        "table_html": """
+        <table>
+          <tr>
+            <th>Hạng</th><th>Thành phố</th><th>Dân số</th>
+            <th>Vùng dân số</th><th>Vùng hạng</th><th>Miền</th>
+          </tr>
+          <tr>
+            <td>1</td><td>New York</td><td>8214426</td>
+            <td>18818536</td><td>1</td><td>Đông Bắc</td>
+          </tr>
+          <tr>
+            <td>4</td><td>Houston</td><td>2144491</td>
+            <td>5539949</td><td>6</td><td>Nam</td>
+          </tr>
+          <tr>
+            <td>5</td><td>Phoenix</td><td>1512986</td>
+            <td>4039182</td><td>13</td><td>Tây</td>
+          </tr>
+        </table>
+        """,
+    }
+    pruned = prune_table(table, "Nơi nào đứng hạng 5?", method="lexical_subtable", max_cols=4)
+    assert "Phoenix" in pruned.text
 
 
 def test_unknown_method_raises():

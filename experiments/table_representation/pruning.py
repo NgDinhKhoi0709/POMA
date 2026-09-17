@@ -23,9 +23,10 @@ PRUNE_METHODS: Tuple[str, ...] = (
     "lexical_subtable",
 )
 
+_NUMBER_RE = re.compile(r"^[-+]?\d[\d.,]*%?$")
 # Letters and digits as whole words (NFC). ASCII-first patterns split
 # Vietnamese at the first diacritic (hạng → ạng) and create false overlap.
-_TOKEN_RE = re.compile(r"[^\W_]+", re.UNICODE)
+_TOKEN_RE = re.compile(r"[0-9]+(?:[.,][0-9]+)+|[^\W_]+", re.UNICODE)
 _CITE_RE = re.compile(r"\[\s*\d+\s*\]")
 _SPACE_RE = re.compile(r"\s+")
 
@@ -284,7 +285,9 @@ def _select_cols(
             value_score = max(value_score, _overlap(tokenize(row[col]), q_tokens))
         scored.append((leaf_score + value_score, leaf_score, col))
     scored.sort(key=lambda item: (-item[0], -item[1], item[2]))
-    kept = [0] if n_cols else []
+    kept = _entity_columns(rows, mask, n_cols)
+    if not kept and n_cols:
+        kept = [0]
     for total, _, col in scored:
         if col not in kept and (total > 0 or len(kept) < 2):
             kept.append(col)
@@ -297,6 +300,39 @@ def _select_cols(
             if len(kept) >= min(2, n_cols):
                 break
     return kept
+
+
+def _is_numeric_cell(value: str) -> bool:
+    text = str(value or "").strip().replace(" ", "")
+    if not text or text in {"—", "-", "–"}:
+        return True
+    return bool(_NUMBER_RE.match(text))
+
+
+def _entity_columns(
+    rows: Sequence[Sequence[str]],
+    mask: Sequence[Sequence[bool]],
+    n_cols: int,
+    *,
+    limit: int = 1,
+) -> List[int]:
+    """Leftmost body columns that are mostly names, not ranks/numbers."""
+    _, body_start = _header_row_count(mask)
+    found: List[int] = []
+    for col in range(n_cols):
+        values = [
+            str(row[col]).strip()
+            for row in rows[body_start:]
+            if col < len(row) and str(row[col]).strip()
+        ]
+        if not values:
+            continue
+        numeric = sum(1 for value in values if _is_numeric_cell(value))
+        if numeric / len(values) < 0.5:
+            found.append(col)
+        if len(found) >= limit:
+            break
+    return found
 
 
 def _select_rows(

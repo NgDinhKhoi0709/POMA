@@ -238,3 +238,5 @@ Run on a **paired** subset, not a new split. Suggested first cut:
 Sample dumps for a compact normal table (`29_4`) and a merged-header table (`37_1`) are under `samples/`. On `29_4`, Flatten V1 is the shortest encoding (251 characters); JSON triples are the longest (1336). On the merged-header table `37_1`, CSV/TAPEX/Markdown are slightly shorter than Flatten V1 because they compose the two header rows into one, while `raw_html` is about 4× Flatten V1 because it still contains Wikipedia link markup.
 
 This is not a claim that any alternative beats Flatten V1 on Open-ViTabQA. It is the minimum setup needed to run that comparison without mixing content, parser, and prompt changes.
+
+A later CPU run of SEA-LION 8B on the **first 50** `qas_test` items (Markdown/prune + few-shot + `table_ops.py`) is logged in `RESULTS.md`: raw EM 0.62 → final EM **0.80**. That run is a cheap-8B recipe, not the four-way Flatten V1 / HTML / Markdown / header-path ablation above.

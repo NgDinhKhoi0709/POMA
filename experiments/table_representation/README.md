@@ -19,6 +19,7 @@ This package:
 experiments/table_representation/
   README.md              # this file
   REPORT.md              # literature survey and POMA mapping
+  RESULTS.md             # SEA-LION 50-sample protocol, method, EM/F1
   PRUNING.md             # query-aware row/column shrinking
   sources.md             # crawled URLs and access dates
   encodings.py           # serializers
@@ -28,7 +29,7 @@ experiments/table_representation/
   run_prune.py           # CLI to dump pruned sub-tables
   run_sealion_gguf.py    # CPU GGUF SEA-LION runner + table ops
   screenshots/           # browser captures from the paper crawl
-  samples/               # example encodings from Open-ViTabQA tables
+  samples/               # encodings, prune dumps, sealion_fifty scores
 ```
 
 ## Encode one table
@@ -86,12 +87,10 @@ python -m experiments.table_representation.run_prune \
 
 `lexical_subtable` is the default for lookup questions (no extra LLM call). Aggregation questions such as “bao nhiêu” keep all rows and only drop columns.
 
-CPU smoke (no GPU): mmap official `Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf` and run 10 zero-shot items:
+CPU 8B (no GPU): mmap official `Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf`. First 50 `qas_test` items with few-shot + table operators: **EM 0.80**. Protocol, operators, and the per-id log are in `RESULTS.md` and `samples/sealion_fifty/`.
 
 ```bash
-python -m experiments.table_representation.run_sealion_gguf --limit 10 --table-mode lexical_subtable
+python -m experiments.table_representation.run_sealion_gguf --limit 50 --table-mode auto --prompt-style few_shot
 ```
 
-## What this folder does not do
-
-It does not run POMA, does not call a model, and does not claim a winner. Use `REPORT.md` and `PRUNING.md` to choose a small comparison set, then pass the dumped strings into an existing baseline or POMA prompt in a later experiment.
+Raw jsonl/traces stay in gitignored `outputs/`. This folder does not change production Flatten V1.

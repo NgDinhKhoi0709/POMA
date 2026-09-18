@@ -82,6 +82,8 @@ Expand only (3): `1_3_292` `1709`→`Năm 1709`; `29_2_148` `23`→`23 (UHF/VHF)
 
 Count / yes-no / why / unanswerable are left to the 8B on purpose so EM is not gamed.
 
+A later paired run (same 50, few-shot, `--no-table-ops`) compared Flatten V1, full Markdown, HTML, and header_path: LLM-only EM **64 / 68 / 68 / 68**. See `COMPARISON.md` §1b. The remaining encodings in `encodings.py` were not scored with the model.
+
 ## What is not saved here
 
 - `outputs/sealion_gguf_cpu/fifty/` — jsonl, traces, `metrics.json` (gitignored)

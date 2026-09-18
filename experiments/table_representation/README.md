@@ -88,7 +88,7 @@ python -m experiments.table_representation.run_prune \
 
 `lexical_subtable` is the default for lookup questions (no extra LLM call). Aggregation questions such as “bao nhiêu” keep all rows and only drop columns.
 
-CPU 8B (no GPU): mmap official `Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf`. First 50 `qas_test` items with few-shot + table operators: **EM 0.80**. Protocol in `RESULTS.md`; comparison with Qwen ZS/FS/POMA in `COMPARISON.md`; per-id log in `samples/sealion_fifty/`.
+CPU 8B (no GPU): mmap official `Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf`. First 50 `qas_test` items with few-shot + table operators: **EM 0.80**. Protocol in `RESULTS.md`. Same-50 encoding ablation (Flatten V1 / Markdown / HTML / header_path, no tools): `COMPARISON.md`. Per-id log in `samples/sealion_fifty/`.
 
 ```bash
 python -m experiments.table_representation.run_sealion_gguf --limit 50 --table-mode auto --prompt-style few_shot

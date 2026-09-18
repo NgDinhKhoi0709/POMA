@@ -30,6 +30,22 @@ On this slice: operators lift SEA-LION from 62% to 80% EM, above Qwen few-shot (
 
 Partial GPT-4o dumps on this slice (missing ids, no answer normalization): +HP 12/50 scored, EM 41.67; no-HP 41/50 scored, EM 58.54. Not comparable.
 
+## 1b. Table encodings on the same 50 (few-shot, no table_ops)
+
+Until this run, `encodings.py` only dumped 16 formats (size samples). The 50-sample EM number mixed **auto Markdown** with prune on 5 long tables. 2026-09-18: same 50 ids, same few-shot prompt, **`--no-table-ops`**, four formats from `REPORT.md` (Flatten V1 / Markdown / HTML / header_path). `n_ctx=8192`. JSON: `samples/sealion_fifty/repr_ablation.json`.
+
+| Encoding | Mean chars | Ctx overflow | LLM-only EM | Hits | + table_ops EM |
+|---|---:|---:|---:|---:|---:|
+| Flatten V1 (production string) | 2043 | 0 | 64.00 | 32 | 76.00 |
+| Markdown (full table) | 2391 | 0 | **68.00** | **34** | **80.00** |
+| HTML (expanded grid) | 3656 | 2 | **68.00** | **34** | **80.00** |
+| Header path | 8326 | 3 | **68.00** | **34** | 78.00 |
+| auto Markdown, prune if >5000 (older fifty) | 1673 | 0 | 62.00 | 31 | 80.00 |
+
+Few-shot Markdown/HTML/header_path are tied at 34/50 before tools. Flatten V1 is 2 hits behind. Pruning the 5 long tables in the older `auto` run **hurt** LLM-only EM (62% vs 68% full Markdown). HTML overflow: `6_2_85`, `99924_3_116`. Header-path overflow: those two plus `3_2_131` (175k chars on one table).
+
+The other 12 encodings (`csv`, `json_records`, `markdown_kv`, `latex`, …) still have **no** 50-sample model scores.
+
 ## 2. Full test (992) — paper vs files in `outputs/`
 
 Paper numbers are copied from `paper/jit-article.tex` Table `overall-results` (percent). Starred rows are Open-ViTabQA reference systems, not rerun here. Local column = this repo `evaluation/` on the saved json/jsonl.
@@ -72,4 +88,5 @@ Small paper vs local gaps on the Qwen baselines are rescoring / file-version dri
 |---|---|
 | Qwen ZS / TD / CoT / FS | `outputs/baseline/qwen/full_{zs,td,cot,few_shot}/qwen3-8b.jsonl` |
 | POMA Qwen +HP / no HP | `outputs/poma/qwen/poma_qas_test_qwen3_8b_{hp,no_hp}.json` |
-| SEA-LION 50 | `outputs/sealion_gguf_cpu/fifty/predictions.jsonl` |
+| SEA-LION 50 auto+ops | `outputs/sealion_gguf_cpu/fifty/predictions.jsonl` |
+| SEA-LION 50 encoding ablation | `outputs/sealion_gguf_cpu/repr_{flatten_v1,markdown,html,header_path}/` |

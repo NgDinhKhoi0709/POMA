@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from preprocessing.loader import DatasetLoader
 from preprocessing.representation import FlattenedTable
 
-from .encodings import encode_table
+from .encodings import METHOD_NAMES, encode_table
 from .pruning import prune_table
 from .table_ops import table_op_answer
 
@@ -31,7 +31,7 @@ DEFAULT_MODEL_ID = "aisingapore/Llama-SEA-LION-v3-8B-IT-GGUF"
 _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
 _FULL_CHAR_BUDGET = 5000
 
-TABLE_MODES = ("flatten_v1", "lexical_subtable", "markdown", "auto")
+TABLE_MODES = ("auto", "lexical_subtable") + tuple(METHOD_NAMES)
 PROMPT_STYLES = ("zero_shot", "few_shot")
 
 ZERO_SHOT_PROMPT = """Chỉ dùng TABLE_STR để trả lời QUESTION.
@@ -107,6 +107,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=10)
     parser.add_argument("--table-mode", choices=TABLE_MODES, default="auto")
     parser.add_argument("--prompt-style", choices=PROMPT_STYLES, default="few_shot")
+    parser.add_argument(
+        "--no-table-ops",
+        action="store_true",
+        help="Do not override the LLM with frequency/list/min-max tools (format ablation).",
+    )
     parser.add_argument("--model-path", default=str(DEFAULT_MODEL_PATH))
     parser.add_argument("--n-ctx", type=int, default=8192)
     parser.add_argument("--n-threads", type=int, default=max(1, os.cpu_count() or 1))
@@ -269,24 +274,26 @@ def table_text(
     max_rows: int,
     max_cols: int,
 ) -> Tuple[str, str]:
-    if mode == "flatten_v1":
-        return _flatten_with_title(table), "flatten_v1"
-    if mode == "markdown":
-        return encode_table(table, "markdown").text, "markdown"
     if mode == "lexical_subtable":
         pruned = prune_table(table, question, method="lexical_subtable", max_rows=max_rows, max_cols=max_cols)
         return pruned.text, "lexical_subtable"
-    markdown = encode_table(table, "markdown").text
-    if len(markdown) <= _FULL_CHAR_BUDGET:
-        return markdown, "markdown_full"
-    pruned = prune_table(
-        table,
-        question,
-        method="lexical_subtable",
-        max_rows=max_rows,
-        max_cols=max_cols,
-    )
-    return pruned.text, "lexical_subtable"
+    if mode == "auto":
+        markdown = encode_table(table, "markdown").text
+        if len(markdown) <= _FULL_CHAR_BUDGET:
+            return markdown, "markdown_full"
+        pruned = prune_table(
+            table,
+            question,
+            method="lexical_subtable",
+            max_rows=max_rows,
+            max_cols=max_cols,
+        )
+        return pruned.text, "lexical_subtable"
+    if mode == "flatten_v1":
+        return _flatten_with_title(table), "flatten_v1"
+    if mode in METHOD_NAMES:
+        return encode_table(table, mode).text, mode
+    raise ValueError(f"Unknown table mode {mode!r}")
 
 
 def _load_tables(args: argparse.Namespace) -> Dict[str, Dict[str, Any]]:
@@ -346,7 +353,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     print(
         f"# SEA-LION GGUF CPU  n={len(selected)}  "
-        f"table_mode={args.table_mode}  prompt={args.prompt_style}"
+        f"table_mode={args.table_mode}  prompt={args.prompt_style}  "
+        f"table_ops={'off' if args.no_table_ops else 'on'}"
     )
     for qa_id in selected_ids:
         print(f"- {qa_id}")
@@ -399,17 +407,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             answer = None
             error = f"{type(exc).__name__}: {exc}"
         elapsed = round(time.time() - started, 2)
-        prediction, table_op = finalize_prediction(
-            question=question,
-            table=table,
-            llm_answer=answer,
-        )
+        if args.no_table_ops:
+            prediction = expand_candidates(answer, question=question) if answer else []
+            table_op = None
+        else:
+            prediction, table_op = finalize_prediction(
+                question=question,
+                table=table,
+                llm_answer=answer,
+            )
         if not prediction:
             error = error or "empty_prediction"
         record = {
             "qa_id": qa_id,
             "table_id": table_id,
             "prediction": prediction,
+            "llm_answer": answer,
             "table_mode": used_mode,
             "table_op": table_op,
             "prompt_style": args.prompt_style,

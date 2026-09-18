@@ -83,6 +83,22 @@ def test_auto_table_mode_uses_full_markdown_for_tiny_tables():
     assert "POMA" in text
 
 
+def test_table_text_html_and_header_path_are_full_encodings():
+    table = {
+        "table_id": "demo",
+        "table_title": "Models",
+        "table_html": "<table><tr><th>Name</th><th>Year</th></tr><tr><td>POMA</td><td>2026</td></tr></table>",
+    }
+    html, html_mode = table_text(table, "POMA năm nào?", "html", max_rows=8, max_cols=6)
+    assert html_mode == "html"
+    assert "<table>" in html
+    assert "POMA" in html
+    path, path_mode = table_text(table, "POMA năm nào?", "header_path", max_rows=8, max_cols=6)
+    assert path_mode == "header_path"
+    assert "POMA" in path
+    assert "Year" in path or "year" in path.lower()
+
+
 def test_cli_dry_run_lists_first_ten(tmp_path):
     tables_path = tmp_path / "table.json"
     qas_path = tmp_path / "qas_test.json"

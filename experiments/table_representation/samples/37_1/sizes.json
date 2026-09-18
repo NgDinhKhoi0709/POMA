@@ -1,0 +1,178 @@
+[
+  {
+    "method": "flatten_v1",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 470,
+    "n_lines": 4,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 68,
+    "path": "experiments/table_representation/samples/37_1/flatten_v1.txt"
+  },
+  {
+    "method": "markdown",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 455,
+    "n_lines": 5,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 107,
+    "path": "experiments/table_representation/samples/37_1/markdown.txt"
+  },
+  {
+    "method": "html",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 647,
+    "n_lines": 10,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 68,
+    "path": "experiments/table_representation/samples/37_1/html.txt"
+  },
+  {
+    "method": "raw_html",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 1843,
+    "n_lines": 39,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 140,
+    "path": "experiments/table_representation/samples/37_1/raw_html.txt"
+  },
+  {
+    "method": "csv",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 389,
+    "n_lines": 4,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 66,
+    "path": "experiments/table_representation/samples/37_1/csv.txt"
+  },
+  {
+    "method": "json_records",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 687,
+    "n_lines": 19,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 114,
+    "path": "experiments/table_representation/samples/37_1/json_records.txt"
+  },
+  {
+    "method": "json_triples",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 1273,
+    "n_lines": 55,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 180,
+    "path": "experiments/table_representation/samples/37_1/json_triples.txt"
+  },
+  {
+    "method": "markdown_kv",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 563,
+    "n_lines": 14,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 111,
+    "path": "experiments/table_representation/samples/37_1/markdown_kv.txt"
+  },
+  {
+    "method": "tapex",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 430,
+    "n_lines": 2,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 95,
+    "path": "experiments/table_representation/samples/37_1/tapex.txt"
+  },
+  {
+    "method": "nl_sentences",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 554,
+    "n_lines": 2,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 115,
+    "path": "experiments/table_representation/samples/37_1/nl_sentences.txt"
+  },
+  {
+    "method": "xml",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 835,
+    "n_lines": 17,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 110,
+    "path": "experiments/table_representation/samples/37_1/xml.txt"
+  },
+  {
+    "method": "latex",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 464,
+    "n_lines": 7,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 96,
+    "path": "experiments/table_representation/samples/37_1/latex.txt"
+  },
+  {
+    "method": "spreadsheet_a1",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 457,
+    "n_lines": 5,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 63,
+    "path": "experiments/table_representation/samples/37_1/spreadsheet_a1.txt"
+  },
+  {
+    "method": "inverted_index",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 851,
+    "n_lines": 57,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 122,
+    "path": "experiments/table_representation/samples/37_1/inverted_index.txt"
+  },
+  {
+    "method": "header_path",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 580,
+    "n_lines": 9,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 129,
+    "path": "experiments/table_representation/samples/37_1/header_path.txt"
+  },
+  {
+    "method": "df_loader",
+    "table_id": "37_1",
+    "title": "Các tác phẩm của San Holo_0",
+    "n_chars": 688,
+    "n_lines": 4,
+    "n_rows": 4,
+    "n_cols": 5,
+    "approx_tokens": 80,
+    "path": "experiments/table_representation/samples/37_1/df_loader.txt"
+  }
+]

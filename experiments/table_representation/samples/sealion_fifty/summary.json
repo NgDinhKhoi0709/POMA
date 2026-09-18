@@ -1,0 +1,59 @@
+{
+  "split": "first 50 items of dataset/qas_test.json, original order, not cherry-picked",
+  "n": 50,
+  "model": {
+    "id": "aisingapore/Llama-SEA-LION-v3-8B-IT-GGUF",
+    "file": "Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf",
+    "runtime": "llama.cpp CPU, n_gpu_layers=0, n_ctx=8192, temperature=0",
+    "host": "cloud VM, no GPU, ~15GB RAM"
+  },
+  "pipeline": {
+    "table_mode": "auto (markdown if <=5000 chars else lexical_subtable)",
+    "prompt_style": "few_shot",
+    "max_rows": 24,
+    "max_cols": 8,
+    "postprocess": [
+      "table_ops.table_op_answer",
+      "expand_candidates"
+    ]
+  },
+  "metrics": {
+    "llm_only_em": 0.62,
+    "llm_only_hits": 31,
+    "final_em": 0.8,
+    "final_hits": 40,
+    "final_f1": 0.8370370370370371,
+    "eval_command": "python3 run_eval.py --pred outputs/sealion_gguf_cpu/fifty/predictions.jsonl --qas dataset/qas_test.json --metrics em,f1"
+  },
+  "table_ops_fired": {
+    "frequency_rank": 1,
+    "list_rows": 2,
+    "climate_extremum": 1,
+    "filtered_extremum": 2
+  },
+  "new_hits_from_ops": [
+    "99910_4_53",
+    "99932_0_36",
+    "99928_0_98",
+    "99922_2_82",
+    "48_3_142",
+    "99928_2_78"
+  ],
+  "new_hits_from_expand": [
+    "1_3_292",
+    "29_2_148",
+    "55_2_132"
+  ],
+  "remaining_misses": [
+    "3_1_104",
+    "6_2_85",
+    "9990_2_27",
+    "99924_1_53",
+    "9994_0_49",
+    "23_1_26",
+    "48_1_5",
+    "99925_0_14",
+    "99911_4_159",
+    "99913_1_20"
+  ]
+}

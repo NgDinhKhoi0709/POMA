@@ -1,0 +1,10 @@
+TITLE: Các tác phẩm của San Holo_0
+<table>
+<thead>
+<tr><th>Tựa đề</th><th>Chi tiết</th><th>Vị trí trênbảng xếp hạng</th><th>Vị trí trênbảng xếp hạng</th><th>Vị trí trênbảng xếp hạng</th></tr>
+<tr><th>Tựa đề</th><th>Chi tiết</th><th>US Dance[1]</th><th>US Heat[2]</th><th>NLD[3]</th></tr>
+</thead>
+<tbody>
+<tr><td>album1</td><td>Phát hành: 21 tháng 9 năm 2018 Hãng phát hành: bitbird Định dạng: Digital download</td><td>7</td><td>20</td><td>80</td></tr>
+<tr><td>bb u ok?</td><td>Phát hành: 4 tháng 6 năm 2021 Hãng phát hành: bitbird, Counter Records, Liquid State Định dạng: Digital download</td><td>3</td><td>5</td><td>—</td></tr>
+</tbody></table>

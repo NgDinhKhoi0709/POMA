@@ -2,6 +2,8 @@
 
 Logged 2026-09-17. Code and scores live in this folder so they survive `outputs/` being gitignored. Predictions, traces, and GGUF weights stay under `outputs/` and `~/.cache` and are **not** committed.
 
+Side-by-side with Qwen baselines and POMA (same 50 ids, plus the paper’s full-test table): **`COMPARISON.md`**.
+
 ## Protocol
 
 | Knob | Value |

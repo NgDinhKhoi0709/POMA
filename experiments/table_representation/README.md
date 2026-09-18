@@ -20,6 +20,7 @@ experiments/table_representation/
   README.md              # this file
   REPORT.md              # literature survey and POMA mapping
   RESULTS.md             # SEA-LION 50-sample protocol, method, EM/F1
+  COMPARISON.md          # same-50 vs Qwen/POMA; paper full-test table
   PRUNING.md             # query-aware row/column shrinking
   sources.md             # crawled URLs and access dates
   encodings.py           # serializers
@@ -87,7 +88,7 @@ python -m experiments.table_representation.run_prune \
 
 `lexical_subtable` is the default for lookup questions (no extra LLM call). Aggregation questions such as “bao nhiêu” keep all rows and only drop columns.
 
-CPU 8B (no GPU): mmap official `Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf`. First 50 `qas_test` items with few-shot + table operators: **EM 0.80**. Protocol, operators, and the per-id log are in `RESULTS.md` and `samples/sealion_fifty/`.
+CPU 8B (no GPU): mmap official `Llama-SEA-LION-v3-8B-IT-Q4_K_M.gguf`. First 50 `qas_test` items with few-shot + table operators: **EM 0.80**. Protocol in `RESULTS.md`; comparison with Qwen ZS/FS/POMA in `COMPARISON.md`; per-id log in `samples/sealion_fifty/`.
 
 ```bash
 python -m experiments.table_representation.run_sealion_gguf --limit 50 --table-mode auto --prompt-style few_shot

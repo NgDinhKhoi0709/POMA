@@ -239,4 +239,4 @@ Sample dumps for a compact normal table (`29_4`) and a merged-header table (`37_
 
 This is not a claim that any alternative beats Flatten V1 on Open-ViTabQA. It is the minimum setup needed to run that comparison without mixing content, parser, and prompt changes.
 
-A later CPU run of SEA-LION 8B on the **first 50** `qas_test` items (Markdown/prune + few-shot + `table_ops.py`) is logged in `RESULTS.md`: raw EM 0.62 → final EM **0.80**. That run is a cheap-8B recipe, not the four-way Flatten V1 / HTML / Markdown / header-path ablation above.
+A later CPU run of SEA-LION 8B on the **first 50** `qas_test` items (Markdown/prune + few-shot + `table_ops.py`) is logged in `RESULTS.md`: raw EM 0.62 → final EM **0.80**. That run is a cheap-8B recipe, not the four-way Flatten V1 / HTML / Markdown / header-path ablation above. The same 50 ids rescored for Qwen ZS/TD/CoT/FS and POMA, plus the paper full-test table, are in `COMPARISON.md`.

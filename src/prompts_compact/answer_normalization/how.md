@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **How**: cách thức, quy trình hoặc phương pháp.
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

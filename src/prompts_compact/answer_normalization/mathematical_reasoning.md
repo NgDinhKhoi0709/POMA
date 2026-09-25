@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **MathematicalReasoning**: số, phép đo hoặc kết q
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

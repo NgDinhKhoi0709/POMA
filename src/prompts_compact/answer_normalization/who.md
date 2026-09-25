@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **Who**: người, nhóm người hoặc tổ chức.
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

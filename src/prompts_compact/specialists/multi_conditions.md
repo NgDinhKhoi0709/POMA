@@ -11,10 +11,10 @@ Trả lời câu hỏi **MultiConditions**: tìm mục bằng cách kết hợp 
 # JSON DUY NHẤT
 {{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-EXAMPLE 1: thỏa điều kiện AND → {{"answer":"A","evidence":["A"],"confidence":0.8,"reason":"khớp"}}
-EXAMPLE 2: không thỏa logic truy vấn → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
+VÍ DỤ 1: thỏa điều kiện AND → {{"answer":"A","evidence":["A"],"confidence":0.8,"reason":"khớp"}}
+VÍ DỤ 2: không thỏa logic truy vấn → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {normalized_question}
 **MỤC TIÊU:** {target}
 **RÀNG BUỘC:** {constraints}

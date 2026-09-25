@@ -10,7 +10,7 @@ Trả lời câu hỏi **YesNo**: kiểm tra tính đúng/sai của mệnh đề
 # JSON DUY NHẤT
 {{"answer":"Có, Không hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {normalized_question}
 **MỤC TIÊU:** {target}
 **RÀNG BUỘC:** {constraints}

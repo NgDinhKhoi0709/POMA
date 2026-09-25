@@ -139,6 +139,11 @@ STRUCTURED_SCHEMAS: dict[str, ResponseSchema] = {
         version="v1",
         json_schema=_closed_object({"final_answer": {"type": "string"}}, ["final_answer"]),
     ),
+    "header_filter.v1": ResponseSchema(
+        name="header_filter.v1",
+        version="v1",
+        json_schema=_closed_object({"selected_headers": _STRING_LIST}, ["selected_headers"]),
+    ),
     "baseline_few_shot.v1": ResponseSchema(
         name="baseline_few_shot.v1",
         version="v1",

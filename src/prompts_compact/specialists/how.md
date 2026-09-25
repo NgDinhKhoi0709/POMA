@@ -10,10 +10,10 @@ Trả lời câu hỏi **How**: lấy cách thức, quy trình hoặc phương p
 # JSON DUY NHẤT
 {{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-EXAMPLE 1: phương pháp được nêu → {{"answer":"A","evidence":["A"],"confidence":0.8,"reason":"khớp"}}
-EXAMPLE 2: không có phương pháp → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
+VÍ DỤ 1: phương pháp được nêu → {{"answer":"A","evidence":["A"],"confidence":0.8,"reason":"khớp"}}
+VÍ DỤ 2: không có phương pháp → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {normalized_question}
 **MỤC TIÊU:** {target}
 **RÀNG BUỘC:** {constraints}

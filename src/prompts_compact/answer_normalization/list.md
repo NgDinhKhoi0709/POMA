@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **List**: danh sách hoặc thứ tự các mục thỏa 
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

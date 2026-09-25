@@ -277,8 +277,8 @@ def process_one_qa(
 
     if not prompt_text:
         raise ValueError(f"qa_id={qa_id}: prompt is empty")
-    if "TABLE_STR:" not in prompt_text or "QUESTION:" not in prompt_text:
-        raise ValueError(f"qa_id={qa_id}: prompt must contain TABLE_STR and QUESTION markers")
+    if "BẢNG" not in prompt_text or "CÂU HỎI:" not in prompt_text:
+        raise ValueError(f"qa_id={qa_id}: prompt must contain BẢNG and CÂU HỎI markers")
     if table_str not in prompt_text:
         raise ValueError(f"qa_id={qa_id}: prompt does not include rendered table string")
 

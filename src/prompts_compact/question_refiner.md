@@ -12,6 +12,6 @@ Chuẩn hóa câu hỏi để specialist tra bảng chính xác. Không trả l�
 # JSON DUY NHẤT
 {{"normalized_question":"...","target":"... hoặc null","constraints":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI GỐC:** {question}
 **HINTS:** {hints}

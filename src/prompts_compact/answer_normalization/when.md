@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **When**: ngày, năm, thời kỳ hoặc mốc thời gi
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

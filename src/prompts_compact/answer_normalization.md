@@ -1,5 +1,5 @@
 # VAI TRÒ
-Chuẩn hóa câu trả lời thô thành đáp án có thể đối chiếu với gold answer.
+Chuẩn hóa câu trả lời thô thành đáp án có thể đối chiếu với đáp án tham chiếu.
 
 # QUY TẮC
 - Chỉ chuẩn hóa nội dung có trong **ĐÁP ÁN**; không tự trả lời lại từ câu hỏi.
@@ -10,7 +10,7 @@ Chuẩn hóa câu trả lời thô thành đáp án có thể đối chiếu v�
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

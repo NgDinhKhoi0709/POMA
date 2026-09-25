@@ -163,7 +163,7 @@
 
 == Attribution
 
-#slide(title: [Where the reported gain actually comes from])[
+#slide(title: [Where the reported gain actually comes from — new run])[
   #text(size: 0.78em)[
     #table(
       columns: (1fr, auto, auto, auto, auto),
@@ -171,24 +171,30 @@
       align: (left, right, right, right, right),
       stroke: 0.4pt + luma(180),
       table.header([], [*EM*], [*F1*], [*R1*], [*MET*]),
-      [Few-shot (draft Table 2)], [67.14], [78.64], [74.18], [72.30],
-      [POMA without Answer Normalization], [68.41], [81.31], [78.98], [75.60],
-      [POMA (draft Table 6)], [80.24], [88.23], [86.07], [84.50],
-      [*Share of gain from normalization*], [*90%*], [72%], [60%], [73%],
+      [Few-shot raw (new run)], [67.34], [78.63], [73.46], [73.55],
+      [POMA-first (single answer, new run)], [66.63], [79.80], [74.69], [75.76],
+      [POMA `all` — oracle best-of-K (mean K 3.44, max K 80)], [74.90], [83.42], [79.46], [79.88],
+      [*Share of the POMA-vs-FS gap from oracle scoring*], [*109%*], [76%], [80%], [65%],
     )
   ]
   #v(0.45em)
   #text(size: 0.84em)[
-    - Answer normalization is *orthogonal to multi-agent design* and applies equally to any baseline.
-    - Baselines were scored on one string; POMA was scored best-of-K. Adding candidates to a best-of-K set can never lower its score.
-    - The draft's own baselines contradict its premise: task decomposition (59.38) and chain-of-thought (59.17) both score *below* zero-shot (62.40).
+    - On EM, *POMA-first alone trails Few-shot raw* (66.63 vs 67.34) — before any
+      best-of-K credit, the deployable pipeline does not beat the baseline.
+    - Answer Normalization runs identically in *both* POMA rows; only the scoring
+      policy differs. So this is not an AN-on-vs-off ablation — it is the same
+      "-12.50 from scoring alone" effect from the previous slide, now broken out
+      by metric. Adding candidates to a best-of-K set can never lower its score.
+    - Same pattern survives in the un-refreshed baselines (new scorer): task
+      decomposition (59.98) and CoT (59.48) both still score *below* zero-shot (63.10).
   ]
   #v(0.35em)
   #text(size: 0.82em)[
-    #warning-block(title: [Unresolved arithmetic])[
-      §5.6 says normalization flips 177/992 answers, which implies 62.40 without
-      it — not the 68.41 in Table 6. And 68.41% is not k/992 for any k.
-      These are draft figures; no BIF exists for them.
+    #warning-block(title: [Oracle row still has no BIF])[
+      POMA `all` is scored with `candidate_policy=all` on all 992 questions, but
+      BIF was never computed for it — only the cheap lexical metrics (EM/F1/R1/MET).
+      It stays labeled *oracle, not a deployable system*: it sizes the scoring-policy
+      artifact, it is not a result to report as POMA's performance.
     ]
   ]
 ]
@@ -224,19 +230,14 @@
         [*Mine* (best dev epoch 3)], [*85.42*], [*85.49*],
         [Difference], [−0.57], [−0.61],
       )
+    ],
+    text(size: 0.66em)[
+      *Configuration*
       #v(0.15em)
       Paper's recipe: Adam, lr 1e-5, batch 16, 10 epochs, max length 128.
       Split sizes 24,376 / 3,009 / 2,991 match the paper. Dev: 85.24 / 85.18.
       Per-label test F1: entailment (used by BIF) 83.61, contradiction 79.89,
       neutral 80.27, other 98.20.
-    ],
-    text(size: 0.66em)[
-      #v(1.6em)
-      #warning-block(title: [Limits])[
-        Data from a third-party Hugging Face mirror, not an author release:
-        a *replication*, not an exact reproduction. BIF is secondary; most
-        BIF differences have no paired interval, so conclusions rest on EM.
-      ]
     ],
   )
 ]

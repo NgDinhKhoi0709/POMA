@@ -260,19 +260,14 @@
         [*Mine* (best dev epoch 3)], [*85.42*], [*85.49*],
         [Difference], [−0.57], [−0.61],
       )
+    ],
+    text(size: 0.66em)[
+      *Configuration*
       #v(0.15em)
       Paper's recipe: Adam, lr 1e-5, batch 16, 10 epochs, max length 128.
       Split sizes 24,376 / 3,009 / 2,991 match the paper. Dev: 85.24 / 85.18.
       Per-label test F1: entailment (used by BIF) 83.61, contradiction 79.89,
       neutral 80.27, other 98.20.
-    ],
-    text(size: 0.66em)[
-      #v(1.6em)
-      #warning-block(title: [Limits])[
-        Data from a third-party Hugging Face mirror, not an author release:
-        a *replication*, not an exact reproduction. BIF is secondary; most
-        BIF differences have no paired interval, so conclusions rest on EM.
-      ]
     ],
   )
 ]

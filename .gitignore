@@ -20,3 +20,10 @@ baselines/**/*.db
 # Generated experiment results, traces, and local analysis artifacts
 outputs/
 .codegraph/
+
+# Large local binaries: model checkpoints, third-party papers, compiled decks
+checkpoints/
+docs/**/*.pdf
+docs/**/*.docx
+slide/*.pdf
+slide/render/

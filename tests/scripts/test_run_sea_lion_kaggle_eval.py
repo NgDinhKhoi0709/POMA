@@ -33,6 +33,29 @@ def test_parser_accepts_pilot100_phase():
     assert args.phase == "pilot100"
 
 
+def test_parser_accepts_few_shot_prompt_style():
+    args = build_parser().parse_args(
+        [
+            "--repo-root",
+            ".",
+            "--output-root",
+            "out",
+            "--prompt-style",
+            "few_shot",
+        ]
+    )
+
+    assert args.prompt_style == "few_shot"
+
+
+def test_parser_accepts_full_test_phase():
+    args = build_parser().parse_args(
+        ["--repo-root", ".", "--output-root", "out", "--phase", "test"]
+    )
+
+    assert args.phase == "test"
+
+
 def test_parser_accepts_stratified_test500_phase():
     args = build_parser().parse_args(
         ["--repo-root", ".", "--output-root", "out", "--phase", "test500"]

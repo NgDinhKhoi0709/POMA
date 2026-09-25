@@ -80,6 +80,7 @@ def test_direct_baseline_writes_canonical_structured_record(
     assert "predicted_answer" not in record
     assert record["schema_name"] == "baseline_few_shot.v1"
     assert record["structured_output"] == {"final_answer": "Guatemala"}
+    assert "prompt_version" not in record
     assert client.calls[0][2].text_format["type"] == "json_schema"
     assert client.calls[0][2].require_parameters is True
 

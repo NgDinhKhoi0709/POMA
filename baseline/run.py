@@ -267,7 +267,7 @@ def process_one_qa(
         raise ValueError(f"qa_id={qa_id}: table string is empty for table_id={table_id!r}")
 
     ps = (prompt_style or "zero_shot").strip().lower()
-    prompt, prompt_version = build_tableqa_prompt(
+    prompt = build_tableqa_prompt(
         question=question,
         table_str=table_str,
         prompt_style=ps,
@@ -277,8 +277,8 @@ def process_one_qa(
 
     if not prompt_text:
         raise ValueError(f"qa_id={qa_id}: prompt is empty")
-    if "BẢNG" not in prompt_text or "CÂU HỎI:" not in prompt_text:
-        raise ValueError(f"qa_id={qa_id}: prompt must contain BẢNG and CÂU HỎI markers")
+    if "TABLE_STR:" not in prompt_text or "QUESTION:" not in prompt_text:
+        raise ValueError(f"qa_id={qa_id}: prompt must contain TABLE_STR and QUESTION markers")
     if table_str not in prompt_text:
         raise ValueError(f"qa_id={qa_id}: prompt does not include rendered table string")
 
@@ -329,7 +329,6 @@ def process_one_qa(
                         "" if groundtruth is None else groundtruth
                     ),
                     "schema_name": schema_name,
-                    "prompt_version": prompt_version,
                     "prompt_style": ps,
                     "elapsed_s": elapsed_s,
                     "error": {
@@ -353,7 +352,6 @@ def process_one_qa(
             "schema_valid": result.schema_valid,
             "repair_attempted": result.repair_attempted,
             "repair_succeeded": result.repair_succeeded,
-            "prompt_version": prompt_version,
             "prompt_style": ps,
             "elapsed_s": elapsed_s,
             "prompt_tokens": result.prompt_tokens,

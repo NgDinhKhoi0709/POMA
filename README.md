@@ -285,6 +285,58 @@ python run_eval.py \
 
 `metrics_by_table_type` requires `--tables`; it reports performance across normal tables, merged-header tables, and merged-value tables.
 
+### BIF (PhoBERTScore + ViNLI)
+
+The optional `bif` metric reproduces the Open-ViTabQA BIF protocol: PyVi word
+segmentation, PhoBERT Large BERTScore F1 at layer 17, and the ViNLI
+Entailment probability. It is not loaded unless explicitly requested.
+
+```powershell
+python -m pip install bert-score pyvi transformers torch
+
+python run_eval.py `
+  --pred outputs/poma/qwen3-8b-test.json `
+  --qas dataset/qas_test.json `
+  --metrics f1,em,rouge1,meteor,bif `
+  --candidate-policy single-required `
+  --strict `
+  --bif-nli-model D:\models\vinli-xlmr-large\checkpoint-best `
+  --bif-device cuda `
+  --bif-alpha 0.5 `
+  --bif-details outputs/poma/qwen3-8b-test-bif-details.json `
+  --output outputs/poma/qwen3-8b-test-eval.json
+```
+
+`--bif-nli-model` accepts the Hugging Face checkpoint directory emitted by the
+Kaggle fine-tuning notebook. Its `config.json` must identify the Entailment
+label (for example, `entailment: 0`). For the author-provided legacy `.pt`
+checkpoint, also pass the verified mapping explicitly, e.g.
+`--bif-entailment-id 0`. BIF uses
+`alpha * PhoBERT_F1 + (1 - alpha) * P(entailment)`; the default `alpha=0.5`
+matches the paper. When a prediction has multiple candidates, `all` selects
+the highest BIF candidate and is therefore an oracle diagnostic; use
+`single-required` for a reportable result.
+
+**Known bug: very long hypotheses crash the scorer.** A prediction longer than
+roughly 1,000 characters (observed with list-style answers) can make
+PhoBERTScore's token-alignment step raise `index ... is out of bounds`, on
+both CPU and CUDA, independent of `--bif-batch-size`. This is not a data
+problem — it reproduces on the single offending pair in isolation. `run_eval.py`
+catches the exception and records it under `metric_errors` rather than
+silently reporting a wrong number, so a `bif` entry missing from the output is
+the symptom. Work around it by excluding the offending `qa_id` from the `--qas`
+file (bisect on a copy of the predictions file to find it) and reporting the
+resulting n-1; see `outputs/evaluation/bif_new/summary.json` for two resolved
+examples (Gemma Zero-shot, SEA-LION CoT).
+
+A second, unrelated failure mode produces the same symptom: a historical
+artifact can store literal API-error text (e.g. `"ERROR: Generation failed…"`)
+as a `prediction`/`predicted_answer` value instead of a real answer, and that
+error string — full of escaped quotes and backslashes — can also crash the
+scorer. This is a data-cleaning issue, not a scorer bug; grep the predictions
+file for `"ERROR"` before assuming the long-hypothesis bug above is the cause
+(`outputs/baseline/qwen/full_cot/qwen3-8b.json` had two such records).
+
 ## Dataset
 
 The repository includes Open-ViTabQA:

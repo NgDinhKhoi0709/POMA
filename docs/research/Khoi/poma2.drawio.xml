@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="POMA-Boost-Stages-v2" id="poma-boost-stages-v2">
+    <mxGraphModel dx="764" dy="630" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1320" pageHeight="560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="6O3YBwp9zRBNr4g88F3R-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="70" width="257" x="217" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="outerA" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1.5;dashed=1;verticalAlign=top;align=center;fontStyle=1;fontSize=14;spacingTop=6;" value="Stage 1 -- Parallel Specialists" vertex="1">
+          <mxGeometry height="370" width="480" x="20" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="outerB" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1.5;dashed=1;verticalAlign=top;align=center;fontStyle=1;fontSize=14;spacingTop=6;" value="Stage 2 -- Aggregation &amp; Escalation" vertex="1">
+          <mxGeometry height="430" width="500" x="530" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="outerC" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1.5;dashed=1;verticalAlign=top;align=center;fontStyle=1;fontSize=14;spacingTop=6;" value="Stage 3 -- Consolidation" vertex="1">
+          <mxGeometry height="430" width="230" x="1060" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="innerA1" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;verticalAlign=top;align=center;fontStyle=0;fontSize=12;spacingTop=6;fontColor=#444444;" value="Routing" vertex="1">
+          <mxGeometry height="290" width="150" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="innerA2" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;verticalAlign=top;align=center;fontStyle=0;fontSize=12;spacingTop=6;fontColor=#444444;" value="Specialists (parallel, T=0)" vertex="1">
+          <mxGeometry height="290" width="270" x="210" y="83" as="geometry" />
+        </mxCell>
+        <mxCell id="innerB1" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;verticalAlign=top;align=center;fontStyle=0;fontSize=12;spacingTop=6;fontColor=#444444;" value="Aggregation" vertex="1">
+          <mxGeometry height="150" width="200" x="550" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="innerB2" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;verticalAlign=top;align=center;fontStyle=0;fontSize=12;spacingTop=6;fontColor=#444444;" value="Escalation (conditional)" vertex="1">
+          <mxGeometry height="180" width="472" x="550" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="question" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Question" vertex="1">
+          <mxGeometry height="50" width="120" x="55" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="hint" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="Hint Prediction" vertex="1">
+          <mxGeometry height="55" width="120" x="55" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="router" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="Router (1:1 lookup)" vertex="1">
+          <mxGeometry height="60" width="120" x="55" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="tablectx" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="Table Context" vertex="1">
+          <mxGeometry height="40" width="246" x="222" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" value="Specialist 1" vertex="1">
+          <mxGeometry height="55" width="78" x="222" y="207" as="geometry" />
+        </mxCell>
+        <mxCell id="dots" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontSize=16;fontStyle=1;fontColor=#666666;" value="..." vertex="1">
+          <mxGeometry height="55" width="27" x="318" y="207" as="geometry" />
+        </mxCell>
+        <mxCell id="sN" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" value="Specialist N" vertex="1">
+          <mxGeometry height="55" width="108" x="360" y="207" as="geometry" />
+        </mxCell>
+        <mxCell id="spec_note" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontSize=9;fontColor=#666666;fontStyle=2;" value="each specialist returns: answer, evidence, confidence, reason" vertex="1">
+          <mxGeometry height="22" width="182" x="273" y="283" as="geometry" />
+        </mxCell>
+        <mxCell id="agg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="Aggregator" vertex="1">
+          <mxGeometry height="55" width="170" x="565" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="gate" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" value="Disagree?" vertex="1">
+          <mxGeometry height="44" width="120" x="590" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="verif" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11;" value="Row/Col Verifier" vertex="1">
+          <mxGeometry height="58" width="95" x="565" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="tiebreak" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11;" value="Tie-breaker (discriminating query)" vertex="1">
+          <mxGeometry height="58" width="110" x="675" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="correct" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11;" value="Correctness Check (COMPETE)" vertex="1">
+          <mxGeometry height="58" width="100" x="800" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="answerable" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11;" value="Answerability Check (LofreeCP)" vertex="1">
+          <mxGeometry height="58" width="100" x="915" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="wconsol" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="Weighted Consolidation" vertex="1">
+          <mxGeometry height="58" width="195" x="1075" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="calib" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=10;" value="Confidence Calibration" vertex="1">
+          <mxGeometry height="46" width="195" x="1075" y="178" as="geometry" />
+        </mxCell>
+        <mxCell id="an" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="Answer Normalization" vertex="1">
+          <mxGeometry height="58" width="195" x="1075" y="254" as="geometry" />
+        </mxCell>
+        <mxCell id="final" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" value="Final Answer" vertex="1">
+          <mxGeometry height="52" width="195" x="1075" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="caption" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontSize=12;align=left;verticalAlign=top;" value="Figure: Three-stage inference pipeline for POMA-Boost. Stage 1 dispatches N hint-routed specialists in parallel (blind, temperature 0). Stage 2 aggregates their outputs and escalates only on disagreement or Null+answer hedging. Stage 3 consolidates a single weighted answer, calibrates confidence, and applies normalization before returning the final answer." vertex="1">
+          <mxGeometry height="55" width="1270" x="20" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="question" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="hint" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="hint" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="router" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="router" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" value="dispatch">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="261" y="271.24" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="s1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="dots" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="dots" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="sN" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="tablectx" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;exitX=0.5;exitY=1;" value="read">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="330" y="195.66" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;entryX=0;entryY=0.5;" target="agg" value="outputs">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="474.79" y="234.48" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="agg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="gate" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="gate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.35;" target="wconsol" value="agree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="gate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;dashed=1;exitX=0.5;exitY=1;entryX=0.3;entryY=0;exitDx=0;exitDy=0;" target="verif" value="disagree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="gate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;dashed=1;exitX=0.85;exitY=1;entryX=0.538;entryY=0.007;entryDx=0;entryDy=0;entryPerimeter=0;" target="correct" value="hedge">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="853.81" y="224.9" />
+            </Array>
+            <mxPoint x="853.81" y="291.71" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="verif" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="tiebreak" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="correct" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="answerable" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="tiebreak" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;dashed=1;exitX=0.429;exitY=1.026;entryX=0;entryY=0.75;exitDx=0;exitDy=0;exitPerimeter=0;" target="wconsol" value="resolved">
+          <mxGeometry relative="1" x="-0.3868" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="722.17" y="408.5" />
+              <mxPoint x="1045" y="408.5" />
+              <mxPoint x="1045" y="133.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="answerable" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="an" value="null/answer gate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="965" y="288.56" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="calib" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" target="wconsol" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="wconsol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;exitX=1;exitY=0.7;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="an" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270.03" y="133.03" />
+              <mxPoint x="1282.03" y="133.03" />
+              <mxPoint x="1282.03" y="283.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="an" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;" target="final" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

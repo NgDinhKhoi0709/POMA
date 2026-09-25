@@ -1,0 +1,3322 @@
+{
+  "q1_integrity": {
+    "an_patch_note": "evaluation-time patch (in memory only): AN._BOOLEAN_TRUE_VARIANTS mojibake ('CĂ³','ÄĂºng','Pháº£i') replaced by ('Có','Đúng','Phải'); unit alias 'ngÆ°á»i/km2' replaced by 'người/km2'",
+    "instance_counts": {
+      "dataset\\qas_test.json": {
+        "type": "dict",
+        "keys": [
+          "qas"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\poma\\qwen\\poma_qas_test_qwen3_8b_hp.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\poma\\qwen\\poma_qas_test_qwen3_8b_no_hp.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\poma\\qwen\\poma_qas_test_qwen3_8b_hp_traces.json": {
+        "type": "list",
+        "n": 592
+      },
+      "outputs\\poma\\qwen\\poma_qas_test_qwen3_8b_no_hp_traces.json": {
+        "type": "list",
+        "n": 621
+      },
+      "outputs\\poma\\ablation\\poma_qas_test_gpt4o_hp_without_answer_normalization.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats",
+          "ablation"
+        ],
+        "n_predictions": 395
+      },
+      "outputs\\poma\\ablation\\poma_qas_test_gpt4o_no_hp_without_answer_normalization.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats",
+          "ablation"
+        ],
+        "n_predictions": 983
+      },
+      "outputs\\poma\\hint_predictor\\qas_test.json": {
+        "type": "dict",
+        "keys": [
+          "metadata",
+          "predictions"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\baseline\\qwen\\full_few_shot\\qwen3-8b.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\baseline\\qwen\\full_zs\\qwen3-8b.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\baseline\\qwen\\full_cot\\qwen3-8b.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\baseline\\qwen\\full_td\\qwen3-8b.json": {
+        "type": "dict",
+        "keys": [
+          "predictions",
+          "evaluation",
+          "stats"
+        ],
+        "n_predictions": 992
+      },
+      "outputs\\poma\\qwen\\specialists\\poma_qas_test_qwen3_8b_hp.json": {
+        "type": "list",
+        "n": 592
+      },
+      "outputs\\poma\\qwen\\specialists\\poma_qas_test_qwen3_8b_no_hp.json": {
+        "type": "list",
+        "n": 621
+      },
+      "outputs\\poma\\qwen\\refiner\\poma_qas_test_qwen3_8b_hp.json": {
+        "type": "list",
+        "n": 592
+      },
+      "outputs\\poma\\qwen\\refiner\\poma_qas_test_qwen3_8b_no_hp.json": {
+        "type": "list",
+        "n": 621
+      },
+      "outputs\\poma\\qwen\\normalization\\poma_qas_test_qwen3_8b_hp.json": {
+        "type": "list",
+        "n": 592
+      },
+      "outputs\\poma\\qwen\\normalization\\poma_qas_test_qwen3_8b_no_hp.json": {
+        "type": "list",
+        "n": 621
+      }
+    },
+    "hp_traced_subset": {
+      "n": 592,
+      "positions_in_main_order": [
+        400,
+        991
+      ],
+      "contiguous_tail": true,
+      "specialists_file_same_ids": true,
+      "normalized_answers_equal_main_predicted_answer": 592
+    },
+    "no_hp_traced_subset": {
+      "n": 621,
+      "positions_in_main_order": [
+        371,
+        991
+      ],
+      "contiguous_tail": true
+    },
+    "hp_traced_vs_untraced_profile": {
+      "traced": {
+        "n": 592,
+        "gold_null": 24,
+        "hint_share": {
+          "How": 0.01,
+          "List": 0.068,
+          "MathematicalReasoning": 0.191,
+          "MultiConditions": 0.169,
+          "What": 0.188,
+          "When": 0.137,
+          "Where": 0.095,
+          "Who": 0.054,
+          "Why": 0.022,
+          "YesNo": 0.155
+        }
+      },
+      "untraced": {
+        "n": 400,
+        "gold_null": 22,
+        "hint_share": {
+          "How": 0.018,
+          "List": 0.04,
+          "MathematicalReasoning": 0.205,
+          "MultiConditions": 0.185,
+          "What": 0.18,
+          "When": 0.098,
+          "Where": 0.107,
+          "Who": 0.055,
+          "Why": 0.035,
+          "YesNo": 0.158
+        }
+      }
+    },
+    "repro": {
+      "hp": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.8024193548387096,
+        "F1": 0.88252259457957,
+        "R1": 0.8448183210442086,
+        "MET": 0.8517080620795486,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 893,
+          "gold_answerable_pred_unanswerable": 53,
+          "gold_unanswerable_pred_answerable": 11,
+          "gold_unanswerable_pred_unanswerable": 35
+        },
+        "answerability_f1": {
+          "Answerable": 0.9654054054054054,
+          "Unanswerable": 0.5223880597014925
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 3.651209677419355,
+          "median": 2.0,
+          "p95": 15,
+          "max": 70,
+          "k_equals_one_rate": 0.33064516129032256
+        },
+        "stored_overall_EM": 0.8024193548387096,
+        "stored_overall_F1": 0.8822833602903191
+      },
+      "no_hp": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.8034274193548387,
+        "F1": 0.8791104584825193,
+        "R1": 0.842419555065669,
+        "MET": 0.8470531472604795,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 883,
+          "gold_answerable_pred_unanswerable": 63,
+          "gold_unanswerable_pred_answerable": 5,
+          "gold_unanswerable_pred_unanswerable": 41
+        },
+        "answerability_f1": {
+          "Answerable": 0.9629225736095965,
+          "Unanswerable": 0.5466666666666666
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 3.3538306451612905,
+          "median": 2.0,
+          "p95": 10,
+          "max": 70,
+          "k_equals_one_rate": 0.36794354838709675
+        },
+        "stored_overall_EM": 0.8024193548387096,
+        "stored_overall_F1": 0.8789582925093143
+      },
+      "FS": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.6733870967741935,
+        "F1": 0.7862510497466993,
+        "R1": 0.7346240455001276,
+        "MET": 0.7355233542328877,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 904,
+          "gold_answerable_pred_unanswerable": 42,
+          "gold_unanswerable_pred_answerable": 9,
+          "gold_unanswerable_pred_unanswerable": 37
+        },
+        "answerability_f1": {
+          "Answerable": 0.9725658956428188,
+          "Unanswerable": 0.592
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 1.0,
+          "median": 1.0,
+          "p95": 1,
+          "max": 1,
+          "k_equals_one_rate": 1.0
+        },
+        "stored_overall_EM": 0.6713709677419355,
+        "stored_overall_F1": 0.7863624802898793
+      },
+      "ZS": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.6310483870967742,
+        "F1": 0.7613549374575261,
+        "R1": 0.6835747016172963,
+        "MET": 0.682926413424968,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 909,
+          "gold_answerable_pred_unanswerable": 37,
+          "gold_unanswerable_pred_answerable": 13,
+          "gold_unanswerable_pred_unanswerable": 33
+        },
+        "answerability_f1": {
+          "Answerable": 0.9732334047109208,
+          "Unanswerable": 0.5689655172413792
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 1.0,
+          "median": 1.0,
+          "p95": 1,
+          "max": 1,
+          "k_equals_one_rate": 1.0
+        },
+        "stored_overall_EM": 0.623991935483871,
+        "stored_overall_F1": 0.7615903522987828
+      },
+      "CoT": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.594758064516129,
+        "F1": 0.7401094401356203,
+        "R1": 0.657228529497021,
+        "MET": 0.6578209775289469,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 911,
+          "gold_answerable_pred_unanswerable": 35,
+          "gold_unanswerable_pred_answerable": 13,
+          "gold_unanswerable_pred_unanswerable": 33
+        },
+        "answerability_f1": {
+          "Answerable": 0.9743315508021391,
+          "Unanswerable": 0.5789473684210527
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 1.0,
+          "median": 1.0,
+          "p95": 1,
+          "max": 1,
+          "k_equals_one_rate": 1.0
+        },
+        "stored_overall_EM": 0.5917338709677419,
+        "stored_overall_F1": 0.7403015618089236
+      },
+      "TD": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.5997983870967742,
+        "F1": 0.7400818538157327,
+        "R1": 0.6524429820133867,
+        "MET": 0.6516929488055062,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 906,
+          "gold_answerable_pred_unanswerable": 40,
+          "gold_unanswerable_pred_answerable": 13,
+          "gold_unanswerable_pred_unanswerable": 33
+        },
+        "answerability_f1": {
+          "Answerable": 0.9715817694369974,
+          "Unanswerable": 0.5546218487394958
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 1.0,
+          "median": 1.0,
+          "p95": 1,
+          "max": 1,
+          "k_equals_one_rate": 1.0
+        },
+        "stored_overall_EM": 0.59375,
+        "stored_overall_F1": 0.7400935217271473
+      },
+      "abl_hp": {
+        "n": 395,
+        "missing_predictions": 597,
+        "EM": 0.579746835443038,
+        "F1": 0.6884639508959485,
+        "R1": 0.6317050995272412,
+        "MET": 0.6393516960799369,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 338,
+          "gold_answerable_pred_unanswerable": 24,
+          "gold_unanswerable_pred_answerable": 13,
+          "gold_unanswerable_pred_unanswerable": 20
+        },
+        "answerability_f1": {
+          "Answerable": 0.9481065918653575,
+          "Unanswerable": 0.5194805194805195
+        },
+        "candidate_stats": {
+          "count": 395,
+          "mean": 1.2151898734177216,
+          "median": 1,
+          "p95": 2,
+          "max": 2,
+          "k_equals_one_rate": 0.7848101265822784
+        },
+        "stored_overall_EM": 0.579746835443038,
+        "stored_overall_F1": 0.6886879956234228
+      },
+      "abl_no_hp": {
+        "n": 983,
+        "missing_predictions": 9,
+        "EM": 0.5991861648016277,
+        "F1": 0.7439502256355083,
+        "R1": 0.6800663995971628,
+        "MET": 0.6912163276252482,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 885,
+          "gold_answerable_pred_unanswerable": 54,
+          "gold_unanswerable_pred_answerable": 13,
+          "gold_unanswerable_pred_unanswerable": 31
+        },
+        "answerability_f1": {
+          "Answerable": 0.9635274904735982,
+          "Unanswerable": 0.48062015503875966
+        },
+        "candidate_stats": {
+          "count": 983,
+          "mean": 1.0701932858596135,
+          "median": 1,
+          "p95": 2,
+          "max": 3,
+          "k_equals_one_rate": 0.930824008138352
+        },
+        "stored_overall_EM": 0.5961342828077314,
+        "stored_overall_F1": 0.7439199036279237
+      },
+      "hp_first_candidate": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.6774193548387096,
+        "F1": 0.8003039007428008,
+        "R1": 0.7531149049887695,
+        "MET": 0.7638662164151448,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 896,
+          "gold_answerable_pred_unanswerable": 50,
+          "gold_unanswerable_pred_answerable": 11,
+          "gold_unanswerable_pred_unanswerable": 35
+        },
+        "answerability_f1": {
+          "Answerable": 0.9670804101457097,
+          "Unanswerable": 0.5343511450381679
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 3.651209677419355,
+          "median": 2.0,
+          "p95": 15,
+          "max": 70,
+          "k_equals_one_rate": 0.33064516129032256
+        }
+      },
+      "no_hp_first_candidate": {
+        "n": 992,
+        "missing_predictions": 0,
+        "EM": 0.6834677419354839,
+        "F1": 0.8007803315954669,
+        "R1": 0.7560039045634532,
+        "MET": 0.7658796528520577,
+        "answerability_confusion": {
+          "gold_answerable_pred_answerable": 886,
+          "gold_answerable_pred_unanswerable": 60,
+          "gold_unanswerable_pred_answerable": 5,
+          "gold_unanswerable_pred_unanswerable": 41
+        },
+        "answerability_f1": {
+          "Answerable": 0.9646162221012521,
+          "Unanswerable": 0.5578231292517007
+        },
+        "candidate_stats": {
+          "count": 992,
+          "mean": 3.3538306451612905,
+          "median": 2.0,
+          "p95": 10,
+          "max": 70,
+          "k_equals_one_rate": 0.36794354838709675
+        }
+      }
+    },
+    "ablation": {
+      "abl_hp": {
+        "ablation_block": {
+          "name": "without_stage_4_answer_normalization",
+          "source_predictions": "outputs\\poma\\poma_qas_test_gpt4o_hp.json",
+          "source_traces": "outputs\\poma\\poma_qas_test_gpt4o_hp_traces.json",
+          "answer_source": "steps.3_specialists[*].answer",
+          "stage_4_answer_normalization": "skipped",
+          "source_prediction_count": 992,
+          "evaluated_prediction_count": 395,
+          "skipped_missing_stage3_count": 597
+        },
+        "n_predictions": 395,
+        "EM_on_available": 0.579746835443038,
+        "correct": 229,
+        "EM_over_992_missing_as_wrong": 0.23084677419354838,
+        "implied_price_usd_per_M_tokens": {
+          "prompt": 0.14999715585187764,
+          "completion": 0.60009132630548
+        },
+        "candidate_len_dist": {
+          "1": 310,
+          "2": 85
+        }
+      },
+      "abl_no_hp": {
+        "ablation_block": {
+          "name": "without_stage_4_answer_normalization",
+          "source_predictions": "outputs\\poma\\poma_qas_test_gpt4o_no_hp.json",
+          "source_traces": "outputs\\poma\\poma_qas_test_gpt4o_no_hp_traces.json",
+          "answer_source": "steps.3_specialists[*].answer",
+          "stage_4_answer_normalization": "skipped",
+          "source_prediction_count": 992,
+          "evaluated_prediction_count": 983,
+          "skipped_missing_stage3_count": 9
+        },
+        "n_predictions": 983,
+        "EM_on_available": 0.5991861648016277,
+        "correct": 589,
+        "EM_over_992_missing_as_wrong": 0.59375,
+        "implied_price_usd_per_M_tokens": {
+          "prompt": 0.15000055434725357,
+          "completion": 0.5999826484648522
+        },
+        "candidate_len_dist": {
+          "1": 915,
+          "2": 67,
+          "3": 1
+        }
+      }
+    },
+    "price_check": {
+      "hp": {
+        "prompt": 0.050000511246393264,
+        "completion": 0.39999743630369744
+      },
+      "no_hp": {
+        "prompt": 0.049999023856470176,
+        "completion": 0.40000315531947556
+      }
+    },
+    "wo_AN_qwen": {
+      "hp": {
+        "subset_n": 592,
+        "raw_best_of_K_all_specialists": {
+          "n": 592,
+          "EM": 0.6824324324324325,
+          "EM_correct": 404.0,
+          "F1": 0.8137074031851946,
+          "R1": 0.7656112212278153,
+          "MET": 0.7746929933028769
+        },
+        "raw_best_of_K_trace_raw_answers_field": {
+          "n": 592,
+          "EM": 0.6824324324324325,
+          "EM_correct": 404.0,
+          "F1": 0.8137074031851946,
+          "R1": 0.7656112212278153,
+          "MET": 0.7746929933028769
+        },
+        "raw_first_specialist_single": {
+          "n": 592,
+          "EM": 0.6773648648648649,
+          "EM_correct": 401.0,
+          "F1": 0.8104531367730334,
+          "R1": 0.761669779786374,
+          "MET": 0.7711610522709358
+        },
+        "with_AN_best_of_K_same_subset": {
+          "n": 592,
+          "EM": 0.7956081081081081,
+          "EM_correct": 471.0,
+          "F1": 0.8795765608395337,
+          "R1": 0.8444288852447557,
+          "MET": 0.8498237138019091
+        },
+        "with_AN_first_candidate_same_subset": {
+          "n": 592,
+          "EM": 0.6773648648648649,
+          "EM_correct": 401.0,
+          "F1": 0.8103775527143985,
+          "R1": 0.7619769050934991,
+          "MET": 0.771313231477169
+        },
+        "AN_flips_wrong_to_right": 67,
+        "AN_flips_right_to_wrong": 0
+      },
+      "no_hp": {
+        "subset_n": 621,
+        "raw_best_of_K_all_specialists": {
+          "n": 621,
+          "EM": 0.6859903381642513,
+          "EM_correct": 426.0,
+          "F1": 0.8087262867329212,
+          "R1": 0.7655593314012822,
+          "MET": 0.7730102388679362
+        },
+        "raw_best_of_K_trace_raw_answers_field": {
+          "n": 621,
+          "EM": 0.6859903381642513,
+          "EM_correct": 426.0,
+          "F1": 0.8087262867329212,
+          "R1": 0.7655593314012822,
+          "MET": 0.7730102388679362
+        },
+        "raw_first_specialist_single": {
+          "n": 621,
+          "EM": 0.677938808373591,
+          "EM_correct": 421.0,
+          "F1": 0.8031959430383262,
+          "R1": 0.7588497232423987,
+          "MET": 0.7666143266749225
+        },
+        "with_AN_best_of_K_same_subset": {
+          "n": 621,
+          "EM": 0.7922705314009661,
+          "EM_correct": 492.0,
+          "F1": 0.8715188624622404,
+          "R1": 0.8356594054598997,
+          "MET": 0.8376102968762503
+        },
+        "with_AN_first_candidate_same_subset": {
+          "n": 621,
+          "EM": 0.679549114331723,
+          "EM_correct": 422.0,
+          "F1": 0.8047295677603568,
+          "R1": 0.7595398543673125,
+          "MET": 0.7673988347058074
+        },
+        "AN_flips_wrong_to_right": 66,
+        "AN_flips_right_to_wrong": 0
+      }
+    },
+    "n177_check": {
+      "POMA_correct_992": 796,
+      "ZS_correct_992": 626,
+      "difference": 170,
+      "POMA_right_ZS_wrong": 215,
+      "ZS_right_POMA_wrong": 45,
+      "68.41_as_fraction": {
+        "405/592": 0.6841216216216216,
+        "678/992": 0.6834677419354839,
+        "679/992": 0.6844758064516129
+      }
+    }
+  },
+  "q1_extra": {
+    "traced_raw_first_vs_first_candidate_same_correctness": "590/592",
+    "traced": {
+      "raw_bestK": 404,
+      "raw_first": 401,
+      "with_AN_bestK": 471,
+      "n": 592
+    },
+    "untraced": {
+      "first_candidate": 271,
+      "with_AN_bestK": 325,
+      "n": 400
+    },
+    "ESTIMATE_raw_bestK_untraced": 273.0,
+    "ESTIMATE_wo_AN_EM_992_pct": 68.25,
+    "ESTIMATE_AN_flips_992": 119.0,
+    "ESTIMATE_AN_flips_992_by_traced_rate": 112.3,
+    "what_would_be_needed_for_62.40_(619/992)": {
+      "untraced_raw_correct_needed": 215,
+      "as_pct_of_400": 53.75,
+      "untraced_first_candidate_pct_observed": 67.75
+    }
+  },
+  "results_q2_q10": {
+    "Q2": {
+      "hp_all992_from_predicted_hints": {
+        "1": 880,
+        "2": 112
+      },
+      "hp_all992_single_share_pct": 88.71,
+      "hp_all992_mean": 1.1129032258064515,
+      "hp_traced592_from_router": {
+        "1": 528,
+        "2": 64
+      },
+      "hp_traced592_single_share_pct": 89.19,
+      "gold_hint_routing_all992 (no_hp run)": {
+        "1": 911,
+        "2": 78,
+        "3": 3
+      },
+      "gold_hint_routing_single_share_pct": 91.83,
+      "gold_hint_routing_mean": 1.0846774193548387,
+      "note": "router == predicted_hints (1:1, verified on all 592 traced); so #specialists for all 992 = len(predicted_hints) in main output"
+    },
+    "Q3": {
+      "n_multi_traced": 64,
+      "disagree_counts": {
+        "L0_raw_string_differs": 10,
+        "L1_repo_normalize_text_differs": 10,
+        "L2_canon_equal_differs(normalize_text + order-free list multiset + null==null)": 8,
+        "L3_repo_AN_deterministic_variant_sets_disjoint": 8,
+        "L4_recorded_AN_variant_sets_disjoint (incl. LLM variants & Null forcing)": 8
+      },
+      "hedge_counts": {
+        "raw_mixed_null_nonnull": 2,
+        "AN_level_mixed": 2
+      },
+      "disagree_rate_pct_of_multi": {
+        "L0": 15.62,
+        "L1": 15.62,
+        "L2": 12.5,
+        "L3": 12.5,
+        "L4": 12.5
+      },
+      "disagree_rate_pct_of_traced592": {
+        "L0": 1.69,
+        "L4": 1.35
+      },
+      "surface_only_disagreements_examples": [
+        {
+          "qa_id": "99924_0_13",
+          "raw": [
+            "Lombardia, Lazio, Sicilia",
+            "Lazio, Lombardia, Sicilia"
+          ]
+        },
+        {
+          "qa_id": "99928_3_44",
+          "raw": [
+            "AMOLED: 90.0%, Bảng PDP: 30.5%, Màn hình LCD cỡ lớn: 26.2%",
+            "AMOLED: 90.0%; Bảng PDP: 30.5%; Màn hình LCD cỡ lớn: 26.2%"
+          ]
+        }
+      ],
+      "agent_pairs": {
+        "MultiConditions+MathematicalReasoning": 14,
+        "YesNo+MultiConditions": 8,
+        "What+MultiConditions": 8,
+        "Who+MultiConditions": 6,
+        "What+MathematicalReasoning": 5,
+        "MultiConditions+YesNo": 4,
+        "MultiConditions+What": 3,
+        "MathematicalReasoning+MultiConditions": 3,
+        "MathematicalReasoning+Where": 2,
+        "MultiConditions+When": 2,
+        "Who+MathematicalReasoning": 2,
+        "When+MathematicalReasoning": 1,
+        "List+When": 1,
+        "MathematicalReasoning+List": 1,
+        "YesNo+MathematicalReasoning": 1,
+        "MultiConditions+List": 1,
+        "Where+MathematicalReasoning": 1,
+        "What+When": 1
+      },
+      "agent_pairs_disagree_L4": {
+        "MathematicalReasoning+MultiConditions": 2,
+        "MultiConditions+MathematicalReasoning": 2,
+        "What+MultiConditions": 1,
+        "List+When": 1,
+        "MathematicalReasoning+List": 1,
+        "Who+MathematicalReasoning": 1
+      }
+    },
+    "Q4": {
+      "per_specialist_correctness": "specialist's own AN variant set (recorded for single-specialist; replayed from recorded AN LLM calls + deterministic rules for 2-specialist), best-of-K within that set, repo evaluator EM",
+      "agreement_definition": "L4: specialists' AN variant sets intersect under canon_equal",
+      "table": {
+        "multi_agree_all_correct": {
+          "n": 45,
+          "pct_of_992": 4.54,
+          "bestK_wrong_in_cat": 0,
+          "pct_of_bestK_errors": 0.0,
+          "first_candidate_wrong_in_cat": 6,
+          "pct_of_first_candidate_errors": 1.88
+        },
+        "multi_agree_wrong": {
+          "n": 11,
+          "pct_of_992": 1.11,
+          "bestK_wrong_in_cat": 11,
+          "pct_of_bestK_errors": 5.61,
+          "first_candidate_wrong_in_cat": 11,
+          "pct_of_first_candidate_errors": 3.44
+        },
+        "multi_disagree_ge1_correct": {
+          "n": 4,
+          "pct_of_992": 0.4,
+          "bestK_wrong_in_cat": 0,
+          "pct_of_bestK_errors": 0.0,
+          "first_candidate_wrong_in_cat": 3,
+          "pct_of_first_candidate_errors": 0.94
+        },
+        "multi_disagree_none_correct": {
+          "n": 4,
+          "pct_of_992": 0.4,
+          "bestK_wrong_in_cat": 4,
+          "pct_of_bestK_errors": 2.04,
+          "first_candidate_wrong_in_cat": 4,
+          "pct_of_first_candidate_errors": 1.25
+        },
+        "multi_untraced_correct_bestK": {
+          "n": 38,
+          "pct_of_992": 3.83,
+          "bestK_wrong_in_cat": 0,
+          "pct_of_bestK_errors": 0.0,
+          "first_candidate_wrong_in_cat": 9,
+          "pct_of_first_candidate_errors": 2.81
+        },
+        "multi_untraced_wrong_bestK": {
+          "n": 10,
+          "pct_of_992": 1.01,
+          "bestK_wrong_in_cat": 10,
+          "pct_of_bestK_errors": 5.1,
+          "first_candidate_wrong_in_cat": 10,
+          "pct_of_first_candidate_errors": 3.12
+        },
+        "single_correct_first_variant": {
+          "n": 603,
+          "pct_of_992": 60.79,
+          "bestK_wrong_in_cat": 0,
+          "pct_of_bestK_errors": 0.0,
+          "first_candidate_wrong_in_cat": 0,
+          "pct_of_first_candidate_errors": 0.0
+        },
+        "single_correct_only_nonfirst_variant": {
+          "n": 106,
+          "pct_of_992": 10.69,
+          "bestK_wrong_in_cat": 0,
+          "pct_of_bestK_errors": 0.0,
+          "first_candidate_wrong_in_cat": 106,
+          "pct_of_first_candidate_errors": 33.12
+        },
+        "single_wrong": {
+          "n": 171,
+          "pct_of_992": 17.24,
+          "bestK_wrong_in_cat": 171,
+          "pct_of_bestK_errors": 87.24,
+          "first_candidate_wrong_in_cat": 171,
+          "pct_of_first_candidate_errors": 53.44
+        }
+      },
+      "errors_bestK_total": 196,
+      "errors_first_candidate_total": 320,
+      "multi_traced_resolvers": {
+        "n": 64,
+        "first_spec_first_variant_ok": 40,
+        "oracle_spec_first_variant_ok": 43,
+        "oracle_spec_bestK_ok": 49,
+        "recorded_first_candidate_ok": 40,
+        "dis_n": 8,
+        "dis_first_ok": 1,
+        "dis_oracle_first_variant_ok": 4,
+        "dis_oracle_bestK_ok": 4,
+        "dis_gain_first_variant": 3,
+        "dis_gain_bestK_over_first_spec_bestK": 3,
+        "dis_maxconf_ok": 1,
+        "dis_conf_tie": 5,
+        "dis_prefer_nonnull_ok": 1,
+        "dis_prefer_null_ok": 1
+      },
+      "upper_bounds_992": {
+        "bestK_union (current metric; any single-answer selector over existing candidates is capped here)": 796,
+        "first_candidate_single": 672,
+        "perfect_specialist_resolver_single_string (traced multi only; untraced 48 multi unchanged)": 675,
+        "perfect_resolver_gain_instances": 3,
+        "perfect_resolver_gain_pct_points": 0.3024193548387097,
+        "untraced_multi_48_bestK_correct": 38,
+        "untraced_multi_48_first_correct": 29,
+        "untraced_multi_48_gap_bestK_minus_first (max extra gain there)": 9
+      }
+    },
+    "Q5": {
+      "EM_bestK": 80.24,
+      "EM_first_candidate": 67.74,
+      "inflation_pts": 12.5,
+      "K_stats": {
+        "mean": 3.651209677419355,
+        "median": 2.0,
+        "max": 70,
+        "p95": 15,
+        "K1_share_pct": 33.06,
+        "dist_top": {
+          "1": 328,
+          "3": 267,
+          "2": 204,
+          "10": 45,
+          "4": 37,
+          "5": 24,
+          "15": 21,
+          "20": 16,
+          "8": 15,
+          "6": 14,
+          "35": 3,
+          "7": 3
+        }
+      },
+      "traced592_single_answer_policies": {
+        "n": 592,
+        "first_spec_raw": 401,
+        "first_spec_first_variant": 401,
+        "first_candidate": 401,
+        "bestK": 471,
+        "first_spec_det_bestK": 461,
+        "any_spec_det_bestK": 464,
+        "majority_tie_first": 401,
+        "max_conf_first_variant": 401
+      },
+      "inflation_decomposition": {
+        "yes/no synonym (Có/Đúng/Phải...)": 49,
+        "text variant (LLM-shortened / context strip / spacing)": 28,
+        "number/date/unit format variant": 43,
+        "list space-joined variant": 1,
+        "second_specialist_only": 3
+      },
+      "inflation_examples": {
+        "yes/no synonym (Có/Đúng/Phải...)": [
+          {
+            "qa_id": "99917_3_67",
+            "first": "Có",
+            "hit": "Phải",
+            "gold": "Phải",
+            "hit_index": 2
+          },
+          {
+            "qa_id": "99935_4_100",
+            "first": "Có",
+            "hit": "Đúng",
+            "gold": "Đúng",
+            "hit_index": 1
+          },
+          {
+            "qa_id": "53_2_153",
+            "first": "Có",
+            "hit": "Đúng",
+            "gold": "Đúng",
+            "hit_index": 1
+          },
+          {
+            "qa_id": "55_2_132",
+            "first": "Có",
+            "hit": "Đúng",
+            "gold": "Đúng",
+            "hit_index": 1
+          }
+        ],
+        "text variant (LLM-shortened / context strip / spacing)": [
+          {
+            "qa_id": "48_3_142",
+            "first": "37",
+            "hit": "Atlantic Tower",
+            "gold": "Atlantic Tower",
+            "hit_index": 2
+          },
+          {
+            "qa_id": "56_2_89",
+            "first": "The Hub*",
+            "hit": "The Hub",
+            "gold": "The Hub",
+            "hit_index": 1
+          },
+          {
+            "qa_id": "6_0_1",
+            "first": "thứ nhất",
+            "hit": "Nhất",
+            "gold": "nhất",
+            "hit_index": 4
+          },
+          {
+            "qa_id": "10_1_48",
+            "first": "Bài hát vàng của năm (年度金曲)",
+            "hit": "Bài hát vàng của năm",
+            "gold": "Bài hát vàng của năm",
+            "hit_index": 1
+          }
+        ],
+        "number/date/unit format variant": [
+          {
+            "qa_id": "1_3_292",
+            "first": "1709",
+            "hit": "Năm 1709",
+            "gold": "Năm 1709",
+            "hit_index": 1
+          },
+          {
+            "qa_id": "6_0_31",
+            "first": "236 m (774 ft)",
+            "hit": "236",
+            "gold": "236",
+            "hit_index": 1
+          },
+          {
+            "qa_id": "99918_0_10",
+            "first": "30 tháng 5 năm 2023",
+            "hit": "Ngày 30 tháng 5 năm 2023",
+            "gold": "Ngày 30 tháng 5 năm 2023",
+            "hit_index": 1
+          },
+          {
+            "qa_id": "9990_1_21",
+            "first": "7 ghế",
+            "hit": "7",
+            "gold": "7",
+            "hit_index": 1
+          }
+        ],
+        "list space-joined variant": [
+          {
+            "qa_id": "11_1_244",
+            "first": "Nguyễn Quốc Khải Hoàn, Nguyễn Viết Tường, Nguyễn Hữu Kim Sơn, Hoàng Quý Phước",
+            "hit": "Nguyễn Quốc Khải Hoàn Nguyễn Viết Tường Nguyễn Hữu Kim Sơn Hoàng Quý Phước",
+            "gold": "Nguyễn Quốc Khải Hoàn Nguyễn Viết Tường Nguyễn Hữu Kim Sơn Hoàng Quý Phước",
+            "hit_index": 4
+          }
+        ],
+        "second_specialist_only": [
+          {
+            "qa_id": "9991_4_157",
+            "first": "Lê Quang Chữ",
+            "hit": "Trần Quốc Ân",
+            "gold": "Trần Quốc Ân",
+            "hit_index": 1
+          },
+          {
+            "qa_id": "32_4_90",
+            "first": "dòng One",
+            "hit": "One",
+            "gold": "One",
+            "hit_index": 5
+          },
+          {
+            "qa_id": "99928_2_51",
+            "first": "2",
+            "hit": "6",
+            "gold": "6",
+            "hit_index": 1
+          }
+        ]
+      }
+    },
+    "gate_firing": {
+      "traced_multi_disagree_L4": 8,
+      "untraced_multi_mixed_set_lower_bound": 6
+    },
+    "Q6": {
+      "gold_null": 46,
+      "gold_answerable": 946,
+      "rule_set_contains_null (paper)": {
+        "false_abstentions": 53,
+        "hallucinations": 11
+      },
+      "rule_literal_Null_string_only": {
+        "false_abstentions": 53,
+        "hallucinations": 11
+      },
+      "rule_single_first_candidate": {
+        "false_abstentions": 50,
+        "hallucinations": 11
+      },
+      "FA_set_but_EM_correct_via_nonnull_candidate": 4,
+      "candidate_sets_with_both_null_and_nonnull_992": 8,
+      "candidate_sets_with_both_by_gold": {
+        "gold_null": 0,
+        "gold_answerable": 8
+      },
+      "FA_set_by_AN_pattern": {
+        "single_null": 39,
+        "multi_mixed(hedge)": 8,
+        "multi_unanimous_null": 6
+      },
+      "H_set_by_AN_pattern": {
+        "single_nonnull": 11
+      },
+      "FA_first_by_AN_pattern": {
+        "single_null": 39,
+        "multi_mixed(hedge)": 5,
+        "multi_unanimous_null": 6
+      },
+      "H_first_by_AN_pattern": {
+        "single_nonnull": 11
+      },
+      "FA_set_by_raw_pattern(traced)": {
+        "untraced": 19,
+        "single_raw_null": 26,
+        "multi_raw_unanimous_null": 6,
+        "multi_raw_mixed": 2
+      },
+      "H_set_by_raw_pattern(traced)": {
+        "untraced": 7,
+        "single_raw_nonnull": 4
+      },
+      "gold_null_by_AN_pattern": {
+        "single_null": 35,
+        "single_nonnull": 11
+      },
+      "hedge_trigger_visibility": {
+        "answerability_errors_set_rule": 64,
+        "visible_to_hedge_trigger_set_rule (specialist-level mixed OR single-set mixed)": 8,
+        "visible_specialist_level_mixed_only": 8,
+        "pct_visible_set_rule": 12.5,
+        "pct_visible_specialist_level_only": 12.5,
+        "answerability_errors_first_rule": 61,
+        "visible_first_rule": 5,
+        "pct_visible_first_rule": 8.2,
+        "untraced_multi_among_errors_set_rule": 6,
+        "all_gold_null_routed_to_single_specialist": true
+      },
+      "mixed_sets": {
+        "n": 8,
+        "traced": 2,
+        "first_candidate_is_null": 5,
+        "first_candidate_correct": 1,
+        "first_nonnull_candidate_correct": 4,
+        "bestK_correct": 4
+      },
+      "FA_null_source_traced": {
+        "untraced": 19,
+        "specialist_emitted_Null": 40
+      },
+      "H_set_ids": [
+        "99913_2_57",
+        "99914_0_11",
+        "99924_3_148",
+        "99932_2_91",
+        "99935_4_114",
+        "9995_1_58",
+        "99921_1_6",
+        "99924_1_77",
+        "99939_1_26",
+        "99921_2_84",
+        "99925_2_45"
+      ]
+    },
+    "Q7": {
+      "n_specialist_outputs": 656,
+      "confidence_distribution": {
+        "1.0": 511,
+        "0.95": 94,
+        "0.5": 14,
+        "0.0": 13,
+        "0.15": 9,
+        "0.9": 7,
+        "0.8": 3,
+        "0.3": 2,
+        "0.2": 2,
+        "0.99": 1
+      },
+      "share_eq_1.0_pct": 77.9,
+      "share_ge_0.9_pct": 93.45,
+      "AUROC_conf_vs_correct_an_bestK": 0.6632682724252492,
+      "AUROC_conf_vs_correct_an_first": 0.5914221218961625,
+      "AUROC_conf_vs_correct_raw": 0.5914221218961625,
+      "AUROC_nonnull_only_bestK": 0.587741935483871,
+      "accuracy_by_conf_bucket": {
+        "1.0": {
+          "n": 511,
+          "acc_pct": 85.32
+        },
+        "[0.9,1.0)": {
+          "n": 102,
+          "acc_pct": 61.76
+        },
+        "<0.7": {
+          "n": 40,
+          "acc_pct": 40.0
+        },
+        "[0.7,0.9)": {
+          "n": 3,
+          "acc_pct": 33.33
+        }
+      },
+      "confidence_of_Null_answers": {
+        "0.0": 13,
+        "0.5": 12,
+        "0.15": 9,
+        "1.0": 8,
+        "0.95": 8,
+        "0.9": 4
+      },
+      "disagreement_cases": {
+        "dis_n": 8,
+        "dis_first_ok": 1,
+        "dis_maxconf_ok": 1,
+        "dis_conf_tie": 5,
+        "dis_prefer_nonnull_ok": 1,
+        "dis_prefer_null_ok": 1,
+        "dis_oracle_first_variant_ok": 4
+      }
+    },
+    "Q9": {
+      "EM_single_string_current_evaluator": {
+        "POMA_bestK": 80.24,
+        "POMA_first": 67.74,
+        "FS": 67.34,
+        "FS_detK": 75.81,
+        "ZS": 63.1,
+        "ZS_detK": 68.45,
+        "CoT": 59.48,
+        "CoT_detK": 65.83,
+        "TD": 59.98,
+        "TD_detK": 66.53
+      },
+      "2x2": {
+        "POMA_bestK_vs_FS": {
+          "both_right": 622,
+          "only_A": 174,
+          "only_B": 46,
+          "both_wrong": 150,
+          "expected_both_wrong_if_independent": 64.0,
+          "both_wrong_ratio_obs_over_exp": 2.34,
+          "cohen_kappa": 0.43872932268949055,
+          "phi": 0.46417672420408035
+        },
+        "POMA_first_vs_FS": {
+          "both_right": 588,
+          "only_A": 84,
+          "only_B": 80,
+          "both_wrong": 240,
+          "expected_both_wrong_if_independent": 104.5,
+          "both_wrong_ratio_obs_over_exp": 2.3,
+          "cohen_kappa": 0.6229605458320974,
+          "phi": 0.6229868887559074
+        },
+        "POMA_first_vs_FS_detK": {
+          "both_right": 598,
+          "only_A": 74,
+          "only_B": 154,
+          "both_wrong": 166,
+          "expected_both_wrong_if_independent": 77.4,
+          "both_wrong_ratio_obs_over_exp": 2.14,
+          "cohen_kappa": 0.43726114649681536,
+          "phi": 0.44604260586617644
+        },
+        "POMA_bestK_vs_FS_detK": {
+          "both_right": 702,
+          "only_A": 94,
+          "only_B": 50,
+          "both_wrong": 146,
+          "expected_both_wrong_if_independent": 47.4,
+          "both_wrong_ratio_obs_over_exp": 3.08,
+          "cohen_kappa": 0.5779122541603631,
+          "phi": 0.5827794342622856
+        }
+      },
+      "pairwise_kappa_on_correctness": {
+        "POMA_first~FS": {
+          "kappa": 0.623,
+          "both_wrong": 240,
+          "exp_indep": 104.5
+        },
+        "POMA_first~ZS": {
+          "kappa": 0.547,
+          "both_wrong": 241,
+          "exp_indep": 118.1
+        },
+        "POMA_first~CoT": {
+          "kappa": 0.494,
+          "both_wrong": 244,
+          "exp_indep": 129.7
+        },
+        "POMA_first~TD": {
+          "kappa": 0.499,
+          "both_wrong": 243,
+          "exp_indep": 128.1
+        },
+        "FS~ZS": {
+          "kappa": 0.658,
+          "both_wrong": 268,
+          "exp_indep": 119.5
+        },
+        "FS~CoT": {
+          "kappa": 0.607,
+          "both_wrong": 272,
+          "exp_indep": 131.3
+        },
+        "FS~TD": {
+          "kappa": 0.625,
+          "both_wrong": 274,
+          "exp_indep": 129.7
+        },
+        "ZS~CoT": {
+          "kappa": 0.728,
+          "both_wrong": 320,
+          "exp_indep": 148.3
+        },
+        "ZS~TD": {
+          "kappa": 0.692,
+          "both_wrong": 309,
+          "exp_indep": 146.5
+        },
+        "CoT~TD": {
+          "kappa": 0.751,
+          "both_wrong": 340,
+          "exp_indep": 160.9
+        }
+      },
+      "oracle_any_correct": {
+        "POMA_bestK+FS+ZS+CoT+TD": 87.5,
+        "POMA_first+FS+ZS+CoT+TD": 79.64,
+        "POMA_first+FS": 75.81,
+        "FS+ZS+CoT+TD (baselines only)": 76.41,
+        "POMA_first+FS_detK+ZS_detK+CoT_detK+TD_detK": 87.1
+      },
+      "POMA_first_wrong_but_some_baseline_right": 118,
+      "POMA_bestK_wrong_but_some_baseline_right": 72,
+      "vote_EM_pct": {
+        "vote5_single": 67.64,
+        "vote5_detK": 75.91,
+        "gate_POMAvsFS_single": 69.86,
+        "gate_POMAvsFS_detK": 80.24,
+        "gate_POMAvsFS_bestK_keepPOMAset": 80.44,
+        "gate_specdis_single": 68.15,
+        "POMA_first_null->FS": 68.65
+      },
+      "vote_counts": {
+        "vote5_single": 671,
+        "vote5_detK": 753,
+        "vote5_unanimous": 560,
+        "gate_POMAvsFS_fires": 217,
+        "gate_POMAvsFS_single": 693,
+        "gate_POMAvsFS_detK": 796,
+        "gate_POMAvsFS_bestK_keepPOMAset": 798,
+        "gate_specdis_single": 676,
+        "POMA_first_null->FS": 681,
+        "gate_specdis_fires": 8
+      },
+      "notes": "baselines are single-string (no AN). *_detK = baseline scored best-of-K over the repo's deterministic AN variants (boolean synonyms, number/date/unit forms, rank forms, spacing/context) -- same canonicalization for all systems. Voting clusters answers whose deterministic variant sets intersect under canon_equal."
+    },
+    "Q10": {
+      "How": {
+        "n": 13,
+        "single_correct_first_variant": 6,
+        "bestK_ok": 6,
+        "first_ok": 6,
+        "FS_ok": 5,
+        "multi": 0,
+        "single_wrong": 7
+      },
+      "List": {
+        "n": 56,
+        "single_correct_first_variant": 36,
+        "bestK_ok": 39,
+        "first_ok": 37,
+        "FS_ok": 28,
+        "multi": 6,
+        "single_wrong": 13,
+        "multi_untraced_correct_bestK": 2,
+        "multi_untraced_wrong_bestK": 1,
+        "multi_disagree_none_correct": 1,
+        "single_correct_only_nonfirst_variant": 1,
+        "multi_agree_wrong": 2
+      },
+      "MathematicalReasoning": {
+        "n": 195,
+        "multi_untraced_wrong_bestK": 3,
+        "bestK_ok": 158,
+        "first_ok": 126,
+        "FS_ok": 132,
+        "multi": 28,
+        "single_wrong": 31,
+        "single_correct_first_variant": 109,
+        "multi_untraced_correct_bestK": 11,
+        "single_correct_only_nonfirst_variant": 27,
+        "multi_agree_all_correct": 10,
+        "multi_disagree_none_correct": 1,
+        "multi_agree_wrong": 2,
+        "multi_disagree_ge1_correct": 1
+      },
+      "MultiConditions": {
+        "n": 174,
+        "multi_untraced_correct_bestK": 17,
+        "bestK_ok": 138,
+        "first_ok": 121,
+        "FS_ok": 128,
+        "multi": 51,
+        "single_correct_only_nonfirst_variant": 9,
+        "single_correct_first_variant": 86,
+        "single_wrong": 28,
+        "multi_untraced_wrong_bestK": 3,
+        "multi_agree_all_correct": 24,
+        "multi_agree_wrong": 3,
+        "multi_disagree_none_correct": 2,
+        "multi_disagree_ge1_correct": 2
+      },
+      "What": {
+        "n": 183,
+        "single_correct_first_variant": 132,
+        "bestK_ok": 149,
+        "first_ok": 137,
+        "FS_ok": 131,
+        "multi": 11,
+        "single_wrong": 29,
+        "single_correct_only_nonfirst_variant": 11,
+        "multi_untraced_correct_bestK": 3,
+        "multi_untraced_wrong_bestK": 1,
+        "multi_agree_wrong": 3,
+        "multi_disagree_none_correct": 1,
+        "multi_agree_all_correct": 2,
+        "multi_disagree_ge1_correct": 1
+      },
+      "When": {
+        "n": 120,
+        "single_correct_first_variant": 83,
+        "bestK_ok": 102,
+        "first_ok": 86,
+        "FS_ok": 83,
+        "multi": 6,
+        "single_wrong": 16,
+        "single_correct_only_nonfirst_variant": 15,
+        "multi_untraced_wrong_bestK": 2,
+        "multi_agree_all_correct": 4
+      },
+      "Where": {
+        "n": 99,
+        "single_correct_first_variant": 71,
+        "bestK_ok": 78,
+        "first_ok": 74,
+        "FS_ok": 77,
+        "multi": 7,
+        "multi_untraced_correct_bestK": 2,
+        "single_wrong": 17,
+        "multi_untraced_wrong_bestK": 2,
+        "single_correct_only_nonfirst_variant": 4,
+        "multi_agree_wrong": 2,
+        "multi_disagree_ge1_correct": 1
+      },
+      "Who": {
+        "n": 54,
+        "single_correct_first_variant": 30,
+        "bestK_ok": 40,
+        "first_ok": 37,
+        "FS_ok": 37,
+        "multi": 10,
+        "multi_untraced_correct_bestK": 3,
+        "single_wrong": 13,
+        "multi_agree_all_correct": 5,
+        "multi_agree_wrong": 1,
+        "single_correct_only_nonfirst_variant": 1,
+        "multi_disagree_ge1_correct": 1
+      },
+      "Why": {
+        "n": 27,
+        "single_wrong": 14,
+        "bestK_ok": 12,
+        "first_ok": 11,
+        "FS_ok": 15,
+        "multi": 1,
+        "single_correct_first_variant": 11,
+        "multi_untraced_wrong_bestK": 1,
+        "single_correct_only_nonfirst_variant": 1
+      },
+      "YesNo": {
+        "n": 155,
+        "single_correct_only_nonfirst_variant": 43,
+        "bestK_ok": 139,
+        "first_ok": 92,
+        "FS_ok": 90,
+        "multi": 22,
+        "single_correct_first_variant": 75,
+        "multi_untraced_correct_bestK": 8,
+        "single_wrong": 15,
+        "multi_agree_all_correct": 13,
+        "multi_agree_wrong": 1
+      }
+    }
+  },
+  "results_q8_q11": {
+    "Q8": {
+      "n_evidence_items": 1596,
+      "evidence_item_literal_substring_of_flat_table_pct": 0.38,
+      "n_specialist_outputs": 656,
+      "outputs_with_empty_evidence": 8,
+      "empty_evidence_by_null": "{(False, False): 596, (True, False): 52, (True, True): 8}",
+      "nonnull_with_evidence": 596,
+      "cell_part_exact_match_rate_pct (all parts, pooled over nonnull outputs)": 97.36,
+      "cell_part_substring_match_rate_pct": 98.45,
+      "outputs_all_parts_exact_pct": 91.78,
+      "outputs_any_literal_item_pct": 1.01,
+      "base_accuracy_nonnull_with_evidence_pct": 83.22,
+      "predict_correct": {
+        "AUROC_parts_exact_frac": 0.5171975806451613,
+        "AUROC_parts_sub_frac": 0.5256149193548387,
+        "AUROC_literal_frac": 0.4940322580645161,
+        "grounded(all_parts_exact)->correct": {
+          "precision": 0.8372943327239488,
+          "recall": 0.9233870967741935,
+          "n_flagged": 547,
+          "base_rate": 0.8322147651006712
+        },
+        "grounded(parts_sub_frac==1)->correct": {
+          "precision": 0.8397887323943662,
+          "recall": 0.9616935483870968,
+          "n_flagged": 568,
+          "base_rate": 0.8322147651006712
+        },
+        "UNgrounded(parts_sub_frac<1) -> wrong": {
+          "precision": 0.32142857142857145,
+          "recall": 0.09,
+          "n_flagged": 28,
+          "base_rate": 0.16778523489932887
+        },
+        "acc_if_all_parts_exact_pct": 83.73,
+        "acc_if_not_all_parts_exact_pct": 77.55,
+        "AUROC_answer_in_table": 0.5698790322580645,
+        "answer_in_table_rate_pct": 69.63
+      },
+      "per_agent(n, pct_all_parts_exact, acc_pct)": {
+        "List": [
+          41,
+          95.12,
+          63.41
+        ],
+        "Who": [
+          22,
+          90.91,
+          77.27
+        ],
+        "MathematicalReasoning": [
+          167,
+          93.41,
+          81.44
+        ],
+        "When": [
+          67,
+          91.04,
+          83.58
+        ],
+        "MultiConditions": [
+          63,
+          85.71,
+          80.95
+        ],
+        "Where": [
+          53,
+          90.57,
+          90.57
+        ],
+        "YesNo": [
+          84,
+          94.05,
+          92.86
+        ],
+        "What": [
+          93,
+          93.55,
+          89.25
+        ],
+        "Why": [
+          6,
+          50.0,
+          16.67
+        ]
+      },
+      "null_checker": {
+        "hallucinated_outputs_traced": 4,
+        "hallucinated_all_parts_exact": 4,
+        "hallucinated_parts_sub_frac_mean": 1.0,
+        "correct_nonnull_all_parts_exact_pct": 92.34,
+        "wrong_nonnull_answerable_all_parts_exact_pct": 88.54,
+        "rule 'flag Null if evidence not fully grounded' on nonnull outputs": {
+          "flags": 49,
+          "flags_on_gold_null": 0,
+          "flags_on_answerable_correct (would become false abstentions)": 38
+        }
+      },
+      "null_outputs": {
+        "false_abstention_outputs": 40,
+        "FA_with_nonempty_evidence": 39,
+        "FA_with_all_parts_exact": 33,
+        "correct_null_outputs": 20,
+        "correctNull_with_nonempty_evidence": 13,
+        "correctNull_all_parts_exact": 13,
+        "AUROC_nonempty_evidence_for_FA_vs_correctNull": 0.6625
+      }
+    },
+    "Q11": {
+      "hint_metrics_main_hp_run": {
+        "count": 992,
+        "exact_set_accuracy": 0.6502016129032258,
+        "jaccard": 0.7105174731182796,
+        "micro": {
+          "precision": 0.7137681159420289,
+          "recall": 0.7323420074349443,
+          "f1": 0.7229357798165138
+        },
+        "macro": {
+          "precision": 0.7955533316854865,
+          "recall": 0.7033626164768692,
+          "f1": 0.7213975883836551
+        },
+        "per_label": {
+          "What": {
+            "support": 183,
+            "precision": 0.6809815950920245,
+            "recall": 0.6065573770491803,
+            "f1": 0.6416184971098265
+          },
+          "Where": {
+            "support": 99,
+            "precision": 0.7387387387387387,
+            "recall": 0.8282828282828283,
+            "f1": 0.780952380952381
+          },
+          "Who": {
+            "support": 54,
+            "precision": 0.8695652173913043,
+            "recall": 0.7407407407407407,
+            "f1": 0.7999999999999999
+          },
+          "When": {
+            "support": 120,
+            "precision": 0.8793103448275862,
+            "recall": 0.85,
+            "f1": 0.864406779661017
+          },
+          "Why": {
+            "support": 27,
+            "precision": 1.0,
+            "recall": 0.7037037037037037,
+            "f1": 0.8260869565217391
+          },
+          "How": {
+            "support": 13,
+            "precision": 1.0,
+            "recall": 0.3076923076923077,
+            "f1": 0.47058823529411764
+          },
+          "YesNo": {
+            "support": 155,
+            "precision": 0.7687861271676301,
+            "recall": 0.8580645161290322,
+            "f1": 0.8109756097560976
+          },
+          "List": {
+            "support": 56,
+            "precision": 0.8035714285714286,
+            "recall": 0.8035714285714286,
+            "f1": 0.8035714285714286
+          },
+          "MathematicalReasoning": {
+            "support": 195,
+            "precision": 0.6039603960396039,
+            "recall": 0.9384615384615385,
+            "f1": 0.7349397590361446
+          },
+          "MultiConditions": {
+            "support": 174,
+            "precision": 0.6106194690265486,
+            "recall": 0.39655172413793105,
+            "f1": 0.48083623693379796
+          }
+        }
+      },
+      "hint_metrics_hint_predictor_file": {
+        "exact_set_accuracy": 0.501008064516129,
+        "jaccard": 0.6721270161290323,
+        "micro": {
+          "precision": 0.6239436619718309,
+          "recall": 0.8234200743494424,
+          "f1": 0.7099358974358974
+        },
+        "macro": {
+          "precision": 0.6998323371260916,
+          "recall": 0.8173046922459294,
+          "f1": 0.7287645776198294
+        }
+      },
+      "hint_predictor_file_equals_main_run_hints": 549,
+      "top_hint_confusions": {
+        "MultiConditions -> YesNo": 28,
+        "What -> MathematicalReasoning": 25,
+        "MultiConditions -> MathematicalReasoning": 19,
+        "MultiConditions+YesNo -> YesNo": 15,
+        "What -> Where": 15,
+        "MultiConditions -> MultiConditions+What": 13,
+        "When -> MathematicalReasoning": 11,
+        "MultiConditions -> What": 10,
+        "MathematicalReasoning -> MathematicalReasoning+MultiConditions": 9,
+        "Where -> What": 9,
+        "YesNo -> MathematicalReasoning": 9,
+        "MultiConditions -> Where": 8,
+        "MultiConditions+What -> What": 7,
+        "What+Where -> Where": 7,
+        "List -> MathematicalReasoning": 7
+      },
+      "tokens": {
+        "total": {
+          "hp": 19077260,
+          "no_hp": 11213901
+        },
+        "total_increase_pct": 70.12,
+        "prompt": {
+          "hp": 15911064,
+          "no_hp": 8855447
+        },
+        "prompt_increase_pct": 79.68,
+        "completion": {
+          "hp": 3166196,
+          "no_hp": 2358454
+        },
+        "completion_increase_pct": 34.25,
+        "mean_specialists_hp": 1.1129032258064515,
+        "mean_specialists_gold_routing": 1.0846774193548387
+      },
+      "token_regression_ESTIMATE": {
+        "proxy": "table size proxy Tz = ZS-baseline prompt tokens of the same question",
+        "hp_prompt ~ c0 + c1*Tz + c2*nspec*Tz": [
+          5876.770063237658,
+          1.0866247805980576,
+          1.1377098208988246
+        ],
+        "no_hp_prompt ~ d0 + d2*nspec*Tz": [
+          3347.3930786809815,
+          1.1828302714412287
+        ],
+        "mean_Tz": 4379.780241935484,
+        "est_extra_prompt_tokens_per_q_from_Tz_term_hp (c1*meanTz)": 4759.177744460852,
+        "observed_mean_prompt_diff_per_q": 7112.517137096775,
+        "est_prompt_diff_due_to_more_specialists": 146.2248248667346
+      },
+      "paired_total_token_delta_by_routing": {
+        "hp1_gold1": {
+          "n": 827,
+          "mean_delta": 7764
+        },
+        "hp1_gold2": {
+          "n": 52,
+          "mean_delta": -328
+        },
+        "hp1_gold3": {
+          "n": 1,
+          "mean_delta": -9564
+        },
+        "hp2_gold1": {
+          "n": 84,
+          "mean_delta": 15253
+        },
+        "hp2_gold2": {
+          "n": 26,
+          "mean_delta": 7200
+        },
+        "hp2_gold3": {
+          "n": 2,
+          "mean_delta": 372
+        }
+      },
+      "EM_hp_vs_no_hp": {
+        "hp_bestK": 80.24,
+        "no_hp_bestK": 80.34,
+        "hp_first": 67.74,
+        "no_hp_first": 68.35
+      }
+    },
+    "no_hp_robustness_multi_traced": {
+      "multi": 52,
+      "recon_exact": 52,
+      "dis_raw": 11,
+      "dis_an": 10,
+      "agree_wrong": 7,
+      "hedge_raw": 4,
+      "dis_ge1_correct": 5,
+      "dis_gain_first_variant": 4
+    },
+    "no_hp_traced_n": 621,
+    "fair_det_variant_comparison": {
+      "POMA_first_plus_det_variants_EM": 78.33,
+      "FS_plus_det_variants_EM": 75.81,
+      "ZS_plus_det_variants_EM": 68.45,
+      "CoT_plus_det_variants_EM": 65.83,
+      "TD_plus_det_variants_EM": 66.53,
+      "POMA_bestK_EM": 80.24
+    },
+    "inflation_decomposition_refined": {
+      "yes/no synonym": 49,
+      "untraced multi: hit not derivable from first (likely 2nd specialist)": 5,
+      "number/date/unit/rank surface form (substring)": 33,
+      "text shortened (hit is substring of first)": 14,
+      "other surface form (hit NOT substring of first)": 13,
+      "list delimiter/permutation": 6,
+      "list space-joined": 1,
+      "cross-specialist: only 2nd specialist correct": 3
+    },
+    "inflation_examples_refined": {
+      "yes/no synonym": [
+        {
+          "qa_id": "99917_3_67",
+          "first": "Có",
+          "hit": "Phải",
+          "gold": "Phải",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99935_4_100",
+          "first": "Có",
+          "hit": "Đúng",
+          "gold": "Đúng",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "53_2_153",
+          "first": "Có",
+          "hit": "Đúng",
+          "gold": "Đúng",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "55_2_132",
+          "first": "Có",
+          "hit": "Đúng",
+          "gold": "Đúng",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99935_4_117",
+          "first": "Có",
+          "hit": "Đúng",
+          "gold": "Đúng",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "32_1_69",
+          "first": "Có",
+          "hit": "Đúng",
+          "gold": "Đúng",
+          "K": 3,
+          "n_spec": 2
+        }
+      ],
+      "untraced multi: hit not derivable from first (likely 2nd specialist)": [
+        {
+          "qa_id": "48_3_142",
+          "first": "37",
+          "hit": "Atlantic Tower",
+          "gold": "Atlantic Tower",
+          "K": 4,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "8_2_61",
+          "first": "Null",
+          "hit": "Không",
+          "gold": "Không",
+          "K": 4,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "12_1_27",
+          "first": "Null",
+          "hit": "Entex Industries",
+          "gold": "Entex Industries",
+          "K": 2,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "99924_3_130",
+          "first": "Null",
+          "hit": "Vanuatu, Trinidad và Tobago, Belarus",
+          "gold": "Belarus, Trinidad và Tobago, Vanuatu\t",
+          "K": 16,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "15_2_38",
+          "first": "thứ nhất",
+          "hit": "1",
+          "gold": "1",
+          "K": 5,
+          "n_spec": 2
+        }
+      ],
+      "number/date/unit/rank surface form (substring)": [
+        {
+          "qa_id": "1_3_292",
+          "first": "1709",
+          "hit": "Năm 1709",
+          "gold": "Năm 1709",
+          "K": 2,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "6_0_31",
+          "first": "236 m (774 ft)",
+          "hit": "236",
+          "gold": "236",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99918_0_10",
+          "first": "30 tháng 5 năm 2023",
+          "hit": "Ngày 30 tháng 5 năm 2023",
+          "gold": "Ngày 30 tháng 5 năm 2023",
+          "K": 8,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "9990_1_21",
+          "first": "7 ghế",
+          "hit": "7",
+          "gold": "7",
+          "K": 2,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "9998_1_79",
+          "first": "3 năm",
+          "hit": "3",
+          "gold": "3",
+          "K": 2,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99955_0_15",
+          "first": "200 m",
+          "hit": "200",
+          "gold": "200",
+          "K": 3,
+          "n_spec": 1
+        }
+      ],
+      "text shortened (hit is substring of first)": [
+        {
+          "qa_id": "56_2_89",
+          "first": "The Hub*",
+          "hit": "The Hub",
+          "gold": "The Hub",
+          "K": 2,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "6_0_1",
+          "first": "thứ nhất",
+          "hit": "Nhất",
+          "gold": "nhất",
+          "K": 5,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "10_1_48",
+          "first": "Bài hát vàng của năm (年度金曲)",
+          "hit": "Bài hát vàng của năm",
+          "gold": "Bài hát vàng của năm",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "29_0_51",
+          "first": "thứ nhất",
+          "hit": "Nhất",
+          "gold": "Nhất",
+          "K": 5,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "9999_0_6",
+          "first": "Xã Yên Mỹ",
+          "hit": "Yên Mỹ",
+          "gold": "Yên Mỹ",
+          "K": 2,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "17_4_138",
+          "first": "nhà Gurieli",
+          "hit": "Gurieli",
+          "gold": "Gurieli",
+          "K": 2,
+          "n_spec": 1
+        }
+      ],
+      "other surface form (hit NOT substring of first)": [
+        {
+          "qa_id": "1_2_192",
+          "first": "1679Niên hiệu Vĩnh Trị thứ 4 thời Lê Hy Tông",
+          "hit": "1679 Niên hiệu Vĩnh Trị thứ 4 thời Lê Hy Tông",
+          "gold": "1679 Niên hiệu Vĩnh Trị thứ 4 thời Lê Hy Tông",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99934_0_76",
+          "first": "guarani",
+          "hit": "guaraní",
+          "gold": "Guaraní",
+          "K": 2,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "5_3_64",
+          "first": "thứ ba",
+          "hit": "3",
+          "gold": "3",
+          "K": 4,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "9994_2_184",
+          "first": "Thành phốCao Lãnh",
+          "hit": "Thành phố Cao Lãnh",
+          "gold": "Thành phố Cao Lãnh.",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "4_3_78",
+          "first": "158316435",
+          "hit": "158,316,435",
+          "gold": "158,316,435",
+          "K": 3,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99921_2_81",
+          "first": "12,6%",
+          "hit": "12.6%",
+          "gold": "12.6%",
+          "K": 4,
+          "n_spec": 1
+        }
+      ],
+      "list delimiter/permutation": [
+        {
+          "qa_id": "9991_3_101",
+          "first": "58,57 km²",
+          "hit": "58,57",
+          "gold": "58,57",
+          "K": 10,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99910_0_8",
+          "first": "102,06 ha",
+          "hit": "102,06",
+          "gold": "102,06",
+          "K": 6,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99910_0_5",
+          "first": "34,4ha",
+          "hit": "34,4",
+          "gold": "34,4",
+          "K": 6,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "37_4_85",
+          "first": "Tháp thành phố Buffalo bị hủy bỏ do tai ương tài chính của nhà phát tr",
+          "hit": "tai ương tài chính của nhà phát triển, BSC Group",
+          "gold": "Tai ương tài chính của nhà phát triển, BSC Group",
+          "K": 4,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "9994_2_175",
+          "first": "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam N",
+          "hit": "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lai Vung, Huyện Lấp Vò, Huyện ",
+          "gold": "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lai Vung, Huyện Lấp Vò, Huyện ",
+          "K": 70,
+          "n_spec": 1
+        },
+        {
+          "qa_id": "99912_1_34",
+          "first": "0,10 m",
+          "hit": "0,10",
+          "gold": "0,10",
+          "K": 6,
+          "n_spec": 1
+        }
+      ],
+      "list space-joined": [
+        {
+          "qa_id": "11_1_244",
+          "first": "Nguyễn Quốc Khải Hoàn, Nguyễn Viết Tường, Nguyễn Hữu Kim Sơn, Hoàng Qu",
+          "hit": "Nguyễn Quốc Khải Hoàn Nguyễn Viết Tường Nguyễn Hữu Kim Sơn Hoàng Quý P",
+          "gold": "Nguyễn Quốc Khải Hoàn Nguyễn Viết Tường Nguyễn Hữu Kim Sơn Hoàng Quý P",
+          "K": 20,
+          "n_spec": 1
+        }
+      ],
+      "cross-specialist: only 2nd specialist correct": [
+        {
+          "qa_id": "9991_4_157",
+          "first": "Lê Quang Chữ",
+          "hit": "Trần Quốc Ân",
+          "gold": "Trần Quốc Ân",
+          "K": 2,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "32_4_90",
+          "first": "dòng One",
+          "hit": "One",
+          "gold": "One",
+          "K": 6,
+          "n_spec": 2
+        },
+        {
+          "qa_id": "99928_2_51",
+          "first": "2",
+          "hit": "6",
+          "gold": "6",
+          "K": 2,
+          "n_spec": 2
+        }
+      ]
+    },
+    "yesno_surface_form": {
+      "n": 191,
+      "gold=phải": 13,
+      "echo_rule_matches_gold_form": 114,
+      "gold=có": 43,
+      "gold=không": 92,
+      "gold=đúng": 43
+    },
+    "stored_eval_answerability": {
+      "gold=Answerable|pred=Answerable": 893,
+      "gold=Unanswerable|pred=Unanswerable": 35,
+      "gold=Answerable|pred=Unanswerable": 53,
+      "gold=Unanswerable|pred=Answerable": 11
+    }
+  },
+  "results_refine": {
+    "bestK_only_provenance": {
+      "total": 124,
+      "counts": {
+        "deterministic AN variant of the first candidate": 106,
+        "untraced 2-specialist: not derivable from first candidate (likely 2nd specialist)": 1,
+        "LLM-normalizer variant only (not deterministically derivable)": 10,
+        "first candidate is Null, a later non-Null candidate is correct (hedged set)": 3,
+        "list delimiter/adjacent-swap variant of the first candidate": 1,
+        "cross-specialist (2nd specialist's answer; traced)": 3
+      },
+      "deterministic_by_answer_kind": {
+        "boolean": 49,
+        "date": 16,
+        "number": 28,
+        "text(context/spacing/rank)": 12,
+        "list": 1
+      },
+      "examples": {
+        "deterministic AN variant of the first candidate": [
+          {
+            "qa_id": "99917_3_67",
+            "first": "Có",
+            "hit": "Phải",
+            "gold": "Phải"
+          },
+          {
+            "qa_id": "99935_4_100",
+            "first": "Có",
+            "hit": "Đúng",
+            "gold": "Đúng"
+          },
+          {
+            "qa_id": "53_2_153",
+            "first": "Có",
+            "hit": "Đúng",
+            "gold": "Đúng"
+          },
+          {
+            "qa_id": "1_3_292",
+            "first": "1709",
+            "hit": "Năm 1709",
+            "gold": "Năm 1709"
+          },
+          {
+            "qa_id": "55_2_132",
+            "first": "Có",
+            "hit": "Đúng",
+            "gold": "Đúng"
+          }
+        ],
+        "untraced 2-specialist: not derivable from first candidate (likely 2nd specialist)": [
+          {
+            "qa_id": "48_3_142",
+            "first": "37",
+            "hit": "Atlantic Tower",
+            "gold": "Atlantic Tower"
+          }
+        ],
+        "LLM-normalizer variant only (not deterministically derivable)": [
+          {
+            "qa_id": "56_2_89",
+            "first": "The Hub*",
+            "hit": "The Hub",
+            "gold": "The Hub"
+          },
+          {
+            "qa_id": "99934_0_76",
+            "first": "guarani",
+            "hit": "guaraní",
+            "gold": "Guaraní"
+          },
+          {
+            "qa_id": "5_3_64",
+            "first": "thứ ba",
+            "hit": "3",
+            "gold": "3"
+          },
+          {
+            "qa_id": "99922_2_76",
+            "first": "Tháng 4",
+            "hit": "4",
+            "gold": "4"
+          },
+          {
+            "qa_id": "17_4_138",
+            "first": "nhà Gurieli",
+            "hit": "Gurieli",
+            "gold": "Gurieli"
+          }
+        ],
+        "first candidate is Null, a later non-Null candidate is correct (hedged set)": [
+          {
+            "qa_id": "8_2_61",
+            "first": "Null",
+            "hit": "Không",
+            "gold": "Không"
+          },
+          {
+            "qa_id": "12_1_27",
+            "first": "Null",
+            "hit": "Entex Industries",
+            "gold": "Entex Industries"
+          },
+          {
+            "qa_id": "99924_3_130",
+            "first": "Null",
+            "hit": "Vanuatu, Trinidad và Tobago, Belarus",
+            "gold": "Belarus, Trinidad và Tobago, Vanuatu\t"
+          }
+        ],
+        "list delimiter/adjacent-swap variant of the first candidate": [
+          {
+            "qa_id": "11_1_244",
+            "first": "Nguyễn Quốc Khải Hoàn, Nguyễn Viết Tường, Nguyễn Hữu Kim Sơn, Hoàng Qu",
+            "hit": "Nguyễn Quốc Khải Hoàn Nguyễn Viết Tường Nguyễn Hữu Kim Sơn Hoàng Quý P",
+            "gold": "Nguyễn Quốc Khải Hoàn Nguyễn Viết Tường Nguyễn Hữu Kim Sơn Hoàng Quý P"
+          }
+        ],
+        "cross-specialist (2nd specialist's answer; traced)": [
+          {
+            "qa_id": "9991_4_157",
+            "first": "Lê Quang Chữ",
+            "hit": "Trần Quốc Ân",
+            "gold": "Trần Quốc Ân"
+          },
+          {
+            "qa_id": "32_4_90",
+            "first": "dòng One",
+            "hit": "One",
+            "gold": "One"
+          },
+          {
+            "qa_id": "99928_2_51",
+            "first": "2",
+            "hit": "6",
+            "gold": "6"
+          }
+        ]
+      }
+    },
+    "yesno_formatter_ESTIMATE": {
+      "learned_on": "qas_train.json yes/no-gold items; key=(first matching cue, polarity) -> majority gold word",
+      "rule_table": {
+        "đúng không|pos": "đúng",
+        "có|neg": "không",
+        "phải không|pos": "phải",
+        "đúng không|neg": "không",
+        "có|pos": "có",
+        "có phải|neg": "không",
+        "phải không|neg": "không",
+        "có phải|pos": "phải",
+        "đúng hay|pos": "đúng",
+        "none|neg": "không",
+        "none|pos": "có",
+        "đúng hay|neg": "sai"
+      },
+      "n_test_bool_gold": 191,
+      "formatter_correct_given_true_polarity": 177,
+      "poma_first_is_bool": 180,
+      "poma_first_correct_raw": 123,
+      "poma_first_correct_after_formatter": 158,
+      "poma_bestK_correct": 172,
+      "EM_POMA_first_with_formatter_992": 71.27
+    },
+    "paired_bootstrap": {
+      "POMA_bestK - FS(single)": {
+        "diff_pts": 12.9,
+        "ci95_pts": [
+          10.08,
+          15.83
+        ]
+      },
+      "POMA_first - FS(single)": {
+        "diff_pts": 0.4,
+        "ci95_pts": [
+          -2.12,
+          3.02
+        ]
+      },
+      "POMA_first+det - FS+det": {
+        "diff_pts": 2.52,
+        "ci95_pts": [
+          0.1,
+          4.94
+        ]
+      },
+      "POMA_bestK - FS+det": {
+        "diff_pts": 4.44,
+        "ci95_pts": [
+          2.12,
+          6.75
+        ]
+      },
+      "POMA_bestK - POMA_first": {
+        "diff_pts": 12.5,
+        "ci95_pts": [
+          10.48,
+          14.62
+        ]
+      }
+    },
+    "Q10_compact": {
+      "Why": {
+        "n": 27,
+        "bestK_EM": 44.44,
+        "first_EM": 40.74,
+        "FS_EM": 55.56,
+        "multi_spec": 1,
+        "single_wrong": 14,
+        "multi_agree_wrong": 0,
+        "multi_disagree_recoverable": 0,
+        "multi_disagree_none": 0,
+        "multi_untraced_wrong": 1,
+        "surface_only(bestK ok, first wrong)": 1,
+        "gold_null": 17,
+        "invisible_errors(single_wrong+agree_wrong)": 14,
+        "bestK_errors": 15
+      },
+      "MathematicalReasoning": {
+        "n": 195,
+        "bestK_EM": 81.03,
+        "first_EM": 64.62,
+        "FS_EM": 67.69,
+        "multi_spec": 28,
+        "single_wrong": 31,
+        "multi_agree_wrong": 2,
+        "multi_disagree_recoverable": 1,
+        "multi_disagree_none": 1,
+        "multi_untraced_wrong": 3,
+        "surface_only(bestK ok, first wrong)": 32,
+        "gold_null": 0,
+        "invisible_errors(single_wrong+agree_wrong)": 33,
+        "bestK_errors": 37
+      },
+      "List": {
+        "n": 56,
+        "bestK_EM": 69.64,
+        "first_EM": 66.07,
+        "FS_EM": 50.0,
+        "multi_spec": 6,
+        "single_wrong": 13,
+        "multi_agree_wrong": 2,
+        "multi_disagree_recoverable": 0,
+        "multi_disagree_none": 1,
+        "multi_untraced_wrong": 1,
+        "surface_only(bestK ok, first wrong)": 2,
+        "gold_null": 1,
+        "invisible_errors(single_wrong+agree_wrong)": 15,
+        "bestK_errors": 17
+      },
+      "MultiConditions": {
+        "n": 174,
+        "bestK_EM": 79.31,
+        "first_EM": 69.54,
+        "FS_EM": 73.56,
+        "multi_spec": 51,
+        "single_wrong": 28,
+        "multi_agree_wrong": 3,
+        "multi_disagree_recoverable": 2,
+        "multi_disagree_none": 2,
+        "multi_untraced_wrong": 3,
+        "surface_only(bestK ok, first wrong)": 17,
+        "gold_null": 0,
+        "invisible_errors(single_wrong+agree_wrong)": 31,
+        "bestK_errors": 36
+      },
+      "YesNo": {
+        "n": 155,
+        "bestK_EM": 89.68,
+        "first_EM": 59.35,
+        "FS_EM": 58.06,
+        "multi_spec": 22,
+        "single_wrong": 15,
+        "multi_agree_wrong": 1,
+        "multi_disagree_recoverable": 0,
+        "multi_disagree_none": 0,
+        "multi_untraced_wrong": 0,
+        "surface_only(bestK ok, first wrong)": 47,
+        "gold_null": 1,
+        "invisible_errors(single_wrong+agree_wrong)": 16,
+        "bestK_errors": 16
+      },
+      "What": {
+        "n": 183,
+        "bestK_EM": 81.42,
+        "first_EM": 74.86,
+        "FS_EM": 71.58,
+        "multi_spec": 11,
+        "single_wrong": 29,
+        "multi_agree_wrong": 3,
+        "multi_disagree_recoverable": 1,
+        "multi_disagree_none": 1,
+        "multi_untraced_wrong": 1,
+        "surface_only(bestK ok, first wrong)": 12,
+        "gold_null": 1,
+        "invisible_errors(single_wrong+agree_wrong)": 32,
+        "bestK_errors": 34
+      },
+      "When": {
+        "n": 120,
+        "bestK_EM": 85.0,
+        "first_EM": 71.67,
+        "FS_EM": 69.17,
+        "multi_spec": 6,
+        "single_wrong": 16,
+        "multi_agree_wrong": 0,
+        "multi_disagree_recoverable": 0,
+        "multi_disagree_none": 0,
+        "multi_untraced_wrong": 2,
+        "surface_only(bestK ok, first wrong)": 16,
+        "gold_null": 5,
+        "invisible_errors(single_wrong+agree_wrong)": 16,
+        "bestK_errors": 18
+      },
+      "Where": {
+        "n": 99,
+        "bestK_EM": 78.79,
+        "first_EM": 74.75,
+        "FS_EM": 77.78,
+        "multi_spec": 7,
+        "single_wrong": 17,
+        "multi_agree_wrong": 2,
+        "multi_disagree_recoverable": 1,
+        "multi_disagree_none": 0,
+        "multi_untraced_wrong": 2,
+        "surface_only(bestK ok, first wrong)": 4,
+        "gold_null": 5,
+        "invisible_errors(single_wrong+agree_wrong)": 19,
+        "bestK_errors": 21
+      },
+      "Who": {
+        "n": 54,
+        "bestK_EM": 74.07,
+        "first_EM": 68.52,
+        "FS_EM": 68.52,
+        "multi_spec": 10,
+        "single_wrong": 13,
+        "multi_agree_wrong": 1,
+        "multi_disagree_recoverable": 1,
+        "multi_disagree_none": 0,
+        "multi_untraced_wrong": 0,
+        "surface_only(bestK ok, first wrong)": 3,
+        "gold_null": 9,
+        "invisible_errors(single_wrong+agree_wrong)": 14,
+        "bestK_errors": 14
+      },
+      "How": {
+        "n": 13,
+        "bestK_EM": 46.15,
+        "first_EM": 46.15,
+        "FS_EM": 38.46,
+        "multi_spec": 0,
+        "single_wrong": 7,
+        "multi_agree_wrong": 0,
+        "multi_disagree_recoverable": 0,
+        "multi_disagree_none": 0,
+        "multi_untraced_wrong": 0,
+        "surface_only(bestK ok, first wrong)": 0,
+        "gold_null": 8,
+        "invisible_errors(single_wrong+agree_wrong)": 7,
+        "bestK_errors": 7
+      }
+    }
+  },
+  "q4_traced": {
+    "traced592_table": {
+      "multi_agree_all_correct": {
+        "n": 45,
+        "pct_of_592": 7.6,
+        "bestK_wrong": 0,
+        "pct_of_bestK_errors": 0.0,
+        "first_wrong": 6,
+        "pct_of_first_errors": 3.14
+      },
+      "multi_agree_wrong": {
+        "n": 11,
+        "pct_of_592": 1.86,
+        "bestK_wrong": 11,
+        "pct_of_bestK_errors": 9.09,
+        "first_wrong": 11,
+        "pct_of_first_errors": 5.76
+      },
+      "multi_disagree_ge1_correct": {
+        "n": 4,
+        "pct_of_592": 0.68,
+        "bestK_wrong": 0,
+        "pct_of_bestK_errors": 0.0,
+        "first_wrong": 3,
+        "pct_of_first_errors": 1.57
+      },
+      "multi_disagree_none_correct": {
+        "n": 4,
+        "pct_of_592": 0.68,
+        "bestK_wrong": 4,
+        "pct_of_bestK_errors": 3.31,
+        "first_wrong": 4,
+        "pct_of_first_errors": 2.09
+      },
+      "single_correct_first_variant": {
+        "n": 361,
+        "pct_of_592": 60.98,
+        "bestK_wrong": 0,
+        "pct_of_bestK_errors": 0.0,
+        "first_wrong": 0,
+        "pct_of_first_errors": 0.0
+      },
+      "single_correct_only_nonfirst_variant": {
+        "n": 61,
+        "pct_of_592": 10.3,
+        "bestK_wrong": 0,
+        "pct_of_bestK_errors": 0.0,
+        "first_wrong": 61,
+        "pct_of_first_errors": 31.94
+      },
+      "single_wrong": {
+        "n": 106,
+        "pct_of_592": 17.91,
+        "bestK_wrong": 106,
+        "pct_of_bestK_errors": 87.6,
+        "first_wrong": 106,
+        "pct_of_first_errors": 55.5
+      }
+    },
+    "bestK_errors": 121,
+    "first_errors": 191,
+    "multi_recon_exact": 63,
+    "multi_n": 64,
+    "disagreement_cases": [
+      {
+        "qa_id": "24_0_20",
+        "gold": "Nasaan si Milan",
+        "answers": [
+          [
+            "MathematicalReasoning",
+            "Kasabwat",
+            1.0,
+            false
+          ],
+          [
+            "MultiConditions",
+            "Pagtatagpo",
+            1.0,
+            false
+          ]
+        ],
+        "FS": "227"
+      },
+      {
+        "qa_id": "23_4_97",
+        "gold": "Pagpapaalam",
+        "answers": [
+          [
+            "What",
+            "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+            0.95,
+            false
+          ],
+          [
+            "MultiConditions",
+            "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction",
+            1.0,
+            false
+          ]
+        ],
+        "FS": "Thank You Rome"
+      },
+      {
+        "qa_id": "9997_3_105",
+        "gold": "Đô thị Phó Sinh, Đô thị Chủ Chí",
+        "answers": [
+          [
+            "List",
+            "Thị trấn Phước Long",
+            0.95,
+            false
+          ],
+          [
+            "When",
+            "Null",
+            0.8,
+            false
+          ]
+        ],
+        "FS": "Null"
+      },
+      {
+        "qa_id": "50_0_30",
+        "gold": "Malaysia",
+        "answers": [
+          [
+            "MultiConditions",
+            "Malaysia",
+            1.0,
+            true
+          ],
+          [
+            "MathematicalReasoning",
+            "Campuchia",
+            0.95,
+            false
+          ]
+        ],
+        "FS": "Malaysia"
+      },
+      {
+        "qa_id": "32_4_92",
+        "gold": "J Butterfly, One",
+        "answers": [
+          [
+            "MathematicalReasoning",
+            "Null",
+            0.95,
+            false
+          ],
+          [
+            "List",
+            "Không có",
+            0.95,
+            false
+          ]
+        ],
+        "FS": "J Butterfly, One"
+      },
+      {
+        "qa_id": "9991_4_157",
+        "gold": "Trần Quốc Ân",
+        "answers": [
+          [
+            "Who",
+            "Lê Quang Chữ",
+            1.0,
+            false
+          ],
+          [
+            "MathematicalReasoning",
+            "Trần Quốc Ân",
+            1.0,
+            true
+          ]
+        ],
+        "FS": "Trần Quốc Ân"
+      },
+      {
+        "qa_id": "32_4_90",
+        "gold": "One",
+        "answers": [
+          [
+            "MathematicalReasoning",
+            "dòng One",
+            1.0,
+            false
+          ],
+          [
+            "MultiConditions",
+            "One",
+            1.0,
+            true
+          ]
+        ],
+        "FS": "One"
+      },
+      {
+        "qa_id": "99928_2_51",
+        "gold": "6",
+        "answers": [
+          [
+            "MultiConditions",
+            "2",
+            1.0,
+            false
+          ],
+          [
+            "MathematicalReasoning",
+            "6",
+            1.0,
+            true
+          ]
+        ],
+        "FS": "6"
+      }
+    ],
+    "FS_correct_in_disagreement_cases": 5
+  },
+  "instances_meta": {
+    "reconstruction": {
+      "union_correctness_equal": 592,
+      "exact_match": 585,
+      "mismatch": 7
+    },
+    "reconstruction_failures": [
+      {
+        "qa_id": "3_1_97",
+        "recorded": [
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha"
+        ],
+        "replayed": [
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Bahrain, Ấn Độ, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Bahrain,Ấn Độ,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Bahrain; Ấn Độ; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Bahrain;Ấn Độ;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Bahrain Ấn Độ Cuba Cộng hòa Dominica Grenada Montserrat Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Cuba, Bahrain, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Cuba,Bahrain,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Cuba; Bahrain; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Cuba;Bahrain;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Cuba Bahrain Cộng hòa Dominica Grenada Montserrat Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cộng hòa Dominica, Cuba, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cộng hòa Dominica,Cuba,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cộng hòa Dominica; Cuba; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cộng hòa Dominica;Cuba;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cộng hòa Dominica Cuba Grenada Montserrat Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Grenada, Cộng hòa Dominica, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Grenada,Cộng hòa Dominica,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Grenada; Cộng hòa Dominica; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Grenada;Cộng hòa Dominica;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Grenada Cộng hòa Dominica Montserrat Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Montserrat, Grenada, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Montserrat,Grenada,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Montserrat; Grenada; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Montserrat;Grenada;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Montserrat Grenada Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Palestine, Montserrat, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Palestine,Montserrat,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Palestine; Montserrat; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Palestine;Montserrat;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Palestine Montserrat Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Philippines, Palestine, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Philippines,Palestine,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Philippines; Palestine; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Philippines;Palestine;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Philippines Palestine Puerto Rico Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Puerto Rico, Philippines, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Puerto Rico,Philippines,Saint Helena,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Puerto Rico; Philippines; Saint Helena; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Puerto Rico;Philippines;Saint Helena;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Palestine Puerto Rico Philippines Saint Helena Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Saint Helena, Puerto Rico, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Saint Helena,Puerto Rico,Saint Vincent và Grenadines,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Saint Helena; Puerto Rico; Saint Vincent và Grenadines; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Saint Helena;Puerto Rico;Saint Vincent và Grenadines;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Palestine Philippines Saint Helena Puerto Rico Saint Vincent và Grenadines Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Vincent và Grenadines, Saint Helena, Sri Lanka, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Vincent và Grenadines,Saint Helena,Sri Lanka,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Vincent và Grenadines; Saint Helena; Sri Lanka; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Vincent và Grenadines;Saint Helena;Sri Lanka;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Palestine Philippines Puerto Rico Saint Vincent và Grenadines Saint Helena Sri Lanka Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Sri Lanka, Saint Vincent và Grenadines, Tây Ban Nha",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Sri Lanka,Saint Vincent và Grenadines,Tây Ban Nha",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Sri Lanka; Saint Vincent và Grenadines; Tây Ban Nha",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Sri Lanka;Saint Vincent và Grenadines;Tây Ban Nha",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Palestine Philippines Puerto Rico Saint Helena Sri Lanka Saint Vincent và Grenadines Tây Ban Nha",
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Tây Ban Nha, Sri Lanka",
+          "Ấn Độ,Bahrain,Cuba,Cộng hòa Dominica,Grenada,Montserrat,Palestine,Philippines,Puerto Rico,Saint Helena,Saint Vincent và Grenadines,Tây Ban Nha,Sri Lanka",
+          "Ấn Độ; Bahrain; Cuba; Cộng hòa Dominica; Grenada; Montserrat; Palestine; Philippines; Puerto Rico; Saint Helena; Saint Vincent và Grenadines; Tây Ban Nha; Sri Lanka",
+          "Ấn Độ;Bahrain;Cuba;Cộng hòa Dominica;Grenada;Montserrat;Palestine;Philippines;Puerto Rico;Saint Helena;Saint Vincent và Grenadines;Tây Ban Nha;Sri Lanka",
+          "Ấn Độ Bahrain Cuba Cộng hòa Dominica Grenada Montserrat Palestine Philippines Puerto Rico Saint Helena Saint Vincent và Grenadines Tây Ban Nha Sri Lanka"
+        ],
+        "raw": [
+          "Ấn Độ, Bahrain, Cuba, Cộng hòa Dominica, Grenada, Montserrat, Palestine, Philippines, Puerto Rico, Saint Helena, Saint Vincent và Grenadines, Sri Lanka, Tây Ban Nha"
+        ]
+      },
+      {
+        "qa_id": "23_4_97",
+        "recorded": [
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction",
+          "Negosyo Wars,Engagement,No More Lies,Thank You Rome,Loleng Is Back,Pagpapaalam,Abduction",
+          "Negosyo Wars; Engagement; No More Lies; Thank You Rome; Loleng Is Back; Pagpapaalam; Abduction",
+          "Negosyo Wars;Engagement;No More Lies;Thank You Rome;Loleng Is Back;Pagpapaalam;Abduction",
+          "Negosyo Wars Engagement No More Lies Thank You Rome Loleng Is Back Pagpapaalam Abduction",
+          "Engagement, Negosyo Wars, No More Lies, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction",
+          "Engagement,Negosyo Wars,No More Lies,Thank You Rome,Loleng Is Back,Pagpapaalam,Abduction",
+          "Engagement; Negosyo Wars; No More Lies; Thank You Rome; Loleng Is Back; Pagpapaalam; Abduction",
+          "Engagement;Negosyo Wars;No More Lies;Thank You Rome;Loleng Is Back;Pagpapaalam;Abduction",
+          "Engagement Negosyo Wars No More Lies Thank You Rome Loleng Is Back Pagpapaalam Abduction",
+          "Negosyo Wars, No More Lies, Engagement, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction",
+          "Negosyo Wars,No More Lies,Engagement,Thank You Rome,Loleng Is Back,Pagpapaalam,Abduction",
+          "Negosyo Wars; No More Lies; Engagement; Thank You Rome; Loleng Is Back; Pagpapaalam; Abduction",
+          "Negosyo Wars;No More Lies;Engagement;Thank You Rome;Loleng Is Back;Pagpapaalam;Abduction",
+          "Negosyo Wars No More Lies Engagement Thank You Rome Loleng Is Back Pagpapaalam Abduction",
+          "Negosyo Wars, Engagement, Thank You Rome, No More Lies, Loleng Is Back, Pagpapaalam, Abduction",
+          "Negosyo Wars,Engagement,Thank You Rome,No More Lies,Loleng Is Back,Pagpapaalam,Abduction",
+          "Negosyo Wars; Engagement; Thank You Rome; No More Lies; Loleng Is Back; Pagpapaalam; Abduction",
+          "Negosyo Wars;Engagement;Thank You Rome;No More Lies;Loleng Is Back;Pagpapaalam;Abduction",
+          "Negosyo Wars Engagement Thank You Rome No More Lies Loleng Is Back Pagpapaalam Abduction",
+          "Negosyo Wars, Engagement, No More Lies, Loleng Is Back, Thank You Rome, Pagpapaalam, Abduction",
+          "Negosyo Wars,Engagement,No More Lies,Loleng Is Back,Thank You Rome,Pagpapaalam,Abduction",
+          "Negosyo Wars; Engagement; No More Lies; Loleng Is Back; Thank You Rome; Pagpapaalam; Abduction",
+          "Negosyo Wars;Engagement;No More Lies;Loleng Is Back;Thank You Rome;Pagpapaalam;Abduction",
+          "Negosyo Wars Engagement No More Lies Loleng Is Back Thank You Rome Pagpapaalam Abduction",
+          "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Pagpapaalam, Loleng Is Back, Abduction",
+          "Negosyo Wars,Engagement,No More Lies,Thank You Rome,Pagpapaalam,Loleng Is Back,Abduction",
+          "Negosyo Wars; Engagement; No More Lies; Thank You Rome; Pagpapaalam; Loleng Is Back; Abduction",
+          "Negosyo Wars;Engagement;No More Lies;Thank You Rome;Pagpapaalam;Loleng Is Back;Abduction",
+          "Negosyo Wars Engagement No More Lies Thank You Rome Pagpapaalam Loleng Is Back Abduction",
+          "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Loleng Is Back, Abduction, Pagpapaalam",
+          "Negosyo Wars,Engagement,No More Lies,Thank You Rome,Loleng Is Back,Abduction,Pagpapaalam",
+          "Negosyo Wars; Engagement; No More Lies; Thank You Rome; Loleng Is Back; Abduction; Pagpapaalam",
+          "Negosyo Wars;Engagement;No More Lies;Thank You Rome;Loleng Is Back;Abduction;Pagpapaalam",
+          "Negosyo Wars Engagement No More Lies Thank You Rome Loleng Is Back Abduction Pagpapaalam"
+        ],
+        "replayed": [
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Thank You Rome, Negosyo Wars, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Thank You Rome,Negosyo Wars,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Thank You Rome; Negosyo Wars; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Thank You Rome;Negosyo Wars;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Thank You Rome Negosyo Wars Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Loleng Is Back, Thank You Rome, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Loleng Is Back,Thank You Rome,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Loleng Is Back; Thank You Rome; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Loleng Is Back;Thank You Rome;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Loleng Is Back Thank You Rome Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Engagement Party, Loleng Is Back, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Engagement Party,Loleng Is Back,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Engagement Party; Loleng Is Back; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Engagement Party;Loleng Is Back;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Engagement Party Loleng Is Back Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Unwanted Guests, Engagement Party, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Unwanted Guests,Engagement Party,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Unwanted Guests; Engagement Party; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Unwanted Guests;Engagement Party;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Unwanted Guests Engagement Party Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Desperado, Unwanted Guests, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Desperado,Unwanted Guests,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Desperado; Unwanted Guests; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Desperado;Unwanted Guests;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Desperado Unwanted Guests Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Pagpapaalam, Desperado, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Pagpapaalam,Desperado,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Pagpapaalam; Desperado; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Pagpapaalam;Desperado;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Pagpapaalam Desperado Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Abduction, Pagpapaalam, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Abduction,Pagpapaalam,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Abduction; Pagpapaalam; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Abduction;Pagpapaalam;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Abduction Pagpapaalam Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Sindakan, Abduction, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Sindakan,Abduction,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Sindakan; Abduction; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Sindakan;Abduction;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Sindakan Abduction Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Loleng, Sindakan, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Loleng,Sindakan,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Loleng; Sindakan; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Loleng;Sindakan;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Loleng Sindakan Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Peligroso, Loleng, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Peligroso,Loleng,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Peligroso; Loleng; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Peligroso;Loleng;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Peligroso Loleng Pagbabalikan Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Pagbabalikan, Peligroso, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Pagbabalikan,Peligroso,Engagement,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Pagbabalikan; Peligroso; Engagement; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Pagbabalikan;Peligroso;Engagement;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Pagbabalikan Peligroso Engagement Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Engagement, Pagbabalikan, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Engagement,Pagbabalikan,Huli sa CCTV,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Engagement; Pagbabalikan; Huli sa CCTV; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Engagement;Pagbabalikan;Huli sa CCTV;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Engagement Pagbabalikan Huli sa CCTV No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Huli sa CCTV, Engagement, No More Lies, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Huli sa CCTV,Engagement,No More Lies,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Huli sa CCTV; Engagement; No More Lies; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Huli sa CCTV;Engagement;No More Lies;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Huli sa CCTV Engagement No More Lies Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, No More Lies, Huli sa CCTV, Paalam, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,No More Lies,Huli sa CCTV,Paalam,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; No More Lies; Huli sa CCTV; Paalam; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;No More Lies;Huli sa CCTV;Paalam;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement No More Lies Huli sa CCTV Paalam Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, Paalam, No More Lies, Angelo",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,Paalam,No More Lies,Angelo",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; Paalam; No More Lies; Angelo",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;Paalam;No More Lies;Angelo",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV Paalam No More Lies Angelo",
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Angelo, Paalam",
+          "Negosyo Wars,Thank You Rome,Loleng Is Back,Engagement Party,Unwanted Guests,Desperado,Pagpapaalam,Abduction,Sindakan,Loleng,Peligroso,Pagbabalikan,Engagement,Huli sa CCTV,No More Lies,Angelo,Paalam",
+          "Negosyo Wars; Thank You Rome; Loleng Is Back; Engagement Party; Unwanted Guests; Desperado; Pagpapaalam; Abduction; Sindakan; Loleng; Peligroso; Pagbabalikan; Engagement; Huli sa CCTV; No More Lies; Angelo; Paalam",
+          "Negosyo Wars;Thank You Rome;Loleng Is Back;Engagement Party;Unwanted Guests;Desperado;Pagpapaalam;Abduction;Sindakan;Loleng;Peligroso;Pagbabalikan;Engagement;Huli sa CCTV;No More Lies;Angelo;Paalam",
+          "Negosyo Wars Thank You Rome Loleng Is Back Engagement Party Unwanted Guests Desperado Pagpapaalam Abduction Sindakan Loleng Peligroso Pagbabalikan Engagement Huli sa CCTV No More Lies Angelo Paalam",
+          "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction",
+          "Negosyo Wars,Engagement,No More Lies,Thank You Rome,Loleng Is Back,Pagpapaalam,Abduction",
+          "Negosyo Wars; Engagement; No More Lies; Thank You Rome; Loleng Is Back; Pagpapaalam; Abduction",
+          "Negosyo Wars;Engagement;No More Lies;Thank You Rome;Loleng Is Back;Pagpapaalam;Abduction",
+          "Negosyo Wars Engagement No More Lies Thank You Rome Loleng Is Back Pagpapaalam Abduction",
+          "Engagement, Negosyo Wars, No More Lies, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction",
+          "Engagement,Negosyo Wars,No More Lies,Thank You Rome,Loleng Is Back,Pagpapaalam,Abduction",
+          "Engagement; Negosyo Wars; No More Lies; Thank You Rome; Loleng Is Back; Pagpapaalam; Abduction",
+          "Engagement;Negosyo Wars;No More Lies;Thank You Rome;Loleng Is Back;Pagpapaalam;Abduction",
+          "Engagement Negosyo Wars No More Lies Thank You Rome Loleng Is Back Pagpapaalam Abduction",
+          "Negosyo Wars, No More Lies, Engagement, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction",
+          "Negosyo Wars,No More Lies,Engagement,Thank You Rome,Loleng Is Back,Pagpapaalam,Abduction",
+          "Negosyo Wars; No More Lies; Engagement; Thank You Rome; Loleng Is Back; Pagpapaalam; Abduction",
+          "Negosyo Wars;No More Lies;Engagement;Thank You Rome;Loleng Is Back;Pagpapaalam;Abduction",
+          "Negosyo Wars No More Lies Engagement Thank You Rome Loleng Is Back Pagpapaalam Abduction",
+          "Negosyo Wars, Engagement, Thank You Rome, No More Lies, Loleng Is Back, Pagpapaalam, Abduction",
+          "Negosyo Wars,Engagement,Thank You Rome,No More Lies,Loleng Is Back,Pagpapaalam,Abduction",
+          "Negosyo Wars; Engagement; Thank You Rome; No More Lies; Loleng Is Back; Pagpapaalam; Abduction",
+          "Negosyo Wars;Engagement;Thank You Rome;No More Lies;Loleng Is Back;Pagpapaalam;Abduction",
+          "Negosyo Wars Engagement Thank You Rome No More Lies Loleng Is Back Pagpapaalam Abduction",
+          "Negosyo Wars, Engagement, No More Lies, Loleng Is Back, Thank You Rome, Pagpapaalam, Abduction",
+          "Negosyo Wars,Engagement,No More Lies,Loleng Is Back,Thank You Rome,Pagpapaalam,Abduction",
+          "Negosyo Wars; Engagement; No More Lies; Loleng Is Back; Thank You Rome; Pagpapaalam; Abduction",
+          "Negosyo Wars;Engagement;No More Lies;Loleng Is Back;Thank You Rome;Pagpapaalam;Abduction",
+          "Negosyo Wars Engagement No More Lies Loleng Is Back Thank You Rome Pagpapaalam Abduction",
+          "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Pagpapaalam, Loleng Is Back, Abduction",
+          "Negosyo Wars,Engagement,No More Lies,Thank You Rome,Pagpapaalam,Loleng Is Back,Abduction",
+          "Negosyo Wars; Engagement; No More Lies; Thank You Rome; Pagpapaalam; Loleng Is Back; Abduction",
+          "Negosyo Wars;Engagement;No More Lies;Thank You Rome;Pagpapaalam;Loleng Is Back;Abduction",
+          "Negosyo Wars Engagement No More Lies Thank You Rome Pagpapaalam Loleng Is Back Abduction",
+          "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Loleng Is Back, Abduction, Pagpapaalam",
+          "Negosyo Wars,Engagement,No More Lies,Thank You Rome,Loleng Is Back,Abduction,Pagpapaalam",
+          "Negosyo Wars; Engagement; No More Lies; Thank You Rome; Loleng Is Back; Abduction; Pagpapaalam",
+          "Negosyo Wars;Engagement;No More Lies;Thank You Rome;Loleng Is Back;Abduction;Pagpapaalam",
+          "Negosyo Wars Engagement No More Lies Thank You Rome Loleng Is Back Abduction Pagpapaalam"
+        ],
+        "raw": [
+          "Negosyo Wars, Thank You Rome, Loleng Is Back, Engagement Party, Unwanted Guests, Desperado, Pagpapaalam, Abduction, Sindakan, Loleng, Peligroso, Pagbabalikan, Engagement, Huli sa CCTV, No More Lies, Paalam, Angelo",
+          "Negosyo Wars, Engagement, No More Lies, Thank You Rome, Loleng Is Back, Pagpapaalam, Abduction"
+        ]
+      },
+      {
+        "qa_id": "9992_1_46",
+        "recorded": [
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy,Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy, Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy; Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy;Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh, Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh,Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh; Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh;Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy, Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy,Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy; Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy;Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh",
+          "Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh, Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh,Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh; Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh;Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy"
+        ],
+        "replayed": [
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy,Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy, Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy; Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy;Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh, Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh,Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh; Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh;Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy",
+          "Vũ Minh Sang Phó Bí thư Thường trực Tỉnh ủy,Nguyễn Hoàng Sơn Chủ tịch Ủy ban nhân dân tỉnh"
+        ],
+        "raw": [
+          "Vũ Minh SangPhó Bí thư Thường trực Tỉnh ủy,Nguyễn Hoàng SơnChủ tịch Ủy ban nhân dân tỉnh"
+        ]
+      },
+      {
+        "qa_id": "9994_2_175",
+        "recorded": [
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnLấp Vò,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnLấp Vò; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnLấp Vò;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnLấp Vò HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnChâu Thành, HuyệnCao Lãnh, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnChâu Thành,HuyệnCao Lãnh,HuyệnLai Vung,HuyệnLấp Vò,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnChâu Thành; HuyệnCao Lãnh; HuyệnLai Vung; HuyệnLấp Vò; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnChâu Thành;HuyệnCao Lãnh;HuyệnLai Vung;HuyệnLấp Vò;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnChâu Thành HuyệnCao Lãnh HuyệnLai Vung HuyệnLấp Vò HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnLai Vung, HuyệnChâu Thành, HuyệnLấp Vò, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnLai Vung,HuyệnChâu Thành,HuyệnLấp Vò,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnLai Vung; HuyệnChâu Thành; HuyệnLấp Vò; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnLai Vung;HuyệnChâu Thành;HuyệnLấp Vò;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnLai Vung HuyệnChâu Thành HuyệnLấp Vò HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLấp Vò, HuyệnLai Vung, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLấp Vò,HuyệnLai Vung,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLấp Vò; HuyệnLai Vung; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLấp Vò;HuyệnLai Vung;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLấp Vò HuyệnLai Vung HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnTam Nông, HuyệnLấp Vò, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnTam Nông,HuyệnLấp Vò,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnTam Nông; HuyệnLấp Vò; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnTam Nông;HuyệnLấp Vò;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnTam Nông HuyệnLấp Vò HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnThanh Bình, HuyệnTam Nông, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnLấp Vò,HuyệnThanh Bình,HuyệnTam Nông,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnLấp Vò; HuyệnThanh Bình; HuyệnTam Nông; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnLấp Vò;HuyệnThanh Bình;HuyệnTam Nông;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnLấp Vò HuyệnThanh Bình HuyệnTam Nông HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam Nông, HuyệnTháp Mười, HuyệnThanh Bình",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnLấp Vò,HuyệnTam Nông,HuyệnTháp Mười,HuyệnThanh Bình",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnLấp Vò; HuyệnTam Nông; HuyệnTháp Mười; HuyệnThanh Bình",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnLấp Vò;HuyệnTam Nông;HuyệnTháp Mười;HuyệnThanh Bình",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnLấp Vò HuyệnTam Nông HuyệnTháp Mười HuyệnThanh Bình",
+          "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lai Vung, Huyện Lấp Vò, Huyện Tam Nông, Huyện Thanh Bình, Huyện Tháp Mười",
+          "Huyện Cao Lãnh,Huyện Châu Thành,Huyện Lai Vung,Huyện Lấp Vò,Huyện Tam Nông,Huyện Thanh Bình,Huyện Tháp Mười",
+          "Huyện Cao Lãnh; Huyện Châu Thành; Huyện Lai Vung; Huyện Lấp Vò; Huyện Tam Nông; Huyện Thanh Bình; Huyện Tháp Mười",
+          "Huyện Cao Lãnh;Huyện Châu Thành;Huyện Lai Vung;Huyện Lấp Vò;Huyện Tam Nông;Huyện Thanh Bình;Huyện Tháp Mười",
+          "Huyện Cao Lãnh Huyện Châu Thành Huyện Lai Vung Huyện Lấp Vò Huyện Tam Nông Huyện Thanh Bình Huyện Tháp Mười",
+          "Huyện Châu Thành, Huyện Cao Lãnh, Huyện Lai Vung, Huyện Lấp Vò, Huyện Tam Nông, Huyện Thanh Bình, Huyện Tháp Mười",
+          "Huyện Châu Thành,Huyện Cao Lãnh,Huyện Lai Vung,Huyện Lấp Vò,Huyện Tam Nông,Huyện Thanh Bình,Huyện Tháp Mười",
+          "Huyện Châu Thành; Huyện Cao Lãnh; Huyện Lai Vung; Huyện Lấp Vò; Huyện Tam Nông; Huyện Thanh Bình; Huyện Tháp Mười",
+          "Huyện Châu Thành;Huyện Cao Lãnh;Huyện Lai Vung;Huyện Lấp Vò;Huyện Tam Nông;Huyện Thanh Bình;Huyện Tháp Mười",
+          "Huyện Châu Thành Huyện Cao Lãnh Huyện Lai Vung Huyện Lấp Vò Huyện Tam Nông Huyện Thanh Bình Huyện Tháp Mười",
+          "Huyện Cao Lãnh, Huyện Lai Vung, Huyện Châu Thành, Huyện Lấp Vò, Huyện Tam Nông, Huyện Thanh Bình, Huyện Tháp Mười",
+          "Huyện Cao Lãnh,Huyện Lai Vung,Huyện Châu Thành,Huyện Lấp Vò,Huyện Tam Nông,Huyện Thanh Bình,Huyện Tháp Mười",
+          "Huyện Cao Lãnh; Huyện Lai Vung; Huyện Châu Thành; Huyện Lấp Vò; Huyện Tam Nông; Huyện Thanh Bình; Huyện Tháp Mười",
+          "Huyện Cao Lãnh;Huyện Lai Vung;Huyện Châu Thành;Huyện Lấp Vò;Huyện Tam Nông;Huyện Thanh Bình;Huyện Tháp Mười",
+          "Huyện Cao Lãnh Huyện Lai Vung Huyện Châu Thành Huyện Lấp Vò Huyện Tam Nông Huyện Thanh Bình Huyện Tháp Mười",
+          "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lấp Vò, Huyện Lai Vung, Huyện Tam Nông, Huyện Thanh Bình, Huyện Tháp Mười",
+          "Huyện Cao Lãnh,Huyện Châu Thành,Huyện Lấp Vò,Huyện Lai Vung,Huyện Tam Nông,Huyện Thanh Bình,Huyện Tháp Mười",
+          "Huyện Cao Lãnh; Huyện Châu Thành; Huyện Lấp Vò; Huyện Lai Vung; Huyện Tam Nông; Huyện Thanh Bình; Huyện Tháp Mười",
+          "Huyện Cao Lãnh;Huyện Châu Thành;Huyện Lấp Vò;Huyện Lai Vung;Huyện Tam Nông;Huyện Thanh Bình;Huyện Tháp Mười",
+          "Huyện Cao Lãnh Huyện Châu Thành Huyện Lấp Vò Huyện Lai Vung Huyện Tam Nông Huyện Thanh Bình Huyện Tháp Mười",
+          "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lai Vung, Huyện Tam Nông, Huyện Lấp Vò, Huyện Thanh Bình, Huyện Tháp Mười",
+          "Huyện Cao Lãnh,Huyện Châu Thành,Huyện Lai Vung,Huyện Tam Nông,Huyện Lấp Vò,Huyện Thanh Bình,Huyện Tháp Mười",
+          "Huyện Cao Lãnh; Huyện Châu Thành; Huyện Lai Vung; Huyện Tam Nông; Huyện Lấp Vò; Huyện Thanh Bình; Huyện Tháp Mười",
+          "Huyện Cao Lãnh;Huyện Châu Thành;Huyện Lai Vung;Huyện Tam Nông;Huyện Lấp Vò;Huyện Thanh Bình;Huyện Tháp Mười",
+          "Huyện Cao Lãnh Huyện Châu Thành Huyện Lai Vung Huyện Tam Nông Huyện Lấp Vò Huyện Thanh Bình Huyện Tháp Mười",
+          "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lai Vung, Huyện Lấp Vò, Huyện Thanh Bình, Huyện Tam Nông, Huyện Tháp Mười",
+          "Huyện Cao Lãnh,Huyện Châu Thành,Huyện Lai Vung,Huyện Lấp Vò,Huyện Thanh Bình,Huyện Tam Nông,Huyện Tháp Mười",
+          "Huyện Cao Lãnh; Huyện Châu Thành; Huyện Lai Vung; Huyện Lấp Vò; Huyện Thanh Bình; Huyện Tam Nông; Huyện Tháp Mười",
+          "Huyện Cao Lãnh;Huyện Châu Thành;Huyện Lai Vung;Huyện Lấp Vò;Huyện Thanh Bình;Huyện Tam Nông;Huyện Tháp Mười",
+          "Huyện Cao Lãnh Huyện Châu Thành Huyện Lai Vung Huyện Lấp Vò Huyện Thanh Bình Huyện Tam Nông Huyện Tháp Mười",
+          "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lai Vung, Huyện Lấp Vò, Huyện Tam Nông, Huyện Tháp Mười, Huyện Thanh Bình",
+          "Huyện Cao Lãnh,Huyện Châu Thành,Huyện Lai Vung,Huyện Lấp Vò,Huyện Tam Nông,Huyện Tháp Mười,Huyện Thanh Bình",
+          "Huyện Cao Lãnh; Huyện Châu Thành; Huyện Lai Vung; Huyện Lấp Vò; Huyện Tam Nông; Huyện Tháp Mười; Huyện Thanh Bình",
+          "Huyện Cao Lãnh;Huyện Châu Thành;Huyện Lai Vung;Huyện Lấp Vò;Huyện Tam Nông;Huyện Tháp Mười;Huyện Thanh Bình",
+          "Huyện Cao Lãnh Huyện Châu Thành Huyện Lai Vung Huyện Lấp Vò Huyện Tam Nông Huyện Tháp Mười Huyện Thanh Bình"
+        ],
+        "replayed": [
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnLấp Vò,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnLấp Vò; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnLấp Vò;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnLấp Vò HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnChâu Thành, HuyệnCao Lãnh, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnChâu Thành,HuyệnCao Lãnh,HuyệnLai Vung,HuyệnLấp Vò,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnChâu Thành; HuyệnCao Lãnh; HuyệnLai Vung; HuyệnLấp Vò; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnChâu Thành;HuyệnCao Lãnh;HuyệnLai Vung;HuyệnLấp Vò;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnChâu Thành HuyệnCao Lãnh HuyệnLai Vung HuyệnLấp Vò HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnLai Vung, HuyệnChâu Thành, HuyệnLấp Vò, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnLai Vung,HuyệnChâu Thành,HuyệnLấp Vò,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnLai Vung; HuyệnChâu Thành; HuyệnLấp Vò; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnLai Vung;HuyệnChâu Thành;HuyệnLấp Vò;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnLai Vung HuyệnChâu Thành HuyệnLấp Vò HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLấp Vò, HuyệnLai Vung, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLấp Vò,HuyệnLai Vung,HuyệnTam Nông,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLấp Vò; HuyệnLai Vung; HuyệnTam Nông; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLấp Vò;HuyệnLai Vung;HuyệnTam Nông;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLấp Vò HuyệnLai Vung HuyệnTam Nông HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnTam Nông, HuyệnLấp Vò, HuyệnThanh Bình, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnTam Nông,HuyệnLấp Vò,HuyệnThanh Bình,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnTam Nông; HuyệnLấp Vò; HuyệnThanh Bình; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnTam Nông;HuyệnLấp Vò;HuyệnThanh Bình;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnTam Nông HuyệnLấp Vò HuyệnThanh Bình HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnThanh Bình, HuyệnTam Nông, HuyệnTháp Mười",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnLấp Vò,HuyệnThanh Bình,HuyệnTam Nông,HuyệnTháp Mười",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnLấp Vò; HuyệnThanh Bình; HuyệnTam Nông; HuyệnTháp Mười",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnLấp Vò;HuyệnThanh Bình;HuyệnTam Nông;HuyệnTháp Mười",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnLấp Vò HuyệnThanh Bình HuyệnTam Nông HuyệnTháp Mười",
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam Nông, HuyệnTháp Mười, HuyệnThanh Bình",
+          "HuyệnCao Lãnh,HuyệnChâu Thành,HuyệnLai Vung,HuyệnLấp Vò,HuyệnTam Nông,HuyệnTháp Mười,HuyệnThanh Bình",
+          "HuyệnCao Lãnh; HuyệnChâu Thành; HuyệnLai Vung; HuyệnLấp Vò; HuyệnTam Nông; HuyệnTháp Mười; HuyệnThanh Bình",
+          "HuyệnCao Lãnh;HuyệnChâu Thành;HuyệnLai Vung;HuyệnLấp Vò;HuyệnTam Nông;HuyệnTháp Mười;HuyệnThanh Bình",
+          "HuyệnCao Lãnh HuyệnChâu Thành HuyệnLai Vung HuyệnLấp Vò HuyệnTam Nông HuyệnTháp Mười HuyệnThanh Bình",
+          "Huyện Cao Lãnh, Huyện Châu Thành, Huyện Lai Vung, Huyện Lấp Vò, Huyện Tam Nông, Huyện Thanh Bình, Huyện Tháp Mười"
+        ],
+        "raw": [
+          "HuyệnCao Lãnh, HuyệnChâu Thành, HuyệnLai Vung, HuyệnLấp Vò, HuyệnTam Nông, HuyệnThanh Bình, HuyệnTháp Mười"
+        ]
+      },
+      {
+        "qa_id": "3_0_43",
+        "recorded": [
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich"
+        ],
+        "replayed": [
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Sary Sovattey, Hang Manita, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Sary Sovattey,Hang Manita,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Sary Sovattey; Hang Manita; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Sary Sovattey;Hang Manita;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Sary Sovattey Hang Manita Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Chea Charany, Sary Sovattey, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Chea Charany,Sary Sovattey,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Chea Charany; Sary Sovattey; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Chea Charany;Sary Sovattey;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Chea Charany Sary Sovattey Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Soriyan Hang, Chea Charany, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Soriyan Hang,Chea Charany,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Soriyan Hang; Chea Charany; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Soriyan Hang;Chea Charany;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Soriyan Hang Chea Charany In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, In Leakena, Soriyan Hang, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,In Leakena,Soriyan Hang,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; In Leakena; Soriyan Hang; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;In Leakena;Soriyan Hang;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany In Leakena Soriyan Hang Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, Ngin Marady, In Leakena, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,Ngin Marady,In Leakena,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; Ngin Marady; In Leakena; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;Ngin Marady;In Leakena;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang Ngin Marady In Leakena Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Phum Sophorn, Ngin Marady, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Phum Sophorn,Ngin Marady,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Phum Sophorn; Ngin Marady; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Phum Sophorn;Ngin Marady;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Phum Sophorn Ngin Marady Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Dam Sopheaksindy, Phum Sophorn, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Dam Sopheaksindy,Phum Sophorn,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Dam Sopheaksindy; Phum Sophorn; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Dam Sopheaksindy;Phum Sophorn;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Dam Sopheaksindy Phum Sophorn Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Sarita Reth, Dam Sopheaksindy, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Sarita Reth,Dam Sopheaksindy,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Sarita Reth; Dam Sopheaksindy; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Sarita Reth;Dam Sopheaksindy;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Sarita Reth Dam Sopheaksindy Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Nisay Heng, Sarita Reth, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Nisay Heng,Sarita Reth,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Nisay Heng; Sarita Reth; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Nisay Heng;Sarita Reth;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Nisay Heng Sarita Reth Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Somnang Alyna, Nisay Heng, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Somnang Alyna,Nisay Heng,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Somnang Alyna; Nisay Heng; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Somnang Alyna;Nisay Heng;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Somnang Alyna Nisay Heng Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Vy Sreyvin, Somnang Alyna, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Vy Sreyvin,Somnang Alyna,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Vy Sreyvin; Somnang Alyna; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Vy Sreyvin;Somnang Alyna;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Vy Sreyvin Somnang Alyna Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Kachnak Thyda Bon, Vy Sreyvin, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Kachnak Thyda Bon,Vy Sreyvin,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Kachnak Thyda Bon; Vy Sreyvin; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Kachnak Thyda Bon;Vy Sreyvin;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Kachnak Thyda Bon Vy Sreyvin Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Thoung Mala, Kachnak Thyda Bon, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Thoung Mala,Kachnak Thyda Bon,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Thoung Mala; Kachnak Thyda Bon; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Thoung Mala;Kachnak Thyda Bon;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Thoung Mala Kachnak Thyda Bon Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Rern Sinat, Thoung Mala, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Rern Sinat,Thoung Mala,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Rern Sinat; Thoung Mala; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Rern Sinat;Thoung Mala;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Rern Sinat Thoung Mala Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Keo Senglyhour, Rern Sinat, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Keo Senglyhour,Rern Sinat,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Keo Senglyhour; Rern Sinat; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Keo Senglyhour;Rern Sinat;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Keo Senglyhour Rern Sinat Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Dy Molika, Keo Senglyhour, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Dy Molika,Keo Senglyhour,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Dy Molika; Keo Senglyhour; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Dy Molika;Keo Senglyhour;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Dy Molika Keo Senglyhour By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, By Sotheary, Dy Molika, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,By Sotheary,Dy Molika,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; By Sotheary; Dy Molika; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;By Sotheary;Dy Molika;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour By Sotheary Dy Molika Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, Nheat Sophea, By Sotheary, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,Nheat Sophea,By Sotheary,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; Nheat Sophea; By Sotheary; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;Nheat Sophea;By Sotheary;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika Nheat Sophea By Sotheary Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Em Kunthong, Nheat Sophea, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Em Kunthong,Nheat Sophea,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Em Kunthong; Nheat Sophea; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Em Kunthong;Nheat Sophea;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Em Kunthong Nheat Sophea Khloem Sreykea Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Khloem Sreykea, Em Kunthong, Seng Polvithavy, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Khloem Sreykea,Em Kunthong,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Khloem Sreykea; Em Kunthong; Seng Polvithavy; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Khloem Sreykea;Em Kunthong;Seng Polvithavy;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Khloem Sreykea Em Kunthong Seng Polvithavy Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Seng Polvithavy, Khloem Sreykea, Tim Sreyneat, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Seng Polvithavy,Khloem Sreykea,Tim Sreyneat,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Seng Polvithavy; Khloem Sreykea; Tim Sreyneat; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Seng Polvithavy;Khloem Sreykea;Tim Sreyneat;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Seng Polvithavy Khloem Sreykea Tim Sreyneat Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Tim Sreyneat, Seng Polvithavy, Sun Sreymom, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Tim Sreyneat,Seng Polvithavy,Sun Sreymom,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Tim Sreyneat; Seng Polvithavy; Sun Sreymom; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Tim Sreyneat;Seng Polvithavy;Sun Sreymom;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Tim Sreyneat Seng Polvithavy Sun Sreymom Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Sun Sreymom, Tim Sreyneat, Mealea Pich",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Sun Sreymom,Tim Sreyneat,Mealea Pich",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Sun Sreymom; Tim Sreyneat; Mealea Pich",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Sun Sreymom;Tim Sreyneat;Mealea Pich",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Sun Sreymom Tim Sreyneat Mealea Pich",
+          "Hang Manita, Sary Sovattey, Chea Charany, Soriyan Hang, In Leakena, Ngin Marady, Phum Sophorn, Dam Sopheaksindy, Sarita Reth, Nisay Heng, Somnang Alyna, Vy Sreyvin, Kachnak Thyda Bon, Thoung Mala, Rern Sinat, Keo Senglyhour, Dy Molika, By Sotheary, Nheat Sophea, Em Kunthong, Khloem Sreykea, Seng Polvithavy, Tim Sreyneat, Mealea Pich, Sun Sreymom",
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Mealea Pich,Sun Sreymom",
+          "Hang Manita; Sary Sovattey; Chea Charany; Soriyan Hang; In Leakena; Ngin Marady; Phum Sophorn; Dam Sopheaksindy; Sarita Reth; Nisay Heng; Somnang Alyna; Vy Sreyvin; Kachnak Thyda Bon; Thoung Mala; Rern Sinat; Keo Senglyhour; Dy Molika; By Sotheary; Nheat Sophea; Em Kunthong; Khloem Sreykea; Seng Polvithavy; Tim Sreyneat; Mealea Pich; Sun Sreymom",
+          "Hang Manita;Sary Sovattey;Chea Charany;Soriyan Hang;In Leakena;Ngin Marady;Phum Sophorn;Dam Sopheaksindy;Sarita Reth;Nisay Heng;Somnang Alyna;Vy Sreyvin;Kachnak Thyda Bon;Thoung Mala;Rern Sinat;Keo Senglyhour;Dy Molika;By Sotheary;Nheat Sophea;Em Kunthong;Khloem Sreykea;Seng Polvithavy;Tim Sreyneat;Mealea Pich;Sun Sreymom",
+          "Hang Manita Sary Sovattey Chea Charany Soriyan Hang In Leakena Ngin Marady Phum Sophorn Dam Sopheaksindy Sarita Reth Nisay Heng Somnang Alyna Vy Sreyvin Kachnak Thyda Bon Thoung Mala Rern Sinat Keo Senglyhour Dy Molika By Sotheary Nheat Sophea Em Kunthong Khloem Sreykea Seng Polvithavy Tim Sreyneat Mealea Pich Sun Sreymom"
+        ],
+        "raw": [
+          "Hang Manita,Sary Sovattey,Chea Charany,Soriyan Hang,In Leakena,Ngin Marady,Phum Sophorn,Dam Sopheaksindy,Sarita Reth,Nisay Heng,Somnang Alyna,Vy Sreyvin,Kachnak Thyda Bon,Thoung Mala,Rern Sinat,Keo Senglyhour,Dy Molika,By Sotheary,Nheat Sophea,Em Kunthong,Khloem Sreykea,Seng Polvithavy,Tim Sreyneat,Sun Sreymom,Mealea Pich"
+        ]
+      },
+      {
+        "qa_id": "11_0_324",
+        "recorded": [
+          "Ánh Viên, Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên,Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên; Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên;Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên, Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên,Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên; Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên;Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên Ánh Viên",
+          "Ánh Viên, Nguyễn Thị Nguyễn Thị Ánh Viên",
+          "Ánh Viên,Nguyễn Thị Nguyễn Thị Ánh Viên",
+          "Ánh Viên; Nguyễn Thị Nguyễn Thị Ánh Viên",
+          "Ánh Viên;Nguyễn Thị Nguyễn Thị Ánh Viên",
+          "Ánh Viên Nguyễn Thị Nguyễn Thị Ánh Viên",
+          "Nguyễn Thị Nguyễn Thị Ánh Viên, Ánh Viên",
+          "Nguyễn Thị Nguyễn Thị Ánh Viên,Ánh Viên",
+          "Nguyễn Thị Nguyễn Thị Ánh Viên; Ánh Viên",
+          "Nguyễn Thị Nguyễn Thị Ánh Viên;Ánh Viên",
+          "Nguyễn Thị Nguyễn Thị Ánh Viên Ánh Viên"
+        ],
+        "replayed": [
+          "Ánh Viên, Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên,Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên; Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên;Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Ánh Viên Nguyễn ThịNguyễn Thị Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên, Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên,Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên; Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên;Ánh Viên",
+          "Nguyễn ThịNguyễn Thị Ánh Viên Ánh Viên",
+          "Ánh Viên, Nguyễn Thị Nguyễn Thị Ánh Viên"
+        ],
+        "raw": [
+          "Ánh Viên, Nguyễn ThịNguyễn Thị Ánh Viên"
+        ]
+      },
+      {
+        "qa_id": "9994_2_140",
+        "recorded": [
+          "Thành phốCao Lãnh, Thành phốSa Đéc",
+          "Thành phốCao Lãnh,Thành phốSa Đéc",
+          "Thành phốCao Lãnh; Thành phốSa Đéc",
+          "Thành phốCao Lãnh;Thành phốSa Đéc",
+          "Thành phốCao Lãnh Thành phốSa Đéc",
+          "Thành phốSa Đéc, Thành phốCao Lãnh",
+          "Thành phốSa Đéc,Thành phốCao Lãnh",
+          "Thành phốSa Đéc; Thành phốCao Lãnh",
+          "Thành phốSa Đéc;Thành phốCao Lãnh",
+          "Thành phốSa Đéc Thành phốCao Lãnh",
+          "Thành phố Cao Lãnh, Thành phố Sa Đéc",
+          "Thành phố Cao Lãnh,Thành phố Sa Đéc",
+          "Thành phố Cao Lãnh; Thành phố Sa Đéc",
+          "Thành phố Cao Lãnh;Thành phố Sa Đéc",
+          "Thành phố Cao Lãnh Thành phố Sa Đéc",
+          "Thành phố Sa Đéc, Thành phố Cao Lãnh",
+          "Thành phố Sa Đéc,Thành phố Cao Lãnh",
+          "Thành phố Sa Đéc; Thành phố Cao Lãnh",
+          "Thành phố Sa Đéc;Thành phố Cao Lãnh",
+          "Thành phố Sa Đéc Thành phố Cao Lãnh"
+        ],
+        "replayed": [
+          "Thành phốCao Lãnh, Thành phốSa Đéc",
+          "Thành phốCao Lãnh,Thành phốSa Đéc",
+          "Thành phốCao Lãnh; Thành phốSa Đéc",
+          "Thành phốCao Lãnh;Thành phốSa Đéc",
+          "Thành phốCao Lãnh Thành phốSa Đéc",
+          "Thành phốSa Đéc, Thành phốCao Lãnh",
+          "Thành phốSa Đéc,Thành phốCao Lãnh",
+          "Thành phốSa Đéc; Thành phốCao Lãnh",
+          "Thành phốSa Đéc;Thành phốCao Lãnh",
+          "Thành phốSa Đéc Thành phốCao Lãnh",
+          "Thành phố Cao Lãnh, Thành phố Sa Đéc"
+        ],
+        "raw": [
+          "Thành phốCao Lãnh, Thành phốSa Đéc"
+        ]
+      }
+    ]
+  }
+}

@@ -122,3 +122,8 @@ FS + Verbalize (`+v` = áp Verbalize tất định lên đáp án đã lưu). So
 - **Lợi thế chắc chắn hiện có là chi phí:** A5 dùng 61% prompt token của few-shot.
 - Đối chứng mạnh cần vượt từ nay là **FS + Verbalize**, không phải zero-shot. FS+GSA của POMA vẫn
   chưa chạy trên dev.
+
+Ghi chú tái lập (2026-09-25): hai baseline zero-shot/few-shot ở bảng trên dùng các prompt có đánh
+version `v4_zs_minimal_json_vi` và `v3_fs_structured_vi` của commit `bb42794`. Sau khi merge origin,
+`baseline/prompts.py` đã chuyển sang template gọn của origin. Muốn tái lập đúng hai dòng này thì
+checkout `baseline/prompts.py` từ `bb42794`.

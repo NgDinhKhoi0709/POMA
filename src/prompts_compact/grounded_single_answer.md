@@ -10,7 +10,7 @@ Chọn một đáp án duy nhất được bảng hỗ trợ từ các ứng vi�
 # JSON DUY NHẤT
 {{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **BẢNG:**
 {table_flattened}

@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **YesNo** thành nhãn khẳng định hoặc phủ đị
 # JSON DUY NHẤT
 {{"answers":["Có hoặc Không hoặc Null"]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

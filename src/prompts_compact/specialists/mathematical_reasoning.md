@@ -11,10 +11,10 @@ Trả lời câu hỏi **MathematicalReasoning**: tính toán, đếm, so sánh 
 # JSON DUY NHẤT
 {{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-EXAMPLE 1: đủ số liệu → {{"answer":"2","evidence":["1","1"],"confidence":0.8,"reason":"tổng"}}
-EXAMPLE 2: thiếu số liệu → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
+VÍ DỤ 1: đủ số liệu → {{"answer":"2","evidence":["1","1"],"confidence":0.8,"reason":"tổng"}}
+VÍ DỤ 2: thiếu số liệu → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {normalized_question}
 **MỤC TIÊU:** {target}
 **RÀNG BUỘC:** {constraints}

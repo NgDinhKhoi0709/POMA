@@ -8,25 +8,25 @@ from baseline.prompts import build_tableqa_prompt
     [
         (
             "zero_shot",
-            "v3_zs_minimal",
-            (),
-            ('"final_answer"', '"reasoning"', '"subproblems"'),
+            "v4_zs_minimal_json_vi",
+            ('"final_answer"',),
+            ('"reasoning"', '"subproblems"'),
         ),
         (
             "few_shot",
-            "v2_fs_structured",
+            "v3_fs_structured_vi",
             ('"final_answer"',),
             ('"reasoning"', '"subproblems"'),
         ),
         (
             "cot",
-            "v2_cot_structured",
+            "v3_cot_structured_vi",
             ('"reasoning"', '"final_answer"'),
             ('"subproblems"',),
         ),
         (
             "task_decomposition",
-            "v2_td_structured",
+            "v3_td_structured_vi",
             ('"subproblems"', '"reasoning"', '"final_answer"'),
             (),
         ),
@@ -53,7 +53,7 @@ def test_structured_prompt_styles_request_only_their_contract_fields(
         assert field not in prompt
 
 
-def test_zero_shot_prompt_contains_only_minimal_answering_instruction_and_inputs() -> None:
+def test_zero_shot_prompt_keeps_minimal_instruction_in_vietnamese() -> None:
     prompt, _ = build_tableqa_prompt(
         question="Thu do la gi?",
         table_str="Quoc gia <header>|Thu do <header>|Ha Noi",
@@ -61,7 +61,8 @@ def test_zero_shot_prompt_contains_only_minimal_answering_instruction_and_inputs
     )
 
     assert prompt == (
-        "Dua vao bang, tra loi cau hoi. Neu bang khong du thong tin, tra ve null.\n\n"
-        "BANG:\nQuoc gia <header>|Thu do <header>|Ha Noi\n\n"
-        "CAU HOI: Thu do la gi?\n"
+        "Dựa vào bảng, trả lời câu hỏi. Nếu bảng không đủ thông tin, trả về null. "
+        "Trả về đúng một JSON: {\"final_answer\":\"...\"}.\n\n"
+        "BẢNG:\nQuoc gia <header>|Thu do <header>|Ha Noi\n\n"
+        "CÂU HỎI: Thu do la gi?\n"
     )

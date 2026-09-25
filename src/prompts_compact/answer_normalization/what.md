@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **What**: thực thể, thuộc tính hoặc giá trị.
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

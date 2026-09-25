@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **Why**: nguyên nhân hoặc lý do.
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

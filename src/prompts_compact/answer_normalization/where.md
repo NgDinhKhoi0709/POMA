@@ -9,7 +9,7 @@ Chuẩn hóa đáp án **Where**: địa điểm, quốc gia, vùng hoặc vị 
 # JSON DUY NHẤT
 {{"answers":["..."]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **MỤC TIÊU:** {target}
 **ĐÁP ÁN THÔ:** {answer}

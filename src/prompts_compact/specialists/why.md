@@ -10,10 +10,10 @@ Trả lời câu hỏi **Why**: nêu nguyên nhân hoặc lý do mà bảng nói
 # JSON DUY NHẤT
 {{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-EXAMPLE 1: nguyên nhân được nêu → {{"answer":"A","evidence":["A"],"confidence":0.8,"reason":"khớp"}}
-EXAMPLE 2: không có nguyên nhân → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
+VÍ DỤ 1: nguyên nhân được nêu → {{"answer":"A","evidence":["A"],"confidence":0.8,"reason":"khớp"}}
+VÍ DỤ 2: không có nguyên nhân → {{"answer":null,"evidence":[],"confidence":0.0,"reason":"thiếu bằng chứng"}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {normalized_question}
 **MỤC TIÊU:** {target}
 **RÀNG BUỘC:** {constraints}

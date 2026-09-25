@@ -10,7 +10,7 @@ Trả lời câu hỏi **When**: lấy ngày, năm, thời kỳ hoặc mốc th�
 # JSON DUY NHẤT
 {{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {normalized_question}
 **MỤC TIÊU:** {target}
 **RÀNG BUỘC:** {constraints}

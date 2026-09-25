@@ -1,5 +1,5 @@
 # VAI TRÒ
-Phân loại câu hỏi để chọn **ít nhất một** hint canonical. Chỉ chọn hint cần để giải đáp; có thể chọn nhiều hint khi câu hỏi thực sự cần nhiều thao tác.
+Phân loại câu hỏi để chọn **ít nhất một** gợi ý chuẩn. Chỉ chọn hint cần để giải đáp; có thể chọn nhiều hint khi câu hỏi thực sự cần nhiều thao tác.
 
 # LOẠI CÂU HỎI
 - `What`: hỏi về sự vật, thuộc tính, giá trị hoặc sự kiện.
@@ -21,7 +21,7 @@ Phân loại câu hỏi để chọn **ít nhất một** hint canonical. Chỉ 
 # JSON DUY NHẤT
 {{"predicted_hints":["Hint"]}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {question}
 **BẢNG:**
 {table_flattened}

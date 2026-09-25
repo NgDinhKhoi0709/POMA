@@ -10,7 +10,7 @@ Trả lời câu hỏi **List**: liệt kê hoặc sắp xếp các mục thỏa
 # JSON DUY NHẤT
 {{"answer":"... hoặc null","evidence":["..."],"confidence":0.0,"reason":"..."}}
 
-# INPUT
+# ĐẦU VÀO
 **CÂU HỎI:** {normalized_question}
 **MỤC TIÊU:** {target}
 **RÀNG BUỘC:** {constraints}

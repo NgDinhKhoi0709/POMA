@@ -39,7 +39,7 @@ def test_complex_specialists_have_two_short_examples():
     root = Path("src/prompts_compact/specialists")
     for name in ["why", "how", "multi_conditions", "mathematical_reasoning"]:
         text = (root / f"{name}.md").read_text(encoding="utf-8")
-        assert text.count("EXAMPLE ") == 2
+        assert text.count("VÍ DỤ ") == 2
         assert "null" in text
 
 
@@ -67,7 +67,7 @@ def test_specialist_and_normalization_prompts_have_clear_structured_sections():
         assert "# VAI TRÒ" in text
         assert "# QUY TẮC" in text
         assert "# JSON DUY NHẤT" in text
-        assert "# INPUT" in text
+        assert "# ĐẦU VÀO" in text
 
 
 def test_hint_predictor_documents_every_canonical_hint_and_refiner_contract():

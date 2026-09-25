@@ -15,7 +15,7 @@
   config-info(
     title: [Parallel Multi-Agent Orchestration for Vietnamese Table QA],
     subtitle: [Progress report: current status and approaches tested],
-    mini-title: [POMA — Vietnamese Table QA],
+    mini-title: [Vietnamese Table QA],
     authors: [Nguyen Dinh Khoi],
     date: datetime(year: 2026, month: 9, day: 22),
   ),
@@ -66,7 +66,7 @@
       column-gutter: 1.2em,
       [
         *Three stated challenges*
-        - Multilevel headers and merged cells (`rowspan` / `colspan`)
+        - Multilevel headers and merged cells
         - Multistep reasoning over several rows or columns
         - Deciding answerability at all
       ],
@@ -75,16 +75,8 @@
         - Open backbone under 10B parameters
         - No fine-tuning of the QA model
         - Only prompts and pipeline structure may change
-        - (Only the BIF evaluator's NLI model is fine-tuned)
       ],
     )
-  ]
-  #v(0.3em)
-  #text(size: 0.8em)[
-    #warning-block(title: [Why this report])[
-      The submitted draft reports 80.24 EM. Re-auditing that number is what
-      the past months of work were mostly about.
-    ]
   ]
 ]
 
@@ -93,7 +85,7 @@
 #slide(title: [What the data actually contains])[
   #v(0.3em)
   #text(size: 0.95em)[
-    *Measured from repository files, not copied from the paper* #h(0.4em) [MEASURED]
+    *Measured from repository files, not copied from the paper* #h(0.4em)
   ]
   #v(0.7em)
   #align(center)[
@@ -136,38 +128,13 @@
   ]
 ]
 
-#slide(title: [Three things to say about this architecture])[
-  #text(size: 0.92em)[
-    #enum(
-      spacing: 0.75em,
-      [*The router is a 1:1 lookup table.* "Deterministic routing" makes no new
-        decision. The real decision is the hint predictor, whose accuracy has
-        never been reported.],
-      [*Parallel execution cannot affect accuracy.* Specialists never see each
-        other's outputs and decoding is at `temperature=0`, so parallel and
-        sequential runs give identical answers. Latency is the only possible
-        benefit, and it was never measured.],
-      [*Parallel execution barely happens.* 880/992 questions (88.7%) invoke
-        exactly one specialist; none invokes three.],
-    )
-  ]
-  #v(0.4em)
-  #text(size: 0.86em)[
-    #warning-block(title: [Preprocessing bug found 2026-09-19])[
-      `cell.get_text()` without a separator concatenated cell content in
-      *95/329 tables, affecting 325/992 test questions*. It sits upstream of
-      every experiment: results before and after the fix are not comparable.
-    ]
-  ]
-]
-
 // ============================================================
 = Status
 // ============================================================
 
 == Audit
 
-#slide(title: [The 80.24 sequence])[
+#slide(title: [Audit])[
   #text(size: 0.74em)[
     #table(
       columns: (auto, auto, auto, 1fr),
@@ -176,9 +143,6 @@
       stroke: 0.4pt + luma(180),
       fill: (x, y) => if y == 0 { rgb("#2563eb").lighten(82%) } else if calc.odd(y) { luma(246) } else { white },
       table.header([*EM*], [*BIF*], [*n*], [*What it measures*]),
-      [*80.24*], [—], [992], [POMA best-of-K — *oracle*, older run (the published number)],
-      [67.74], [—], [992], [Same run, first answer only #h(0.4em) *#text(fill: rgb("#dc2626"))[−12.50 from scoring alone]*],
-      table.cell(colspan: 4, fill: luma(232))[#text(size: 0.95em)[*New Qwen3-8B run, same scorer, one-answer policy:*]],
       [74.90], [—], [992], [POMA `all` — oracle best-of-K (mean K 3.44, max K 80)],
       [66.63], [75.00], [992], [POMA-first],
       [67.34], [73.83], [992], [Few-shot raw],

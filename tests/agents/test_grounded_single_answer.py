@@ -239,5 +239,5 @@ def test_agent_uses_gsa_schema_and_private_prompt_context():
     assert call["prompt_name"] == "grounded_single_answer"
     assert '"source_name": "What"' in call["prompt"]
     assert '"answer": "Da Nang"' in call["prompt"]
-    assert "If it differs semantically from every input candidate" in call["prompt"]
-    assert "decision=`synthesized`, never `selected`" in call["prompt"]
+    assert "Nếu khác về ngữ nghĩa với mọi ứng viên" in call["prompt"]
+    assert "dùng decision=`synthesized`, không bao giờ dùng `selected`" in call["prompt"]

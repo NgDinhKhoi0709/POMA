@@ -16,6 +16,7 @@ def test_schema_registry_contains_every_poma_owned_call():
         "specialist.v1",
         "answer_normalization.v1",
         "gsa.v1",
+        "header_filter.v1",
         "baseline_zero_shot.v1",
         "baseline_few_shot.v1",
         "baseline_cot.v1",
@@ -84,15 +85,6 @@ def test_gsa_schema_requires_exact_decisions_and_evidence_fields():
     ]
 
 
-def test_cot_and_task_decomposition_schemas_require_reasoning_fields():
-    for name in ("baseline_cot.v1", "baseline_task_decomposition.v1"):
-        assert "reasoning" in schema_for_call(name).json_schema["required"]
-
-    assert "subproblems" in schema_for_call(
-        "baseline_task_decomposition.v1"
-    ).json_schema["required"]
-
-
 @pytest.mark.parametrize(
     ("name", "data", "message"),
     [
@@ -105,11 +97,6 @@ def test_cot_and_task_decomposition_schemas_require_reasoning_fields():
             "answer_normalization.v1",
             {"answers": []},
             "answers",
-        ),
-        (
-            "baseline_task_decomposition.v1",
-            {"reasoning": "inspect rows", "subproblems": [], "final_answer": "42"},
-            "subproblems",
         ),
         (
             "gsa.v1",

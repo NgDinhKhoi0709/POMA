@@ -389,15 +389,6 @@ def test_domain_invalid_json_is_repaired_once():
             '{"answers": ["answer"]}',
             "$.answers",
         ),
-        (
-            "baseline_task_decomposition.v1",
-            '{"reasoning": "because", "subproblems": [], "final_answer": "answer"}',
-            (
-                '{"reasoning": "because", "subproblems": ["find row"], '
-                '"final_answer": "answer"}'
-            ),
-            "$.subproblems",
-        ),
     ],
 )
 def test_domain_validation_errors_identify_the_invalid_field(

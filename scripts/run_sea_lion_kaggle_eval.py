@@ -16,10 +16,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-root", required=True)
     parser.add_argument(
         "--phase",
-        choices=("smoke", "pilot100", "pilot", "test500", "final", "longest_test"),
+        choices=("smoke", "pilot100", "pilot", "test500", "test", "final", "longest_test"),
         default="pilot",
     )
     parser.add_argument("--mode", choices=("zero_shot", "poma", "both"), default="both")
+    parser.add_argument(
+        "--prompt-style",
+        choices=("zero_shot", "cot", "task_decomposition", "few_shot"),
+        default="zero_shot",
+    )
     parser.add_argument("--limit", type=int)
     parser.add_argument("--final-ids-path", type=Path)
     parser.add_argument("--confirm-final-543", action="store_true")
@@ -35,22 +40,22 @@ def main() -> int:
         sys.path.insert(0, str(root))
     from src.kaggle_eval.runner import RunConfig, prepare_run_dirs, run_poma, run_zero_shot, select_qas
     from src.kaggle_eval.reporting import write_comparison_report, write_run_report
-    config = RunConfig(repo_root=root, output_root=Path(args.output_root), phase=args.phase, mode=args.mode, model=args.model, final_ids_path=args.final_ids_path, limit=args.limit)
+    config = RunConfig(repo_root=root, output_root=Path(args.output_root), phase=args.phase, mode=args.mode, model=args.model, prompt_style=args.prompt_style, final_ids_path=args.final_ids_path, limit=args.limit)
     selected, tables = select_qas(config)
     if args.phase == "test500":
         qas_path = root / "dataset" / "qas_test_500_stratified.json"
     else:
-        use_test = args.phase in {"final", "longest_test"}
+        use_test = args.phase in {"test", "final", "longest_test"}
         qas_path = root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
     dirs = prepare_run_dirs(config)
     if args.mode in ("zero_shot", "both"):
         zero_path = run_zero_shot(config, selected, tables)
-        write_run_report(zero_path, qas_path, dirs["zero_shot"] / "metrics.json")
+        write_run_report(zero_path, qas_path, dirs[args.prompt_style] / "metrics.json")
     if args.mode in ("poma", "both"):
         poma_path = run_poma(config, selected, tables)
         write_run_report(poma_path, qas_path, dirs["poma"] / "metrics.json")
     if args.mode == "both":
-        write_comparison_report(dirs["poma"] / "predictions.jsonl", dirs["zero_shot"] / "predictions.jsonl", qas_path, dirs["poma"].parent / "comparison.json")
+        write_comparison_report(dirs["poma"] / "predictions.jsonl", dirs[args.prompt_style] / "predictions.jsonl", qas_path, dirs["poma"].parent / "comparison.json")
     return 0
 
 if __name__ == "__main__":

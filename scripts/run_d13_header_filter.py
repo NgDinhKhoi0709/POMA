@@ -125,11 +125,11 @@ def process(qa: dict[str, Any], table: dict[str, Any], arm: str, *, client, cfg:
     else:
         table_str = render_table(table, arm)
 
-    prompt, prompt_version = build_tableqa_prompt(
+    prompt = build_tableqa_prompt(
         question=str(qa["question"]).strip(), table_str=table_str, prompt_style="zero_shot", answer_language="vi"
     )
     record.update({
-        "prompt_version": prompt_version,
+        "prompt_version": "zero_shot_compact",
         "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
         "table_chars": len(table_str),
     })

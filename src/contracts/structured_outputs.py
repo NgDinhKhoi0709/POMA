@@ -137,7 +137,7 @@ STRUCTURED_SCHEMAS: dict[str, ResponseSchema] = {
     "baseline_zero_shot.v1": ResponseSchema(
         name="baseline_zero_shot.v1",
         version="v1",
-        json_schema=_closed_object({"final_answer": {"type": "string"}}, ["final_answer"]),
+        json_schema=_closed_object({"final_answer": _NULLABLE_STRING}, ["final_answer"]),
     ),
     "header_filter.v1": ResponseSchema(
         name="header_filter.v1",
@@ -147,30 +147,17 @@ STRUCTURED_SCHEMAS: dict[str, ResponseSchema] = {
     "baseline_few_shot.v1": ResponseSchema(
         name="baseline_few_shot.v1",
         version="v1",
-        json_schema=_closed_object({"final_answer": {"type": "string"}}, ["final_answer"]),
+        json_schema=_closed_object({"final_answer": _NULLABLE_STRING}, ["final_answer"]),
     ),
     "baseline_cot.v1": ResponseSchema(
         name="baseline_cot.v1",
         version="v1",
-        json_schema=_closed_object(
-            {
-                "reasoning": {"type": "string"},
-                "final_answer": {"type": "string"},
-            },
-            ["reasoning", "final_answer"],
-        ),
+        json_schema=_closed_object({"final_answer": _NULLABLE_STRING}, ["final_answer"]),
     ),
     "baseline_task_decomposition.v1": ResponseSchema(
         name="baseline_task_decomposition.v1",
         version="v1",
-        json_schema=_closed_object(
-            {
-                "reasoning": {"type": "string"},
-                "subproblems": _STRING_LIST,
-                "final_answer": {"type": "string"},
-            },
-            ["reasoning", "subproblems", "final_answer"],
-        ),
+        json_schema=_closed_object({"final_answer": _NULLABLE_STRING}, ["final_answer"]),
     ),
 }
 
@@ -201,8 +188,6 @@ def validate_domain_payload(name: str, data: dict[str, Any]) -> None:
         raise StructuredContractError("predicted_hints must be a non-empty list")
     elif name == "answer_normalization.v1" and not data["answers"]:
         raise StructuredContractError("answers must be a non-empty list")
-    elif name == "baseline_task_decomposition.v1" and not data["subproblems"]:
-        raise StructuredContractError("subproblems must be a non-empty list")
 
 
 __all__ = [

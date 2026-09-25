@@ -24,9 +24,10 @@ except ImportError:  # pragma: no cover - Kaggle supplies tqdm
 class RunConfig:
     repo_root: Path
     output_root: Path
-    phase: Literal["smoke", "pilot100", "pilot", "test500", "final", "longest_test"] = "pilot"
+    phase: Literal["smoke", "pilot100", "pilot", "test500", "test", "final", "longest_test"] = "pilot"
     mode: Literal["zero_shot", "poma", "both"] = "both"
     model: str = "local/sea-lion-v3-8b-it"
+    prompt_style: Literal["zero_shot", "cot", "task_decomposition", "few_shot"] = "zero_shot"
     prompt_profile: str = "compact"
     seed: int = 42
     pilot_n: int = 200
@@ -37,7 +38,7 @@ class RunConfig:
 def prepare_run_dirs(config: RunConfig) -> dict[str, Path]:
     root = config.output_root / "sea_lion_v3_8b_it" / config.phase
     result = {}
-    for mode in ("zero_shot", "poma"):
+    for mode in (config.prompt_style, "poma"):
         path = root / mode
         path.mkdir(parents=True, exist_ok=True)
         result[mode] = path
@@ -48,7 +49,7 @@ def _dataset_paths(config: RunConfig) -> tuple[Path, Path]:
     if config.phase == "test500":
         qas = config.repo_root / "dataset" / "qas_test_500_stratified.json"
     else:
-        use_test = config.phase in {"final", "longest_test"}
+        use_test = config.phase in {"test", "final", "longest_test"}
         qas = config.repo_root / "dataset" / ("qas_test.json" if use_test else "qas_dev.json")
     return qas, config.repo_root / "dataset" / "table.json"
 
@@ -97,7 +98,8 @@ def _record_selection(path: Path, selected: list[dict]) -> None:
 
 def baseline_prediction(payload: dict) -> list[str]:
     """Convert the baseline structured schema into evaluation candidates."""
-    return [str(payload["final_answer"])]
+    answer = payload["final_answer"]
+    return [] if answer is None else [str(answer)]
 
 
 def _pending_qas(selected: list[dict], done: set[str]) -> list[dict]:
@@ -125,7 +127,7 @@ def run_zero_shot(config: RunConfig, selected: list[dict], table_idx: dict) -> P
     from src.services.local_transformers_client import ContextOverflowError
     from src.services.llm_client import LLMClient
     from src.services.structured_generation import StructuredGenerator
-    directory = prepare_run_dirs(config)["zero_shot"]
+    directory = prepare_run_dirs(config)[config.prompt_style]
     predictions, errors = directory / "predictions.jsonl", directory / "errors.jsonl"
     _record_selection(directory / "selected_ids.json", selected)
     done = completed_qa_ids(predictions, errors)
@@ -135,9 +137,9 @@ def run_zero_shot(config: RunConfig, selected: list[dict], table_idx: dict) -> P
         qa_id = str(qa["qa_id"])
         try:
             table = create_representation(table_idx[str(qa["table_id"])]).to_string()
-            prompt, _ = build_tableqa_prompt(question=str(qa["question"]), table_str=table, prompt_style="zero_shot")
+            prompt = build_tableqa_prompt(question=str(qa["question"]), table_str=table, prompt_style=config.prompt_style)
             generator = StructuredGenerator(client._generate_raw_text)
-            result = generator.generate(prompt, schema_for_call("baseline_zero_shot.v1"), CallContext(qa_id=qa_id, agent_name="DirectPromptBaseline", prompt_name="zero_shot", model=config.model))
+            result = generator.generate(prompt, schema_for_call(f"baseline_{config.prompt_style}.v1"), CallContext(qa_id=qa_id, agent_name="DirectPromptBaseline", prompt_name=config.prompt_style, model=config.model))
             append_jsonl(predictions, {"qa_id": qa_id, "prediction": baseline_prediction(result.data), "schema_valid": result.schema_valid, "repair_attempted": result.repair_attempted, "repair_succeeded": result.repair_succeeded})
         except Exception as exc:
             append_jsonl(errors, {"qa_id": qa_id, "terminal": isinstance(exc, ContextOverflowError), "error_type": "context_overflow" if isinstance(exc, ContextOverflowError) else type(exc).__name__, "error": str(exc)})

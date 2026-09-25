@@ -6,14 +6,48 @@ Parses HTML tables and extracts structure including merged cells (colspan/rowspa
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, NavigableString, Tag
+
+# A cell whose HTML holds several *blocks* used to be read with ``get_text()``, which concatenates
+# them with nothing in between: ``<td>Dân chủ Kitô giáo<br/>Quốc gia: CDU</td>`` came out as
+# ``Dân chủ Kitô giáoQuốc gia: CDU``. Every downstream representation inherited that, and a model
+# quoting the cell was scored wrong for faithfully copying what it had been shown.
+#
+# The separator must go at block boundaries ONLY. ``get_text(" ")`` is not the fix: it also splits
+# inline markup, turning ``Iese/<a>Hãn</a>/<a>Mustafa</a>`` into ``Iese / Hãn / Mustafa`` and
+# ``Dĩnh Trì<span>,</span>`` into ``Dĩnh Trì ,``. An A/B run of that version lost 21 questions and
+# won 7 (-3.4 EM points on 410 questions), which is how the mistake was caught.
+_BLOCK_TAGS = frozenset({
+    "br", "p", "div", "li", "ul", "ol", "dl", "dt", "dd", "tr", "td", "th", "table",
+    "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "hr", "section", "article", "figcaption",
+})
+
+# ``POMA_LEGACY_CELL_TEXT=1`` restores the pre-fix behaviour. It exists only so an A/B run can
+# measure what the fix is worth against artifacts produced before it; production never sets it.
+_LEGACY_CELL_TEXT = os.environ.get("POMA_LEGACY_CELL_TEXT") == "1"
+
+
+def _cell_text(cell: Tag) -> str:
+    """Cell text with a space at block boundaries and nothing added inside inline markup."""
+    if _LEGACY_CELL_TEXT:
+        return cell.get_text()
+    parts: List[str] = []
+    for node in cell.descendants:
+        if isinstance(node, NavigableString):
+            parts.append(str(node))
+        elif getattr(node, "name", None) in _BLOCK_TAGS:
+            parts.append(" ")
+    return "".join(parts)
+
 
 
 @dataclass
+
 class Cell:
     """Represents a table cell."""
     value: str
@@ -136,7 +170,7 @@ class HTMLTableParser:
                 rowspan = int(cell.get("rowspan", 1))
                 colspan = int(cell.get("colspan", 1))
                 is_header = cell.name == "th"
-                value = self._clean_text(cell.get_text())
+                value = self._clean_text(_cell_text(cell))
                 
                 # Check for merged cells
                 if rowspan > 1 or colspan > 1:

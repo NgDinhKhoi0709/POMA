@@ -40,12 +40,12 @@ def knn_block(qa: dict, k: int = KNN_K) -> str:
     )
 
 
-def flat_prefix(qa: dict) -> str:
-    return f"{_KNN_HEADER}\nBẢNG (TABLE_STR):\n{table_str(qa['table_id'])}\n\n{knn_block(qa)}\n\n"
+def flat_prefix(qa: dict, k: int = KNN_K) -> str:
+    return f"{_KNN_HEADER}\nBẢNG (TABLE_STR):\n{table_str(qa['table_id'])}\n\n{knn_block(qa, k)}\n\n"
 
 
-def knn_prompt(qa: dict) -> str:
-    return flat_prefix(qa) + f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
+def knn_prompt(qa: dict, k: int = KNN_K) -> str:
+    return flat_prefix(qa, k) + f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
 
 
 def fs_prompt(qa: dict) -> str:
@@ -68,12 +68,12 @@ _GRID_HEADER = (
 )
 
 
-def grid_prefix(qa: dict) -> str:
-    return f"{_GRID_HEADER}\nBẢNG:\n{grid_str(qa['table_id'])}\n\n{knn_block(qa)}\n\n"
+def grid_prefix(qa: dict, k: int = KNN_K) -> str:
+    return f"{_GRID_HEADER}\nBẢNG:\n{grid_str(qa['table_id'])}\n\n{knn_block(qa, k)}\n\n"
 
 
-def evid_prompt(qa: dict) -> str:
-    return grid_prefix(qa) + f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
+def evid_prompt(qa: dict, k: int = KNN_K) -> str:
+    return grid_prefix(qa, k) + f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
 
 
 def _parse_evid(text: str) -> tuple[str, list[str]]:
@@ -243,6 +243,11 @@ METHODS = {
     "knn_fs": single(knn_prompt),
     "knn_fs_nothink": single(knn_prompt, thinking=False),
     "evid": single(evid_prompt),
+    # Ablation kích thước memory (k câu train cùng bảng).
+    "knn4_fs": single(lambda qa: knn_prompt(qa, 4)),
+    "knn16_fs": single(lambda qa: knn_prompt(qa, 16)),
+    "knn30_fs": single(lambda qa: knn_prompt(qa, 30)),
+    "evid16": single(lambda qa: evid_prompt(qa, 16)),
     "knn_sc3": self_consistency(knn_prompt, 3),
     "fs_sc3": self_consistency(fs_prompt, 3),
 }

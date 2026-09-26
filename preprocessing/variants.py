@@ -111,6 +111,12 @@ def render_v1(grid: Grid) -> str:
     return "\n".join(lines)
 
 
+def render_flatten_v2(table_data: Dict[str, Any]) -> str:
+    """Flatten V1 minus columns that are empty in every body row of the original table (e.g. image columns)."""
+    grid = Grid.from_table_data(table_data)
+    return render_v1(grid.cleaned(strip_citations=False, drop_link_columns=False, drop_empty_rows=False))
+
+
 def render_pipe_plain(grid: Grid) -> str:
     """Pipe rows without the ``<header>`` tag; header rows kept as they are."""
     return "\n".join("|".join(row) for row in grid.rows)

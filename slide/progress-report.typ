@@ -163,39 +163,33 @@
 
 == Attribution
 
-#slide(title: [Where the reported gain actually comes from — new run])[
-  #text(size: 0.78em)[
+#slide(title: [Two matched-setting pairs, no oracle credit])[
+  #text(size: 0.76em)[
     #table(
-      columns: (1fr, auto, auto, auto, auto),
-      inset: 4.5pt,
+      columns: (1.3fr, auto, auto, auto, auto),
+      inset: 4pt,
       align: (left, right, right, right, right),
       stroke: 0.4pt + luma(180),
       table.header([], [*EM*], [*F1*], [*R1*], [*MET*]),
-      [Few-shot raw (new run)], [67.34], [78.63], [73.46], [73.55],
-      [POMA-first (single answer, new run)], [66.63], [79.80], [74.69], [75.76],
-      [POMA `all` — oracle best-of-K (mean K 3.44, max K 80)], [74.90], [83.42], [79.46], [79.88],
-      [*Share of the POMA-vs-FS gap from oracle scoring*], [*109%*], [76%], [80%], [65%],
+      table.cell(colspan: 5, fill: luma(230))[*Pair 1 — single answer, no finalizer* (FS raw is an older run)],
+      [Few-shot raw], [67.34], [78.63], [73.46], [73.55],
+      [POMA-first], [66.63], [79.80], [74.69], [75.76],
+      [*Δ (POMA − FS)*], [*−0.71*], [*+1.17*], [*+1.23*], [*+2.21*],
+      table.cell(colspan: 5, fill: luma(230))[*Pair 2 — GSA finalizer, same run*],
+      [Few-shot + GSA], [70.16], [81.52], [76.93], [77.23],
+      [POMA + GSA], [68.45], [81.31], [77.12], [78.15],
+      [*Δ (POMA − FS)*], [*−1.71*], [*−0.21*], [*+0.19*], [*+0.92*],
     )
   ]
-  #v(0.45em)
-  #text(size: 0.84em)[
-    - On EM, *POMA-first alone trails Few-shot raw* (66.63 vs 67.34) — before any
-      best-of-K credit, the deployable pipeline does not beat the baseline.
-    - Answer Normalization runs identically in *both* POMA rows; only the scoring
-      policy differs. So this is not an AN-on-vs-off ablation — it is the same
-      "-12.50 from scoring alone" effect from the previous slide, now broken out
-      by metric. Adding candidates to a best-of-K set can never lower its score.
-    - Same pattern survives in the un-refreshed baselines (new scorer): task
-      decomposition (59.98) and CoT (59.48) both still score *below* zero-shot (63.10).
-  ]
-  #v(0.35em)
-  #text(size: 0.82em)[
-    #warning-block(title: [Oracle row still has no BIF])[
-      POMA `all` is scored with `candidate_policy=all` on all 992 questions, but
-      BIF was never computed for it — only the cheap lexical metrics (EM/F1/R1/MET).
-      It stays labeled *oracle, not a deployable system*: it sizes the scoring-policy
-      artifact, it is not a result to report as POMA's performance.
-    ]
+  #v(0.3em)
+  #text(size: 0.78em)[
+    - On EM, POMA trails Few-shot in *both* matched pairs: −0.71 with no
+      finalizer, −1.71 with GSA — the strongest comparison here, same run and
+      same finalizer for both sides (paired 95% CI [−3.93, +0.50] still crosses zero).
+    - On F1/R1/MET POMA's small edge shrinks once both sides get GSA (+1.2 to +2.2
+      → −0.2 to +0.9; F1 turns negative), and these metrics have no paired CI yet.
+    - No matched-setting pair shows POMA beating Few-shot on EM. A larger
+      "POMA wins" number elsewhere (e.g. oracle best-of-K) is not from a fair pair.
   ]
 ]
 
@@ -273,16 +267,6 @@
       [—], [GaP-TQA, separate system (dev)], [991], [fixed], [A5 − FS+Verbalize *+1.41* [−0.71, +3.53]], [—], [Cheaper; not significant],
     )
   ]
-  #v(0.2em)
-  #text(size: 0.7em)[
-    #warning-block(title: [Read this row-wise only])[
-      Every CI for an improvement direction includes zero, except D13, whose
-      effect is harmful. The parser fix splits the record: D01–D11 used the old
-      parser, D12–D13 the corrected one. Only D12 has a paired BIF interval;
-      D02's BIF deltas compare artifacts from different runs; "—" means BIF has no
-      matched paired samples for that row (see Backbones slide for Gemma/SEA-LION detail).
-    ]
-  ]
 ]
 
 == Examples
@@ -309,12 +293,6 @@
     179/200 questions selected no rows at all, because 77.8% of tables have no
     left header column. The damage came from losing *row-locating* columns, not answer columns.
     BIF agrees: 74.20 $->$ 63.86, paired CI [−14.09, −6.37].
-  ]
-  #v(0.25em)
-  #text(size: 0.76em)[
-    #warning-block(title: [Pattern])[
-      Adding a stage has not paid off. The one measurable win is cost, not accuracy.
-    ]
   ]
 ]
 
@@ -374,9 +352,6 @@
       [Zero-shot], [*39.59*], [*57.31*], [*47.07*], [*47.83*], [*60.95*],
       [*Difference (POMA − ZS)*], [*−12.89*], [−8.33], [—], [—], [*−9.89*],
     )
-    #v(0.15em)
-    Paired 95% CI EM [−17.13, −8.66], BIF [−12.60, −7.14] — both *exclude zero*
-    (BIF n=542/543; one crashing Zero-shot answer excluded from both arms).
   ]
   #v(0.2em)
   #text(size: 0.7em)[
@@ -391,14 +366,6 @@
       [Zero-shot / Few-shot / CoT (full test)], [992 / 991], [49.50 / 49.45 / 47.83], [66.09 / 66.27 / 64.46], [68.24 / 68.34 / 67.20],
       [POMA (stratified 500 subset)], [486], [43.00], [60.07], [*59.89*],
     )
-  ]
-  #v(0.15em)
-  #text(size: 0.66em)[
-    #warning-block(title: [Pattern across backbones])[
-      Any benefit from POMA depends on the backbone and reverses on a weaker one.
-      SEA-LION rows use different question sets, no paired conclusion yet
-      (CoT BIF n=897/990: same crash-exclusion as Gemma).
-    ]
   ]
 ]
 
@@ -528,179 +495,18 @@
     ]
   ]
 ]
-
-// ============================================================
-= Lessons
-// ============================================================
-
-== Variation
-
-#slide(title: [Run-to-run variation exceeds every measured effect])[
-  #text(size: 0.82em)[
-    The *same configuration* — model, provider, prompt, cached hints, parser — run twice:
-  ]
-  #v(0.2em)
-  #grid(
-    columns: (0.85fr, 1.15fr),
-    column-gutter: 1.4em,
-    align: (center + horizon, left + horizon),
-    text(size: 0.72em)[
-      #table(
-        columns: (auto, auto, auto),
-        inset: 5pt,
-        align: (left, right, right),
-        stroke: 0.4pt + luma(180),
-        table.header([], [*EM*], [*BIF*]),
-        [Run 1], [68.33], [75.22],
-        [Run 2], [67.89], [75.09],
-        [*Difference*], [*−0.44*], [−0.12],
-      )
-      #v(0.4em)
-      *98/900 answers (10.9%)* changed wording with no configuration change.
-      #v(0.3em)
-      A second observation: 68.35 versus 66.63 on identical settings, a *1.7-point* gap.
-    ],
-    text(size: 0.66em)[
-      #table(
-        columns: (1fr, auto, auto, auto),
-        inset: 4pt,
-        align: (left, right, right, center),
-        stroke: 0.4pt + luma(180),
-        table.header([*Intervention*], [*EM*], [*BIF*], [*Within variation?*]),
-        [D10 H1 k=20], [+1.9], [+0.72], [yes],
-        [D12 `pipe_nohdr`], [+2.0], [+1.10], [yes, at the boundary],
-        [Parser fix], [−1.41], [−0.37], [yes],
-        [D11 v3lite], [+0.40], [+0.64], [yes],
-        [D04 R2 gate], [−1.0], [−0.38], [yes],
-        [D13 `hdrfilter`], [−14.5], [−10.10], [*no*],
-      )
-    ],
-  )
-  #v(0.25em)
-  #text(size: 0.76em)[
-    #warning-block(title: [Implication])[
-      Until this variation is characterized, effects near ±2 points cannot be
-      interpreted. Two observations are not a standard deviation — three runs are needed.
-    ]
-  ]
-]
-
-== Headroom
-
-#slide(title: [Large headroom, near-zero captured gain])[
-  #text(size: 0.84em)[
-    #table(
-      columns: (1.4fr, auto, auto),
-      inset: 5pt,
-      align: (left, right, right),
-      stroke: 0.4pt + luma(180),
-      fill: (x, y) => if y == 0 { rgb("#2563eb").lighten(82%) } else if calc.odd(y) { luma(246) } else { white },
-      table.header([*Mechanism*], [*Ceiling*], [*Captured*]),
-      [Arithmetic executor (D04)], [1.8–3.2 pts], [*0*],
-      [Answerability gate (D11)], [4.7 pts], [*+0.1*],
-      [Specialist-disagreement resolver], [0.71 pts], [+0.30],
-      [Perfect row retrieval], [< 0.1 pts], [—],
-    )
-  ]
-  #v(0.45em)
-  #text(size: 0.84em)[
-    *Common cause: the intervention cannot tell which cases need correcting.*
-    - The executor fires on 11 questions every reader *already answered correctly*, and on *0 of 15* reader errors.
-    - The answerability gate replaced `Null` 16 times: 5 fixed an error, 4 destroyed a correct `Null`, 7 stayed wrong.
-    - An adjudicator has no signal on the 44.2% of disagreements where both branches are wrong.
-  ]
-  #v(0.35em)
-  #text(size: 0.82em)[
-    #highlight-block(title: [Rule adopted])[
-      Measure the activation gate's *conditional accuracy* before building an
-      intervention — not just how many answers are wrong.
-    ]
-  ]
-]
-
-== Literature
-
-#slide(title: [The literature predicted this])[
-  #text(size: 0.6em)[
-    #table(
-      columns: (auto, 1fr, 1.25fr),
-      inset: 4pt,
-      align: left,
-      stroke: 0.4pt + luma(180),
-      fill: (x, y) => if y == 0 { rgb("#2563eb").lighten(82%) } else if calc.odd(y) { luma(246) } else { white },
-      table.header([*Source*], [*Setup*], [*Result*]),
-      [Choi, Zhu & Li (NeurIPS 2025)],
-      [Homogeneous agents on one backbone, Qwen2.5-7B and Llama3.1-8B — POMA's setting],
-      [Majority voting matches or beats every debate topology, with a martingale proof that debate cannot raise expected correctness],
-      [Bertalanič & Fortuna (2026)],
-      [N=10 homogeneous 7–8B agents],
-      [Debate loses to isolated self-correction while using 2.1–3.4× the tokens],
-      [Huang et al. (ICLR 2024)],
-      [GSM8K at matched budget],
-      [Multi-agent debate at 9 responses 83.0 versus self-consistency at 9 responses 88.2],
-    )
-  ]
-  #v(0.3em)
-  #text(size: 0.74em)[
-    #highlight-block(title: [Reframing, not an excuse])[
-      The 1.27 EM orchestration ablation is *consistent with published results*
-      for homogeneous deliberation at 8B, not an anomalous failure.
-    ]
-  ]
-  #v(0.25em)
-  #text(size: 0.74em)[
-    #result-block(title: [A publishable claim with precedent])[
-      Choi et al. report the same model scoring 0.8713 or 0.6620 on GSM8K
-      depending only on the answer extractor. POMA's normalization result
-      reproduces that phenomenon independently, for Vietnamese Table QA.
-    ]
-  ]
-]
-
 // ============================================================
 = Plan
 // ============================================================
 
 == Next Steps
 
-#slide(title: [Not yet run, likely worth running])[
-  #text(size: 0.62em)[
-    #enum(
-      spacing: 0.35em,
-      [*N1 — finish the run-variation measurement.* Two of three control runs exist
-        (gaps 0.44 and 1.7 EM); one more run, about \$5, *no new code*. Sets the effect
-        size worth trusting, and decides whether tightening the answerability gate is worth trying.],
-      [*N2 — few-shot + GSA and POMA in the same run, on dev.* The central comparison still
-        pairs 68.75 and 70.16 from different runs, and it gives GaP-TQA the POMA baseline on
-        dev that it lacks.],
-      [*N3 — lower H1's k from 20 to 5–8.* The answer row has BM25 rank median 0,
-        p90 = 2; about three quarters fewer retained rows, one confirmation run.],
-      [*N4 — finish the second-backbone matrix:* Gemma 543/992 scored with no few-shot,
-        CoT or finalized branch; SEA-LION still lacks a paired POMA run on the same subset.],
-      [*N5 — a Granularity node for GaP-TQA:* after Verbalize, 96 test errors are
-        granularity/format (`1709` vs. `Năm 1709`). Learn the policy per class on train, check on dev.],
-      [*N6 — port Verbalize and the lookup-only anchor-row chain into POMA and few-shot.*
-        Deterministic or cheap; A5 used 74% of A1's tokens.],
-      [*N7 — one frozen test run: GaP A5 vs. few-shot + Verbalize.* Test is still unused
-        for GaP-TQA; run it once, after N5–N6 are settled on dev.],
-    )
+#slide(title: [Next: experiments to improve GaP-TQA])[
+  #v(1fr)
+  #highlight-block(title: [Next step])[
+    Continue experimenting with improvements to GaP-TQA.
   ]
-  #v(0.2em)
-  #text(size: 0.64em)[
-    #warning-block(title: [Not worth repeating])[
-      Another pipeline stage, another table representation, a consensus/adjudicator
-      layer, specialist-disagreement gating, confidence weighting, or emitting an
-      8B-located cell verbatim (GaP A4) — each already measured at or below noise, or harmful.
-    ]
-  ]
-  #v(0.2em)
-  #text(size: 0.64em)[
-    #highlight-block(title: [How I would state the position today])[
-      No fair comparison — same run, one answer, same finalizer — has shown POMA
-      outperforming few-shot; all confidence intervals include zero. That is *not* the
-      same as "POMA does not work."
-    ]
-  ]
+  #v(1fr)
 ]
 
 #focus-slide[

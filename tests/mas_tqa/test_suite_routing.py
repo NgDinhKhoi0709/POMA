@@ -90,3 +90,37 @@ def test_judge_ablation_never_returns_new_answer():
 def test_malformed_json_still_yields_final_answer():
     from mas_tqa.client import final_answer
     assert final_answer('{"evidence": ["a", ""]}, "final_answer": "Có"') == "Có"
+
+
+class Fake3:
+    """Solver theo view (flat / lưới / kv); lượt đối chất trả `revised[view]`."""
+
+    def __init__(self, first, revised):
+        self.first, self.revised, self.calls = first, revised, []
+
+    def chat(self, prompt, **kw):
+        view = 2 if prompt.startswith("KV") else 1 if prompt.startswith(methods._GRID_HEADER) else 0
+        rebut = "chưa thống nhất" in prompt
+        self.calls.append(("R" if rebut else "S", view))
+        ans = (self.revised if rebut else self.first)[view]
+        return [f'{{"evidence": [], "final_answer": "{ans}"}}'], Usage(1, 10, 1)
+
+
+@pytest.fixture
+def _v5(monkeypatch):
+    monkeypatch.setattr(methods, "kv_prefix", lambda qa, k=8: "KV\n")
+    monkeypatch.setattr(methods, "flat_prefix", lambda qa, k=8: "FLAT\n")
+    monkeypatch.setattr(methods, "grid_prefix", lambda qa, k=8: methods._GRID_HEADER + "GRID\n")
+
+
+def test_suite3_unanimous_stops_after_three_calls(_v5):
+    c = Fake3(["X", "x", "X"], ["?", "?", "?"])
+    out = methods.suite3(c, QA)
+    assert out["memxam3"]["prediction"] == ["X"] and len(c.calls) == 3
+
+
+def test_suite3_debate_then_majority(_v5):
+    c = Fake3(["X", "Y", "Z"], ["Y", "Y", "Z"])
+    out = methods.suite3(c, QA)
+    assert out["vote3"]["prediction"] == ["X"]  # không có đa số → lấy A
+    assert out["memxam3"]["prediction"] == ["Y"] and len(c.calls) == 6

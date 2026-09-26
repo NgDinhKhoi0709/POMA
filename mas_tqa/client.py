@@ -87,9 +87,14 @@ def parse_json(text: str) -> dict | None:
     return obj if isinstance(obj, dict) else None
 
 
+_FA_RE = re.compile(r'"final_answer"\s*:\s*"((?:[^"\\]|\\.)*)"')
+
+
 def final_answer(text: str) -> str:
     obj = parse_json(text)
     if obj is not None and "final_answer" in obj:
         v = obj["final_answer"]
         return "Null" if v is None else str(v).strip()
-    return strip_think(text)
+    body = strip_think(text)
+    m = _FA_RE.search(body)  # JSON hỏng nhưng vẫn có trường final_answer
+    return json.loads(f'"{m.group(1)}"').strip() if m else body

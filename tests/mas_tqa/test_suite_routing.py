@@ -66,14 +66,27 @@ def test_cross_examination_converges():
     assert out["memxam"]["prediction"] == ["Y"] and out["memxam"]["trace"]["route"] == "converged"
 
 
-def test_invalid_rebuttal_keeps_original_and_judge_selects():
-    c = FakeClient("X", "Y", rebut_a="", rebut_b="Y", judge=0)
+def test_invalid_rebuttal_keeps_original_answer():
+    c = FakeClient("X", "Y", rebut_a="", rebut_b="Y", third="Y")
     out = methods.suite(c, QA)
     assert out["memxam"]["trace"]["A2"] == "X"
-    assert out["memxam"]["prediction"] == ["X"] and out["memxam"]["trace"]["route"] == "judge"
+    assert out["memxam"]["prediction"] == ["Y"] and out["memxam"]["trace"]["route"] == "vote"
 
 
-def test_judge_never_returns_new_answer():
+def test_no_convergence_votes_with_third_solver_and_ties_go_to_a2():
+    c = FakeClient("X", "Y", rebut_a="X", rebut_b="Y", third="Z")
+    out = methods.suite(c, QA)
+    assert out["memxam"]["prediction"] == ["X"]
+    c = FakeClient("X", "Y", rebut_a="X", rebut_b="Y", third="Y")
+    assert methods.suite(c, QA)["memxam"]["prediction"] == ["Y"]
+
+
+def test_judge_ablation_never_returns_new_answer():
     c = FakeClient("X", "Y", rebut_a="X", rebut_b="Y", judge=7)
     out = methods.suite(c, QA)
-    assert out["memxam"]["prediction"][0] in {"X", "Y"}
+    assert out["memxam_judge"]["prediction"][0] in {"X", "Y"}
+
+
+def test_malformed_json_still_yields_final_answer():
+    from mas_tqa.client import final_answer
+    assert final_answer('{"evidence": ["a", ""]}, "final_answer": "Có"') == "Có"

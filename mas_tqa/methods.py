@@ -82,7 +82,7 @@ def _parse_evid(text: str) -> tuple[str, list[str]]:
     if "final_answer" in obj:
         ans = "Null" if obj["final_answer"] is None else str(obj["final_answer"]).strip()
     else:
-        ans = strip_think(text)
+        ans = final_answer(text)
     return ans, [str(e) for e in ev] if isinstance(ev, list) else [str(ev)]
 
 
@@ -173,7 +173,8 @@ def _judge(client: VLLMClient, qa: dict, cands: list[tuple[str, list[str]]], usa
 def suite(client: VLLMClient, qa: dict) -> dict[str, dict]:
     """Tầng đầu (A, B) chạy một lần; suy ra kNN-FS, evid, các ensemble đối chứng và MemXam trên cùng A, B.
 
-    MemXam = memory cùng bảng + 2 solver dị thể + agent kiểm tra + đối chất 1 vòng + judge chỉ chọn.
+    MemXam = memory cùng bảng + 2 solver dị thể + agent kiểm tra + đối chất 1 vòng; không hội tụ thì
+    bỏ phiếu {A2, B2, C} (C là phiếu độc lập họ A, dùng chung với cascade3). `memxam_judge` = bản dùng judge.
     """
     q = qa["question"]
     ta, ua = client.chat(knn_prompt(qa))
@@ -190,15 +191,17 @@ def suite(client: VLLMClient, qa: dict) -> dict[str, dict]:
         # Đồng ý, hoặc agent kiểm tra loại bớt một bên: không có tranh chấp thật.
         pick = a if va or not vb else b
         r = "agree" if va and vb else "validator"
-        for name in ("cascade3", "cascade3b", "judge_only", "memxam"):
+        for name in ("cascade3", "cascade3b", "judge_only", "memxam", "memxam_judge"):
             out[name] = {"prediction": [pick], "trace": {**first, "route": r}, "usage": base}
         return out
 
     # Đối chứng không tương tác (cùng agent kiểm tra): phiếu thứ ba họ A / họ B, đa số trên đáp án hợp lệ.
+    third = {}
     for name, prompt, parse in (("cascade3", knn_prompt, final_answer), ("cascade3b", evid_prompt, lambda t: _parse_evid(t)[0])):
         uc = Usage(); uc.add(base)
         tc, u = client.chat(prompt(qa), temperature=0.7, top_p=0.95); uc.add(u)
         c = parse(tc[0])
+        third[name] = (c, u)
         out[name] = {"prediction": [_majority(_pick_valid([a, b, c], q), q)], "trace": {**first, "C": c, "route": "vote"}, "usage": uc}
 
     # Ablation: bỏ đối chất, judge chọn thẳng giữa A và B.
@@ -217,10 +220,18 @@ def suite(client: VLLMClient, qa: dict) -> dict[str, dict]:
         b2, b2_ev = b, b_ev
     trace = {**first, "A2": a2, "B2": b2, "B_ev": b_ev, "A2_ev": a2_ev, "B2_ev": b2_ev}
     if key(a2, q) == key(b2, q):
-        out["memxam"] = {"prediction": [a2], "trace": {**trace, "route": "converged"}, "usage": um}
+        for name in ("memxam", "memxam_judge"):
+            out[name] = {"prediction": [a2], "trace": {**trace, "route": "converged"}, "usage": um}
         return out
-    idx, pm = _judge(client, qa, [(a2, a2_ev), (b2, b2_ev)], um)
-    out["memxam"] = {"prediction": [pm], "trace": {**trace, "route": "judge", "choice": idx}, "usage": um}
+    # Không hội tụ: bỏ phiếu với phiếu độc lập C (hoà thì lấy A2).
+    c, uc = third["cascade3"]
+    uv = Usage(); uv.add(um); uv.add(uc)
+    pv = _majority(_pick_valid([a2, b2, c], q), q)
+    out["memxam"] = {"prediction": [pv], "trace": {**trace, "C": c, "route": "vote"}, "usage": uv}
+    # Ablation: bản dùng judge thay vì bỏ phiếu.
+    uj2 = Usage(); uj2.add(um)
+    idx, pm = _judge(client, qa, [(a2, a2_ev), (b2, b2_ev)], uj2)
+    out["memxam_judge"] = {"prediction": [pm], "trace": {**trace, "route": "judge", "choice": idx}, "usage": uj2}
     return out
 
 

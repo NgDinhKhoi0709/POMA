@@ -235,7 +235,81 @@ def suite(client: VLLMClient, qa: dict) -> dict[str, dict]:
     return out
 
 
-SUITES = {"suite": suite}
+# ---------- v5: ba solver dị thể (thêm view Markdown-KV) ----------
+
+@lru_cache(maxsize=None)
+def kv_str(table_id: str) -> str:
+    return render_table(tables()[table_id], "markdown_kv_clean")
+
+
+_KV_HEADER = (
+    "Bạn là chuyên gia đọc bảng. Bảng dưới đây được viết thành từng khối, mỗi khối là một hàng "
+    "(\"## Hàng i\"), mỗi dòng trong khối có dạng \"Tên cột: giá trị\". CHỈ được dùng thông tin trong bảng.\n"
+    + _GRID_HEADER.split("\n", 1)[1]
+)
+
+
+def kv_prefix(qa: dict, k: int = KNN_K) -> str:
+    return f"{_KV_HEADER}\nBẢNG:\n{kv_str(qa['table_id'])}\n\n{knn_block(qa, k)}\n\n"
+
+
+def kv_prompt(qa: dict, k: int = KNN_K) -> str:
+    return kv_prefix(qa, k) + f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
+
+
+def _rebut3_suffix(qa: dict, mine: tuple[str, list[str]], others: list[tuple[str, list[str]]]) -> str:
+    lines = "\n".join(
+        f"- Chuyên gia {i + 1}: {a}  (bằng chứng: {json.dumps(ev, ensure_ascii=False)})" for i, (a, ev) in enumerate(others)
+    )
+    return (
+        "NHIỆM VỤ LÚC NÀY KHÁC: bạn và các chuyên gia khác đã trả lời câu hỏi dưới đây nhưng chưa thống nhất.\n"
+        "Hãy đối chiếu lại mọi đáp án với bảng thật cẩn thận. Giữ đáp án của bạn nếu nó đúng; "
+        "đổi sang đáp án khác nếu đáp án đó đúng hơn (kể cả chỉ đúng hơn về cách viết).\n"
+        "Nếu các đáp án cùng nội dung, chọn cách viết ngắn gọn giống phong cách các đáp án mẫu ở trên; "
+        "không thêm chủ ngữ hay diễn giải.\n"
+        "ĐẦU RA: đúng một JSON {\"decision\": \"giu\" hoặc \"doi\", \"evidence\": [\"<ô bảng>\"], \"final_answer\": \"...\"}.\n\n"
+        f"CÂU HỎI: {qa['question']}\n"
+        f"ĐÁP ÁN CỦA BẠN: {mine[0]}\nBẰNG CHỨNG CỦA BẠN: {json.dumps(mine[1], ensure_ascii=False)}\n"
+        f"ĐÁP ÁN CỦA CÁC CHUYÊN GIA KHÁC:\n{lines}\n"
+    )
+
+
+V5_K = KNN_K
+
+
+def suite3(client: VLLMClient, qa: dict) -> dict[str, dict]:
+    """Ba solver dị thể + agent kiểm tra; không đồng thuận 3/3 → đối chất một vòng (mỗi solver thấy hai bên kia) → đa số."""
+    q, k = qa["question"], V5_K
+    prefixes = [flat_prefix(qa, k), grid_prefix(qa, k), kv_prefix(qa, k)]
+    tail = f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {q}\nĐẦU RA: "
+    usage, sols, out = Usage(), [], {}
+    for name, pre in zip(("knn_fs", "evid", "kv"), prefixes):
+        t, u = client.chat(pre + tail); usage.add(u)
+        ans = _parse_evid(t[0]) if name != "knn_fs" else (final_answer(t[0]), [])
+        sols.append(ans)
+        out[f"{name}_k{k}"] = {"prediction": [ans[0]], "usage": u}
+    answers = [a for a, _ in sols]
+    ok = [x for x in answers if valid(x, q)]
+    first = {"A": answers[0], "B": answers[1], "C": answers[2]}
+    vote = _majority(_pick_valid(answers, q), q)
+    out["vote3"] = {"prediction": [vote], "trace": first, "usage": usage}
+    if len(ok) == 3 and len({key(x, q) for x in ok}) == 1:
+        out["memxam3"] = {"prediction": [ok[0]], "trace": {**first, "route": "agree"}, "usage": usage}
+        return out
+    um = Usage(); um.add(usage)
+    revised = []
+    for i, pre in enumerate(prefixes):
+        mine = sols[i] if valid(sols[i][0], q) else ("(không có)", [])
+        others = [s for j, s in enumerate(sols) if j != i and valid(s[0], q)]
+        t, u = client.chat(pre + _rebut3_suffix(qa, mine, others)); um.add(u)
+        r = _parse_evid(t[0])
+        revised.append(r[0] if valid(r[0], q) else sols[i][0])
+    pick = _majority(_pick_valid(revised, q), q)
+    out["memxam3"] = {"prediction": [pick], "trace": {**first, "revised": revised, "route": "debate"}, "usage": um}
+    return out
+
+
+SUITES = {"suite": suite, "suite3": suite3}
 
 METHODS = {
     "fs": single(fs_prompt),

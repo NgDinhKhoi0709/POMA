@@ -23,7 +23,7 @@ from evaluation.io import load_qas_records  # noqa: E402
 from mas_tqa.client import VLLMClient  # noqa: E402
 from mas_tqa.methods import METHODS, SUITES  # noqa: E402
 
-SUITE_MEMBERS = {"suite": ["knn_fs", "evid", "cascade3", "memxam"]}
+SUITE_MEMBERS = {"suite": ["knn_fs", "evid", "cascade3", "cascade3b", "judge_only", "memxam"]}
 
 
 def main() -> None:

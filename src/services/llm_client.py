@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import re
 import threading
 from datetime import datetime
@@ -39,7 +40,11 @@ _JSON_CODE_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.DOTAL
 def _get_shared_client() -> LLMZeroShotClient:
     global _shared_client
     if _shared_client is None:
-        _shared_client = LLMZeroShotClient()
+        # Trỏ sang endpoint tương thích OpenRouter (vd. vLLM tự host); không set thì giữ mặc định.
+        api_base = os.environ.get("POMA_OPENROUTER_API_BASE", "").strip()
+        _shared_client = (
+            LLMZeroShotClient(openrouter_api_base=api_base) if api_base else LLMZeroShotClient()
+        )
     return _shared_client
 
 

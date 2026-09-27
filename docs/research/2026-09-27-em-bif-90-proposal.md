@@ -123,3 +123,31 @@ miễn phí trên Kaggle 2×T4 cho SFT/QLoRA.
 Chỉ còn các đòn bẩy prompt, vốn đã bão hoà: kỳ vọng tối đa ~83–84 EM (vd. thêm backbone < 10B khác
 vào pool rồi vote, tăng số mẫu SC). Khi đó nên đổi mục tiêu thành EM ≥ 83 và BIF ≥ 80 (4 nhãn), và
 đóng khung đóng góp là bộ nhớ cùng bảng cộng đa dạng mẫu/view.
+
+## 7. Cập nhật: người dùng không muốn huấn luyện model
+
+Các phép đo bổ sung (2026-09-27), đều không huấn luyện:
+
+- **Backbone < 10B mới hơn không giúp.** `qwen/qwen3.5-9b` qua OpenRouter (provider Venice, không
+  ghim), dev-200: FS 64,0 và kNN16-FS 74,4 EM, so với Qwen3-8B 73,3 (TB 3 lần) và 80,0. Chi phí $0,28.
+- **Trần của bước chọn khi không huấn luyện:** oracle của pool ứng viên MemXam-SC (3 mẫu A + B + đáp án
+  sau đối chất) là 86,5 / 86,9 (dev v6 / v7) và 86,0 / 86,4 (test v6 / v7). Kể cả bộ chọn hoàn hảo
+  cũng chỉ đạt ~86–87 EM, nên **EM 90 không đạt được nếu không huấn luyện**.
+- **Bộ chọn tất định ưu tiên đáp án khớp nguyên văn một ô bảng** (cộng w vào số phiếu), tính offline
+  trên pool đã lưu:
+
+  | Pool | Vote | w = 0,5 | w = 1,5 |
+  |---|---:|---:|---:|
+  | dev v6 | 81,5 | 81,5 | 81,0 |
+  | dev v7 | 82,9 | 83,4 | 83,4 |
+  | test v6 | 81,5 | 82,0 | 82,5 |
+  | test v7 | 79,9 | 80,4 | 81,9 |
+
+  Cùng chiều nhưng nhỏ (+0 đến +2), cỡ nhiễu giữa các lần chạy; nếu dùng thì chốt w = 0,5 trước khi
+  chạy test mới.
+
+Mục tiêu thực tế trong ràng buộc (< 10B, multi-agent, không huấn luyện): **EM ~83–85, BIF ~81 (4
+nhãn) / ~85 (3 nhãn, xấp xỉ)**. Hướng đi: giữ MemXam-SC, tăng đa dạng ứng viên từ cùng backbone
+(ba view Flatten / lưới / Markdown-KV, mỗi view có memory và lấy mẫu) để nâng oracle, chọn bằng vote
+cộng ưu tiên khớp ô; tuỳ chọn một bộ chọn logistic regression nhỏ trên đặc trưng (không huấn luyện
+LLM; pilot cũ trong repo cho +0,4 đến +1,4 so với vote).

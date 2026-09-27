@@ -6,6 +6,7 @@ python scripts/run_parse_critic.py --qas outputs/mas_tqa/qas_dev_200.json
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -15,15 +16,19 @@ sys.path.insert(0, str(ROOT))
 
 from evaluation.io import load_qas_records  # noqa: E402
 from mas_tqa.client import VLLMClient  # noqa: E402
+from mas_tqa.data import tables  # noqa: E402
 from mas_tqa.parse_critic import critique, load_cache  # noqa: E402
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--qas", default="outputs/mas_tqa/qas_dev_200.json")
-    ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--all-tables", action="store_true", help="Mặc định chỉ chạy bảng có ô gộp (rowspan/colspan > 1).")
     args = ap.parse_args()
     tids = sorted({q["table_id"] for q in load_qas_records(ROOT / args.qas)})
+    if not args.all_tables:
+        tids = [t for t in tids if re.search(r'(rowspan|colspan)="?[2-9]', tables()[t]["table_html"])]
     todo = [t for t in tids if t not in load_cache()]
     print(f"{len(tids)} bảng, cần chạy {len(todo)}", flush=True)
     client = VLLMClient()

@@ -36,7 +36,7 @@ def clean_html(html: str) -> str:
     return "<table>\n" + "\n".join(rows) + "\n</table>"
 
 
-MAX_PART_CHARS = 24000  # ~2 phần × 24k ký tự ≈ 20k token, vừa max-model-len 32768 kể cả thinking
+MAX_PART_CHARS = 12000  # giữ prompt ngắn để không chiếm hết KV cache của server dùng chung
 
 
 def _cap(text: str) -> str:

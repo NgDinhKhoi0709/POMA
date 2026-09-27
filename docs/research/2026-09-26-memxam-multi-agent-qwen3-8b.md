@@ -138,7 +138,31 @@ giải của 200 câu. Phần lớn khoảng cách với FS (+6 đến +7 EM, +5
 và **solver thứ hai khác họ prompt**; phần đóng góp riêng của tương tác (đối chất) **chưa tách
 được** khỏi bỏ phiếu ở cùng số lệnh gọi. BIF dưới 80 vì trần BIF của subset dev này chỉ 87,5.
 
-### 5.4 Nâng trần: memory lớn hơn và solver thứ ba ⏳
+### 5.4 Nâng trần: memory lớn hơn, self-consistency, solver thứ ba
+
+| Nhánh (dev 200, 1 lần chạy trừ khi ghi) | EM | BIF | Lệnh gọi/câu | Token prompt/câu | Token sinh/câu |
+|---|---:|---:|---:|---:|---:|
+| kNN-FS k = 16 | 80,00 | 77,69 | 1 | 2.416 | 802 |
+| kNN-FS k = 30 | 78,00 | — | 1 | 2.765 | 809 |
+| B với k = 16 | 76,88 | — | 1 | 2.168 | 862 |
+| **kNN-SC3** (3 mẫu T = 0,7, 1 request), run 1 / run 2 | **82,00 / 81,50** | **79,39 / 79,44** | 1 | 2.123 | 2.250 |
+| Solver Markdown-KV đơn lẻ (v5, 198 câu) | 81,31 | 80,29 | 1 | 2.996 | 705 |
+| Vote 3 solver không tương tác (v5, 198 câu) | 79,29 | 78,95 | 3 | 6.873 | 2.288 |
+| MemXam-3 (v5, 198 câu) | 80,30 | 79,68 | 3,59 | 9.407 | 2.991 |
+
+Memory k = 16 giúp solver A (+2,5 EM so với k = 8) nhưng không giúp B; k = 30 kém hơn k = 16.
+Self-consistency trên kNN-FS là baseline mạnh nhất và rẻ nhất trong nhóm mạnh (3 mẫu dùng chung
+một lần prefill). MemXam-3 hơn vote 3 solver cùng tầng đầu +1,0 EM, nhưng chưa vượt SC3 và tốn
+gấp 4,4 lần token prompt.
+
+### 5.5 Parse-Critic: LLM tự nhận xét cách parse HTML ⏳
+
+Agent nhận HTML gốc đã làm gọn (giữ rowspan/colspan) và chuỗi Flatten V1, liệt kê lỗi parse và
+viết ghi chú cấu trúc (không viết lại nội dung ô); ghi chú chỉ được thêm vào prompt solver với
+bảng bị đánh giá chưa trung thành. Chạy trên 64 bảng có ô gộp của subset dev. Trên những bảng đã
+chạy, agent phát hiện lỗi thật: giá trị rowspan bị lặp sai, ô colspan bị nhân nhiều lần, ghi
+chú bị chia đôi. Chạy lần đầu với 4 worker và prompt tới ~20k token đã chiếm hết KV cache của
+server dùng chung và làm nghẽn mọi job khác; bản hiện tại giới hạn mỗi phần 12k ký tự.
 
 ### 5.3 Test 200 câu, 1 lần chạy ⏳
 

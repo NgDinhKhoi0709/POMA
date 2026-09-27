@@ -151,3 +151,19 @@ nhãn) / ~85 (3 nhãn, xấp xỉ)**. Hướng đi: giữ MemXam-SC, tăng đa d
 (ba view Flatten / lưới / Markdown-KV, mỗi view có memory và lấy mẫu) để nâng oracle, chọn bằng vote
 cộng ưu tiên khớp ô; tuỳ chọn một bộ chọn logistic regression nhỏ trên đặc trưng (không huấn luyện
 LLM; pilot cũ trong repo cho +0,4 đến +1,4 so với vote).
+
+### 7.1 Ngôn ngữ prompt và ghi chú định dạng bảng
+
+Qwen3-8B qua OpenRouter (provider Alibaba ghim qua `VLLM_EXTRA_BODY`), dev-200, ba arm chạy cùng
+phiên, so ghép cặp với kNN16-FS tiếng Việt gốc (82,0 EM):
+
+| Prompt | EM | Hiệu [KTC 95%] | Thắng/thua |
+|---|---:|---:|---:|
+| Tiếng Anh, dịch sát + "Write final_answer in Vietnamese, in exactly the same style as the example answers below" (bảng, câu hỏi, đáp án mẫu giữ tiếng Việt) | 79,29 (198 câu) | −2,53 [−6,06; +0,51] | 3/8 |
+| Tiếng Việt, sửa ghi chú định dạng | 80,00 | −2,00 [−6,00; +1,50] | 5/9 |
+
+Ghi chú định dạng gốc (có từ prompt baseline `v3_fs_structured_vi`) mô tả Flatten V1 là bộ ba
+`tiêu_đề_hàng|tiêu_đề_cột|giá_trị`, nhưng 143/145 bảng của subset dev thực tế là lưới (dòng đầu là
+tên cột có `<header>`, mỗi dòng sau là một hàng; 43 bảng có ô đầu hàng mang `<header>`). Sửa ghi chú
+cho đúng không cải thiện. Bản tiếng Anh vẫn trả lời bằng tiếng Việt; phần thua chủ yếu là lệch cách
+viết so với đáp án mẫu. Kết luận: giữ prompt tiếng Việt gốc.

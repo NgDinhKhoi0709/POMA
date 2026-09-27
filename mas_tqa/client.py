@@ -52,6 +52,9 @@ class VLLMClient:
             "top_p": top_p,
             "max_tokens": max_tokens,
             "chat_template_kwargs": {"enable_thinking": thinking},
+            # Trường bổ sung cho endpoint khác vLLM, vd. ghim provider OpenRouter:
+            # VLLM_EXTRA_BODY='{"provider": {"only": ["alibaba"]}}'
+            **json.loads(os.environ.get("VLLM_EXTRA_BODY") or "{}"),
         }
         headers = {"Authorization": f"Bearer {self.api_key}"}
         for attempt in range(retries):

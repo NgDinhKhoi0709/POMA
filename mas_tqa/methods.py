@@ -453,3 +453,66 @@ def curated_fs(client: VLLMClient, qa: dict) -> dict:
 METHODS["curated_fs"] = curated_fs
 METHODS["kv_fs"] = single(lambda qa: kv_prompt(qa))
 METHODS["kv16_fs"] = single(lambda qa: kv_prompt(qa, 16))
+
+
+# ---------- Prompt tiếng Anh (dịch sát kNN-FS; bảng, câu hỏi, đáp án mẫu giữ nguyên tiếng Việt) ----------
+
+_KNN_HEADER_EN = (
+    "You are a table question answering system.\n"
+    "The table is given as a Flatten V1 string in TABLE_STR.\n"
+    "Use ONLY the information in TABLE_STR to answer.\n\n"
+    "TABLE_STR FORMAT NOTES (FLATTEN V1):\n"
+    "- Each line has the form: row_header|column_header|value.\n"
+    "- Row and column headers always carry the suffix '<header>'.\n"
+    "- The data cell value is the third component of each line.\n\n"
+    "OUTPUT (REQUIRED): a single valid JSON object (it may be wrapped in a ```json ... ``` block).\n"
+    "Do not add any text outside the JSON (or outside the ```json block).\n"
+    "Schema:\n"
+    '  {"final_answer": "<one short value; or the string Null if the table does not contain enough information>"}\n'
+    "Do not output reasoning. Do not output internal thoughts.\n"
+    "Never use <think> or </think> tags.\n"
+    "final_answer rules (short, suited to exact-match evaluation):\n"
+    "- Base it only on TABLE_STR; do not make things up; do not repeat the question.\n"
+    "- One short value (number, name, Có/Không, ...); use Null (string) if it cannot be answered.\n"
+    "- No Markdown in final_answer.\n"
+    "- Write final_answer in Vietnamese, in exactly the same style as the example answers below.\n"
+    'One-line example: {"final_answer":"42"}\n'
+)
+
+
+def knn_prompt_en(qa: dict, k: int = KNN_K) -> str:
+    demos = retrieve_same_table(qa, k)
+    lines = [f'QUESTION: {d["question"]}\nOUTPUT: {{"final_answer": "{d["answer"]}"}}' for d in demos]
+    block = (
+        "OTHER QUESTIONS ALREADY ANSWERED CORRECTLY ON THIS SAME TABLE "
+        "(follow how their answers are written: short, same format):\n\n" + "\n\n".join(lines)
+    )
+    return (
+        f"{_KNN_HEADER_EN}\nTABLE (TABLE_STR):\n{table_str(qa['table_id'])}\n\n{block}\n\n"
+        f"NOW ANSWER THE FOLLOWING QUESTION.\nQUESTION: {qa['question']}\nOUTPUT: "
+    )
+
+
+METHODS["knn16_fs_en"] = single(lambda qa: knn_prompt_en(qa, 16))
+
+
+# ---------- Sửa ghi chú định dạng: Flatten V1 thực tế là lưới (dòng đầu = tên cột), không phải bộ ba ----------
+
+_FLAT_NOTES_FIXED_VI = (
+    "GHI CHÚ ĐỊNH DẠNG TABLE_STR:\n"
+    "- Dòng đầu tiên là tên các cột (mỗi tên có hậu tố '<header>'); mỗi dòng tiếp theo là một hàng của bảng.\n"
+    "- Các ô trong một dòng cách nhau bởi dấu |, theo đúng thứ tự cột của dòng đầu; ô trống vẫn được giữ chỗ.\n"
+    "- Ô đầu của một hàng có hậu tố '<header>' là tiêu đề của hàng đó.\n"
+)
+_KNN_HEADER_FIXED = _KNN_HEADER.replace(_flatten_v1_notes_vi(), _FLAT_NOTES_FIXED_VI)
+assert _KNN_HEADER_FIXED != _KNN_HEADER
+
+
+def knn_prompt_fixed(qa: dict, k: int = KNN_K) -> str:
+    return (
+        f"{_KNN_HEADER_FIXED}\nBẢNG (TABLE_STR):\n{table_str(qa['table_id'])}\n\n{knn_block(qa, k)}\n\n"
+        f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
+    )
+
+
+METHODS["knn16_fs_fix"] = single(lambda qa: knn_prompt_fixed(qa, 16))

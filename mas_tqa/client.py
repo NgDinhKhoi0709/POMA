@@ -100,4 +100,4 @@ def final_answer(text: str) -> str:
         return "Null" if v is None else str(v).strip()
     body = strip_think(text)
     m = _FA_RE.search(body)  # JSON hỏng nhưng vẫn có trường final_answer
-    return json.loads(f'"{m.group(1)}"').strip() if m else body
+    return json.loads(f'"{m.group(1)}"', strict=False).strip() if m else body

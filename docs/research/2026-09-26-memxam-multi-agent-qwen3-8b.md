@@ -388,3 +388,34 @@ MemXam-SC đạt 93% trần BIF 3 nhãn trên test-200 (71,05 / 76,21), FS đạ
 đoán), không kèm câu hỏi. Nếu bài báo báo cáo BIF lớn hơn ~76 với ViNLI 3 nhãn, thì cách dựng cặp của
 họ phải khác (ví dụ ghép câu hỏi để thành câu hoàn chỉnh). Bản PDF của bài báo không có trong repo nên
 chưa đối chiếu được.
+
+## 11. Test đầy đủ 992 câu (một lần chạy, A100, 2026-09-27)
+
+Qwen3-8B tự host trên một A100 SXM4 40GB (Vast, $0,601/giờ, ~1,2 giờ, ~$0,6). Cả ba cấu hình chạy
+trong cùng một phiên. v7 dùng lại 3 mẫu A của v6 cho các câu v6 đã chạy xong (mẫu độc lập, cùng
+prompt), để tiết kiệm GPU; các câu còn lại v7 tự lấy mẫu A.
+
+| Phương pháp | EM | So với FS [KTC 95%] | PhoBERT-F1 | BIF 4 nhãn | BIF 3 nhãn |
+|---|---:|---:|---:|---:|---:|
+| FS (baseline) | 73,59 | — | 89,33 | 76,36 | 66,83 |
+| kNN16-SC3 | 79,23 | +5,65 [+3,53; +7,86] | 92,65 | 80,31 | 69,88 |
+| Vote 4 mẫu (v6) | 80,14 | +6,55 [+4,44; +8,77] | 93,08 | 80,78 | 70,24 |
+| **MemXam-SC (v6)** | **80,54** | **+6,96 [+4,74; +9,17]** | 93,14 | **80,87** | 70,40 |
+| Vote 4 mẫu KV (v7) | 80,28 (989) | +6,57 [+4,45; +8,80] | 93,17 | 81,06 (988) | 70,55 |
+| **MemXam-SC-KV (v7, chọn trên dev)** | **81,19** (989; 80,95 nếu tính 3 câu thiếu là sai) | **+7,48 [+5,26; +9,71]** | 93,44 | **81,38** (988) | 70,76 |
+| Trần (dự đoán = gold) | 100 | — | 100 | 88,97 | 76,38 |
+
+- v7 thiếu 3 câu vì bảng render sang Markdown-KV vượt ngữ cảnh 32k; EM tính trên 989 câu và báo
+  thêm con số khi tính 3 câu đó là sai. BIF của hai nhánh v7 bỏ thêm câu `62_3_178`, nơi output KV
+  là JSON hỏng dài 2.843 ký tự làm PhoBERTScore crash (lỗi đã biết của repo); EM vẫn tính câu này
+  là sai.
+- **Đối chất so với bỏ phiếu trên cùng mẫu (ghép cặp):** v6 +0,40 [−0,60; +1,41]; v7 **+0,91
+  [+0,00; +1,82]**. Trên 989 câu, lần đầu tiên hiệu ứng của tương tác có cận dưới chạm 0 — dương
+  nhưng nhỏ, chưa vượt ngưỡng có ý nghĩa một cách thuyết phục; cần thêm lần chạy lặp.
+- So với trần: MemXam-SC-KV đạt 91,5% trần BIF 4 nhãn và 92,6% trần BIF 3 nhãn; FS đạt 85,8% và
+  87,5%.
+- Mốc tham chiếu từ bài báo dataset (`docs/Open_ViTabQA.pdf`, checkpoint ViNLI riêng của tác giả):
+  Gemini 1.5 Pro 60,80 EM / 0,649 BIF; con người 83,43 EM / 0,781 BIF.
+
+**Tình trạng mục tiêu (đã hạ):** EM ≥ 80 và BIF 4 nhãn ≥ 80 đạt trên test đầy đủ với phương án chọn
+trên dev (81,0–81,2 EM, 81,4 BIF). Mục tiêu EM 83–85 chưa đạt (còn thiếu ~2 điểm).

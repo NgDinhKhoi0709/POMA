@@ -327,10 +327,13 @@ def _top(answers: list[str], question: str) -> list[tuple[str, int]]:
     return sorted(out, key=lambda t: -t[1])
 
 
-def suite_sc(client: VLLMClient, qa: dict) -> dict[str, dict]:
-    """A (k=16) lấy 3 mẫu, B lấy 1 mẫu; đồng thuận ≥3/4 → dừng; tranh chấp → đối chất một vòng → bỏ phiếu."""
+def suite_sc(client: VLLMClient, qa: dict, b_view: str = "grid") -> dict[str, dict]:
+    """A (k=16) lấy 3 mẫu, B lấy 1 mẫu; đồng thuận ≥3/4 → dừng; tranh chấp → đối chất một vòng → bỏ phiếu.
+
+    `b_view`: cách nhìn bảng của agent B ("grid" = v6, "kv" = Markdown-KV, v7).
+    """
     q = qa["question"]
-    fa, fb = flat_prefix(qa, V6_KA), grid_prefix(qa)
+    fa, fb = flat_prefix(qa, V6_KA), (grid_prefix(qa) if b_view == "grid" else kv_prefix(qa))
     tail = f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {q}\nĐẦU RA: "
     ta, ua = client.chat(fa + tail, n=3, temperature=0.7, top_p=0.95)
     tb, ub = client.chat(fb + tail)
@@ -364,7 +367,12 @@ def suite_sc(client: VLLMClient, qa: dict) -> dict[str, dict]:
     return out
 
 
-SUITES = {"suite": suite, "suite3": suite3, "suite_sc": suite_sc}
+def suite_sckv(client: VLLMClient, qa: dict) -> dict[str, dict]:
+    out = suite_sc(client, qa, b_view="kv")
+    return {"knn16_sc3": out["knn16_sc3"], "vote4kv": out["vote4"], "memxam_sckv": out["memxam_sc"]}
+
+
+SUITES = {"suite": suite, "suite3": suite3, "suite_sc": suite_sc, "suite_sckv": suite_sckv}
 
 METHODS = {
     "fs": single(fs_prompt),
@@ -396,3 +404,52 @@ def knn_pnotes_prompt(qa: dict, k: int = KNN_K) -> str:
 
 
 METHODS["knn_fs_pnotes"] = single(knn_pnotes_prompt)
+
+
+# ---------- Memory-Curator: agent chọn ví dụ train cùng bảng thay cho Jaccard ----------
+
+CURATE_K = 8
+
+
+def curate(client: VLLMClient, qa: dict) -> tuple[list[dict], Usage]:
+    from .data import train_by_table
+
+    pool = [r for r in train_by_table().get(qa["table_id"], []) if r["qa_id"] != qa["qa_id"]][:40]
+    if len(pool) <= CURATE_K:
+        return pool, Usage()
+    listing = "\n".join(f"[{i}] {r['question']} → {r['answer']}" for i, r in enumerate(pool))
+    prompt = (
+        "Bạn là agent quản lý bộ nhớ cho một hệ hỏi–đáp trên bảng. Dưới đây là các câu hỏi đã được trả lời đúng "
+        "trên cùng một bảng. Hãy chọn tối đa 8 ví dụ hữu ích nhất để trả lời CÂU HỎI MỚI: ưu tiên ví dụ cùng kiểu "
+        "câu hỏi, cùng kiểu đáp án (số, tên, Có/Không, danh sách...) hoặc cùng hàng/cột liên quan.\n"
+        "ĐẦU RA: đúng một JSON {\"chon\": [<các số thứ tự>]}.\n\n"
+        f"CÁC VÍ DỤ:\n{listing}\n\nCÂU HỎI MỚI: {qa['question']}\n"
+    )
+    t, u = client.chat(prompt, thinking=False, max_tokens=200)
+    obj = parse_json(t[0]) or {}
+    idx = [i for i in obj.get("chon") or [] if isinstance(i, int) and 0 <= i < len(pool)]
+    picked = [pool[i] for i in dict.fromkeys(idx)][:CURATE_K]
+    if not picked:  # agent lỗi → quay về truy hồi Jaccard
+        picked = retrieve_same_table(qa, CURATE_K)
+    return picked, u
+
+
+def curated_fs(client: VLLMClient, qa: dict) -> dict:
+    demos, u0 = curate(client, qa)
+    lines = [f'CÂU HỎI: {d["question"]}\nĐẦU RA: {{"final_answer": "{d["answer"]}"}}' for d in demos]
+    block = (
+        "CÁC CÂU HỎI KHÁC ĐÃ ĐƯỢC TRẢ LỜI ĐÚNG TRÊN CHÍNH BẢNG NÀY "
+        "(tham khảo cách viết đáp án ngắn gọn, đúng định dạng):\n\n" + "\n\n".join(lines)
+    )
+    prompt = (
+        f"{_KNN_HEADER}\nBẢNG (TABLE_STR):\n{table_str(qa['table_id'])}\n\n{block}\n\n"
+        f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
+    )
+    texts, u1 = client.chat(prompt)
+    usage = Usage(); usage.add(u0); usage.add(u1)
+    return {"prediction": [final_answer(texts[0])], "trace": {"demos": [d["qa_id"] for d in demos]}, "usage": usage}
+
+
+METHODS["curated_fs"] = curated_fs
+METHODS["kv_fs"] = single(lambda qa: kv_prompt(qa))
+METHODS["kv16_fs"] = single(lambda qa: kv_prompt(qa, 16))

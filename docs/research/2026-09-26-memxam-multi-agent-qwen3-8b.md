@@ -18,8 +18,8 @@ baseline.
    - MemXam-SC (v6): test **82,50 EM / 80,52 BIF**, nhưng dev chỉ 80,00 / 79,44. Chọn v6 vì điểm
      test là chọn trên test, nên không dùng làm kết quả chính.
    - FS cùng phiên: test 71,50 / 73,14; dev trung bình 3 lần 73,33 / 73,73.
-   - Khoảng cách với FS trên test: **+9,4 đến +11,0 EM, +6,5 đến +7,4 BIF**, KTC ghép cặp 95% không
-     chứa 0.
+   - Khoảng cách với FS trên test: **+9,55 đến +11,00 EM, +6,5 đến +7,4 BIF**, KTC ghép cặp 95%
+     không chứa 0.
 2. **Nguồn lợi chính là memory cùng bảng, không phải tương tác.** Mọi bảng dev/test đều có câu hỏi
    train; thêm 8–16 cặp hỏi–đáp train cùng bảng vào prompt nâng FS từ ~73 lên ~78–80 EM. Cộng thêm
    nhiều mẫu hoặc nhiều view (self-consistency, vote) lên ~81–82.
@@ -29,7 +29,8 @@ baseline.
 4. **Kết quả âm có đo:** judge LLM (đúng 2/10, 0/6), verifier chấm ứng viên (specificity 0,35),
    Parse-Critic (ghi chú parse làm 1 thắng/4 thua trên câu bị ảnh hưởng), Memory-Curator (−2 EM so
    với Jaccard), memory k = 30, bắt ô tất định.
-5. **Trần BIF** của subset dev là 87,5 và test là 89,0 vì ViNLI chấm thấp các đáp án số/năm ngắn;
+5. **Trần BIF** (chấm chính gold làm dự đoán) là 86,52 trên subset dev 200 câu và 87,45 trên
+   subset test 200 câu (toàn split: 87,48 / 88,97), vì ViNLI chấm thấp các đáp án số/năm ngắn;
    BIF ≥ 80 tương đương EM khoảng 80–83.
 
 ## 1. Hạ tầng: Qwen3-8B tự host
@@ -43,7 +44,8 @@ baseline.
   parse JSON; thinking bị cắt (không có `</think>`) được coi là không có đáp án.
 - Thông lượng đo được: ~200 token sinh/s và ~700–800 token prompt/s cho toàn server. KV cache chỉ
   ~5 GB (~34k token), nên chỉ ~7–8 chuỗi thinking chạy song song. Vì vậy thí nghiệm dùng subset
-  200 câu dev (chọn phương pháp, 3 lần chạy) và subset 200 câu test (xác nhận, 1 lần).
+  200 câu dev (chọn phương pháp; FS và kNN-SC3 chạy 3 lần, các cấu hình mới 1 lần theo yêu cầu)
+  và subset 200 câu test (xác nhận, 1 lần).
 - Giai đoạn cuối chuyển sang một A100 SXM4 40 GB (Alberta, $0,638/giờ) với cùng image và tham số,
   chỉ nâng `--max-num-seqs` lên 64 (không ảnh hưởng đầu ra). Đo được ~5,8k token prompt/s và
   ~1,2k token sinh/s, tức gấp ~6–7 lần 3090 với giá gấp 2,9 lần (rẻ hơn ~2,3 lần theo token).
@@ -66,8 +68,9 @@ chính bảng đó**. Rò rỉ trực tiếp nhỏ: 47/991 câu dev có câu tra
 
 ### 2.2 Trần BIF
 
-Chấm chính đáp án gold làm dự đoán cho kết quả EM 100% nhưng **BIF chỉ 87,48 (dev) và 88,97
-(test)**. Lý do: ViNLI cho P(entailment) rất thấp khi premise và hypothesis đều là một số hay một
+Chấm chính đáp án gold làm dự đoán cho kết quả EM 100% nhưng **BIF chỉ 87,48 (toàn split dev)
+và 88,97 (toàn split test)**; trên đúng hai subset 200 câu dùng trong tài liệu này, trần là
+**86,52 (dev) và 87,45 (test)**. Lý do: ViNLI cho P(entailment) rất thấp khi premise và hypothesis đều là một số hay một
 năm trơ trọi (vd. `2003`→`2003`: 0,03). Xấp xỉ tuyến tính trên các lần chạy (câu đúng ≈ 0,87, câu
 sai ≈ 0,52) ban đầu gợi ý BIF ≥ 80 ứng với EM ~76–79; số đo thực tế sau đó cho thấy cần EM
 khoảng **80–83** (ví dụ dev 82,4 EM → 80,0 BIF; test 81,5 EM → 80,1–80,3 BIF). Các con số BIF dưới
@@ -284,3 +287,34 @@ mẫu KV +1,0 (cùng 199 câu).
 2. Lặp ít nhất 3 lần các cặp MemXam–vote trên cùng mẫu để đo đóng góp của đối chất với đủ độ phân
    giải; nếu vẫn ≈ 0 thì đóng khung bài theo hướng "memory + đa dạng mẫu", đối chất là ablation.
 3. Thử backbone thứ hai (vd. Qwen3-14B AWQ) để kiểm tra MemXam có tổng quát không.
+
+## 9. Backbone lớn hơn qua OpenRouter (hạng mục của kế hoạch ban đầu)
+
+Kế hoạch ban đầu yêu cầu liệt kê backbone lớn hơn theo giá OpenRouter thật. Hạng mục này **bị thay
+bằng hướng tự host Qwen3-8B** theo yêu cầu của người dùng giữa chừng. Lý do: tài khoản OpenRouter
+chỉ còn ~$2 credit, và mọi thí nghiệm trên dùng Qwen3-8B tự host. Giá dưới đây lấy từ
+`https://openrouter.ai/api/v1/models` ngày **2026-09-26** (USD / 1M token; giá thay đổi thường
+xuyên, cần tải lại trước khi dùng):
+
+| Model | Prompt | Sinh | Ngữ cảnh |
+|---|---:|---:|---:|
+| `qwen/qwen3-8b` (backbone hiện tại) | 0.117 | 0.455 | 131072 |
+| `qwen/qwen3-14b` | 0.120 | 0.240 | 131072 |
+| `qwen/qwen3-32b` | 0.080 | 0.280 | 131072 |
+| `qwen/qwen3-30b-a3b-instruct-2507` | 0.100 | 0.300 | 262144 |
+| `qwen/qwen3-235b-a22b-2507` | 0.087 | 0.350 | 262144 |
+| `qwen/qwen3-next-80b-a3b-instruct` | 0.100 | 1.100 | 262144 |
+| `deepseek/deepseek-v4-flash` | 0.047 | 0.094 | 1048576 |
+| `deepseek/deepseek-chat-v3.1` | 0.250 | 0.950 | 163840 |
+| `google/gemma-4-31b-it` | 0.090 | 0.340 | 262144 |
+| `google/gemma-3-27b-it` | 0.080 | 0.450 | 131072 |
+| `openai/gpt-oss-120b` | 0.150 | 0.600 | 131072 |
+| `google/gemini-2.5-flash-lite` | 0.100 | 0.400 | 1048576 |
+| `meta-llama/llama-4-maverick` | 0.188 | 0.652 | 1048576 |
+| `mistralai/mistral-small-3.2-24b-instruct` | 0.094 | 0.250 | 256000 |
+
+Ước lượng chi phí: FS trên 200 câu dùng ~0,44M token prompt và ~0,15M token sinh (§5.6), nên một
+lượt FS 200 câu trên các model ~$0,1/$0,35 tốn khoảng $0,1; MemXam-SC tốn khoảng gấp 2 lần prompt
+và 3,5 lần token sinh. Giao thức đề xuất nếu tiếp tục: chạy FS và kNN-SC3 trên 2–3 model lớn trước
+(rẻ, nhanh), chỉ chạy MemXam-SC trên model nào vượt Qwen3-8B, rồi dùng cùng `score_mas_tqa.py` /
+`bif_mas_tqa.py` và so sánh ghép cặp như trên.

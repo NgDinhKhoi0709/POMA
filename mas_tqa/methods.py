@@ -380,3 +380,19 @@ METHODS = {
     "knn_sc3": self_consistency(knn_prompt, 3),
     "fs_sc3": self_consistency(fs_prompt, 3),
 }
+
+
+# ---------- Parse-Critic: ghi chú cấu trúc bảng do LLM tự nhận xét cách parse HTML ----------
+
+def knn_pnotes_prompt(qa: dict, k: int = KNN_K) -> str:
+    from .parse_critic import notes_for
+
+    notes = notes_for(qa["table_id"])
+    block = f"GHI CHÚ CẤU TRÚC BẢNG (do agent kiểm tra parse viết):\n{notes}\n\n" if notes else ""
+    return (
+        f"{_KNN_HEADER}\nBẢNG (TABLE_STR):\n{table_str(qa['table_id'])}\n\n{block}{knn_block(qa, k)}\n\n"
+        f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
+    )
+
+
+METHODS["knn_fs_pnotes"] = single(knn_pnotes_prompt)

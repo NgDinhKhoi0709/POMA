@@ -7,6 +7,7 @@ chỉ khác phần đuôi (câu hỏi / nhiệm vụ), để vLLM tái dùng pre
 from __future__ import annotations
 
 import json
+import os
 from collections import Counter
 from functools import lru_cache
 
@@ -327,6 +328,25 @@ def _top(answers: list[str], question: str) -> list[tuple[str, int]]:
     return sorted(out, key=lambda t: -t[1])
 
 
+_REUSE: dict[str, list[str]] = {}
+
+
+def _reused_a_samples(qa_id: str) -> list[str] | None:
+    """Mẫu A (kNN16, n=3) đọc từ file knn16_sc3 của lần chạy khác, chỉ định bằng MAS_REUSE_A_FILE."""
+    path = os.environ.get("MAS_REUSE_A_FILE")
+    sidecar = os.path.join(os.path.dirname(__file__), "..", "outputs", "mas_tqa", ".reuse_a_file")
+    if not path and os.path.exists(sidecar):  # cho tiến trình đã khởi chạy trước khi đặt biến môi trường
+        path = open(sidecar, encoding="utf-8").read().strip()
+    if not path:
+        return None
+    if qa_id not in _REUSE and os.path.exists(path):  # file còn đang được ghi: đọc lại khi thiếu
+        for line in open(path, encoding="utf-8"):
+            if line.strip():
+                r = json.loads(line)
+                _REUSE[r["qa_id"]] = r["trace"]["samples"]
+    return _REUSE.get(qa_id)
+
+
 def suite_sc(client: VLLMClient, qa: dict, b_view: str = "grid") -> dict[str, dict]:
     """A (k=16) lấy 3 mẫu, B lấy 1 mẫu; đồng thuận ≥3/4 → dừng; tranh chấp → đối chất một vòng → bỏ phiếu.
 
@@ -335,9 +355,13 @@ def suite_sc(client: VLLMClient, qa: dict, b_view: str = "grid") -> dict[str, di
     q = qa["question"]
     fa, fb = flat_prefix(qa, V6_KA), (grid_prefix(qa) if b_view == "grid" else kv_prefix(qa))
     tail = f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {q}\nĐẦU RA: "
-    ta, ua = client.chat(fa + tail, n=3, temperature=0.7, top_p=0.95)
+    reused = _reused_a_samples(qa["qa_id"])
+    if reused is not None:  # dùng lại 3 mẫu A độc lập của lần chạy khác (cùng prompt), không gọi lại
+        samples, ua = reused, Usage()
+    else:
+        ta, ua = client.chat(fa + tail, n=3, temperature=0.7, top_p=0.95)
+        samples = [final_answer(t) for t in ta]
     tb, ub = client.chat(fb + tail)
-    samples = [final_answer(t) for t in ta]
     b, b_ev = _parse_evid(tb[0])
     base = Usage(); base.add(ua); base.add(ub)
     pool = samples + [b]

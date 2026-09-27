@@ -309,7 +309,62 @@ def suite3(client: VLLMClient, qa: dict) -> dict[str, dict]:
     return out
 
 
-SUITES = {"suite": suite, "suite3": suite3}
+# ---------- v6: agent có độ tin cậy từ nhiều mẫu (SC bên trong agent) ----------
+
+V6_KA = 16  # ablation memory: k=16 tốt nhất cho solver A, không lợi cho B
+
+
+def _top(answers: list[str], question: str) -> list[tuple[str, int]]:
+    """Các đáp án hợp lệ theo số phiếu giảm dần (giữ thứ tự xuất hiện khi hoà)."""
+    ok = [x for x in answers if valid(x, question)]
+    votes = Counter(key(x, question) for x in ok)
+    seen, out = set(), []
+    for x in ok:
+        kx = key(x, question)
+        if kx not in seen:
+            seen.add(kx)
+            out.append((x, votes[kx]))
+    return sorted(out, key=lambda t: -t[1])
+
+
+def suite_sc(client: VLLMClient, qa: dict) -> dict[str, dict]:
+    """A (k=16) lấy 3 mẫu, B lấy 1 mẫu; đồng thuận ≥3/4 → dừng; tranh chấp → đối chất một vòng → bỏ phiếu."""
+    q = qa["question"]
+    fa, fb = flat_prefix(qa, V6_KA), grid_prefix(qa)
+    tail = f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {q}\nĐẦU RA: "
+    ta, ua = client.chat(fa + tail, n=3, temperature=0.7, top_p=0.95)
+    tb, ub = client.chat(fb + tail)
+    samples = [final_answer(t) for t in ta]
+    b, b_ev = _parse_evid(tb[0])
+    base = Usage(); base.add(ua); base.add(ub)
+    pool = samples + [b]
+    out = {
+        "knn16_sc3": {"prediction": [_majority(_pick_valid(samples, q), q)], "trace": {"samples": samples}, "usage": ua},
+        "vote4": {"prediction": [_majority(_pick_valid(pool, q), q)], "trace": {"samples": samples, "B": b}, "usage": base},
+    }
+    ranked = _top(pool, q)
+    trace = {"samples": samples, "B": b}
+    if not ranked or ranked[0][1] >= 3 or len(ranked) == 1:
+        pick = ranked[0][0] if ranked else (pool[0] if normalize_text(pool[0]) else b)
+        out["memxam_sc"] = {"prediction": [pick], "trace": {**trace, "route": "consensus"}, "usage": base}
+        return out
+    # Tranh chấp: A bảo vệ đáp án được họ A ủng hộ nhiều nhất, B bảo vệ đáp án của mình (hoặc ứng viên còn lại).
+    a_top = _top(samples, q)
+    a_pos = a_top[0][0] if a_top else ranked[0][0]
+    b_pos = b if valid(b, q) and key(b, q) != key(a_pos, q) else next(
+        (x for x, _ in ranked if key(x, q) != key(a_pos, q)), ranked[-1][0])
+    um = Usage(); um.add(base)
+    ra, u = client.chat(fa + _rebut_suffix(qa, a_pos, [], b_pos, b_ev)); um.add(u)
+    rb, u = client.chat(fb + _rebut_suffix(qa, b_pos, b_ev, a_pos, [])); um.add(u)
+    a2, b2 = _parse_evid(ra[0])[0], _parse_evid(rb[0])[0]
+    a2 = a2 if valid(a2, q) else a_pos
+    b2 = b2 if valid(b2, q) else b_pos
+    final = _majority(_pick_valid([a2, b2] + pool, q), q)
+    out["memxam_sc"] = {"prediction": [final], "trace": {**trace, "A_pos": a_pos, "B_pos": b_pos, "A2": a2, "B2": b2, "route": "debate"}, "usage": um}
+    return out
+
+
+SUITES = {"suite": suite, "suite3": suite3, "suite_sc": suite_sc}
 
 METHODS = {
     "fs": single(fs_prompt),

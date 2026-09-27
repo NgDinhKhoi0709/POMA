@@ -124,3 +124,31 @@ def test_suite3_debate_then_majority(_v5):
     out = methods.suite3(c, QA)
     assert out["vote3"]["prediction"] == ["X"]  # không có đa số → lấy A
     assert out["memxam3"]["prediction"] == ["Y"] and len(c.calls) == 6
+
+
+class FakeSC:
+    def __init__(self, a_samples, b, ra="?", rb="?"):
+        self.a, self.b, self.ra, self.rb, self.calls = a_samples, b, ra, rb, []
+
+    def chat(self, prompt, **kw):
+        grid = prompt.startswith(methods._GRID_HEADER)
+        if "chuyên gia kia" in prompt:
+            self.calls.append("R")
+            ans = [self.rb if grid else self.ra]
+        else:
+            self.calls.append("S")
+            ans = [self.b] if grid else self.a[: kw.get("n", 1)]
+        return [f'{{"evidence": [], "final_answer": "{x}"}}' for x in ans], Usage(1, 10, 1)
+
+
+def test_suite_sc_consensus_stops_early():
+    c = FakeSC(["X", "X", "Y"], "X")
+    out = methods.suite_sc(c, QA)
+    assert out["memxam_sc"]["prediction"] == ["X"] and c.calls == ["S", "S"]
+
+
+def test_suite_sc_contested_debates_then_votes():
+    c = FakeSC(["X", "X", "Y"], "Y", ra="Y", rb="Y")
+    out = methods.suite_sc(c, QA)
+    assert out["vote4"]["prediction"] == ["X"]
+    assert out["memxam_sc"]["prediction"] == ["Y"] and c.calls.count("R") == 2

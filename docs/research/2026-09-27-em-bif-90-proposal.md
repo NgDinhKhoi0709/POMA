@@ -167,3 +167,26 @@ Ghi chú định dạng gốc (có từ prompt baseline `v3_fs_structured_vi`) m
 tên cột có `<header>`, mỗi dòng sau là một hàng; 43 bảng có ô đầu hàng mang `<header>`). Sửa ghi chú
 cho đúng không cải thiện. Bản tiếng Anh vẫn trả lời bằng tiếng Việt; phần thua chủ yếu là lệch cách
 viết so với đáp án mẫu. Kết luận: giữ prompt tiếng Việt gốc.
+
+### 7.2 Backbone < 10B khác trên OpenRouter
+
+kNN16-FS (prompt tiếng Việt gốc), dev-200, OpenRouter, provider không ghim (trừ Qwen3-8B: Alibaba).
+Các model không có thinking trừ Qwen3-8B và Qwen3.5-9B. Cột "bù" = số câu Qwen3-8B sai mà model đó
+đúng; "hại" = số câu Qwen3-8B đúng mà model đó sai.
+
+| Backbone | EM | Hại | Bù | Oracle cùng Qwen3-8B |
+|---|---:|---:|---:|---:|
+| **Qwen3-8B (thinking)** | **82,0** | — | — | — |
+| Qwen3.5-9B | 74,0 | 21 | 5 | 84,5 |
+| Granite-4.2-8B | 71,5 | 25 | 4 | 84,0 |
+| Ministral-8B | 69,0 | 31 | 5 | 84,5 |
+| Qwen3-VL-8B-Instruct | 69,0 | 32 | 6 | 85,0 |
+| Command-R7B | 63,5 | 42 | 5 | 84,5 |
+| Llama-3.1-8B | 61,0 | 49 | 7 | 85,5 |
+| Gemma-3-4B | 60,5 | 49 | 6 | 85,0 |
+| Qwen2.5-7B | 60,5 | 47 | 4 | 84,0 |
+
+Bỏ phiếu Qwen3-8B + Qwen3.5-9B + Granite-4.2-8B + Ministral-8B (hoà thì lấy Qwen3-8B): **83,5 EM**
+(+1,5 so với Qwen3-8B một mình), oracle 4 model 86,5. Đây là tổ hợp một-lệnh-gọi-mỗi-model tốt nhất
+trên dev-200 đến nay; các model phụ không thinking nên rẻ. Chọn 3 model phụ theo EM đơn lẻ trên chính
+dev này, nên +1,5 là lạc quan và cần kiểm tra trên test.

@@ -540,3 +540,115 @@ def knn_prompt_fixed(qa: dict, k: int = KNN_K) -> str:
 
 
 METHODS["knn16_fs_fix"] = single(lambda qa: knn_prompt_fixed(qa, 16))
+
+
+# ---------- v8: agent C viết code pandas; tầng đầu dùng chung, xuất nhiều luật dừng từ cùng lệnh gọi ----------
+
+_CODE_HEADER = (
+    "Bạn là chuyên gia phân tích bảng bằng Python. Bảng đã được nạp sẵn vào biến `df` (pandas DataFrame): "
+    "dòng \"cột\" dưới đây là tên cột, mỗi dòng đánh số là một hàng (chỉ số 0, 1, ...). Mọi ô là chuỗi (str); "
+    "số có thể dùng dấu chấm phân cách hàng nghìn và dấu phẩy thập phân kiểu Việt Nam, có thể kèm chú thích như [10]; "
+    "ô rỗng là ''. Nếu tên cột trùng nhau, cột sau có hậu tố \" (2)\".\n"
+    "Viết code Python dùng `df` để tìm đáp án và gán vào biến `answer` (chuỗi), viết đúng phong cách các đáp án mẫu: "
+    "ngắn gọn, số thập phân dùng dấu phẩy, liệt kê cách nhau bởi dấu phẩy, câu hỏi Có/Không thì trả lời như đáp án mẫu. "
+    "Câu hỏi chỉ cần tra một ô thì vẫn viết code tra ô đó. Được import: math, re, datetime, statistics, pandas, numpy, "
+    "collections, itertools, unicodedata. Không đọc/ghi file. Bảng không đủ thông tin thì gán answer = \"Null\".\n"
+    "ĐẦU RA: chỉ một khối ```python ... ```.\n"
+)
+
+
+def code_prompt(qa: dict, k: int = KNN_K) -> str:
+    from .code_agent import df_view
+
+    demos = "\n".join(f"CÂU HỎI: {d['question']}\nĐÁP ÁN: {d['answer']}" for d in retrieve_same_table(qa, k))
+    return (
+        f"{_CODE_HEADER}\nBẢNG (df):\n{df_view(qa['table_id'])}\n\n"
+        f"CÁC CÂU HỎI KHÁC ĐÃ ĐƯỢC TRẢ LỜI ĐÚNG TRÊN CHÍNH BẢNG NÀY (tham khảo cách viết đáp án):\n{demos}\n\n"
+        f"BÂY GIỜ VIẾT CODE CHO CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\n"
+    )
+
+
+def code_agent(client: VLLMClient, qa: dict) -> tuple[str, dict, Usage]:
+    """Agent C: sinh code rồi chạy trong sandbox; đáp án rỗng nếu code lỗi (validator sẽ loại)."""
+    from .code_agent import extract_code, run_code, table_rows
+
+    t, u = client.chat(code_prompt(qa))
+    code = extract_code(strip_think(t[0]))
+    ans, err = run_code(table_rows(qa["table_id"]), code)
+    return ans or "", {"code": code[-1500:], "error": err}, u
+
+
+def _stop(ranked: list[tuple[str, int]], need: int) -> bool:
+    return not ranked or len(ranked) == 1 or ranked[0][1] >= need
+
+
+def suite_v8(client: VLLMClient, qa: dict) -> dict[str, dict]:
+    """A (k=16, 3 mẫu) + B (Markdown-KV, bằng chứng) + C (code). Đối chất chạy khi 5 đáp án chưa đồng nhất,
+    rồi mọi luật dừng được tính trên cùng các lệnh gọi (so sánh ghép cặp trong một lần chạy):
+
+    - memxam_sckv: luật v7 (≥3/4 trên A×3+B, bỏ qua C).
+    - memxam_veto: như v7 nhưng A 3/3 mà B hợp lệ và bất đồng → vẫn đối chất.
+    - memxam_c5: bỏ phiếu 5 (A×3+B+C), dừng khi ≥4/5; tranh chấp → đối chất → bỏ phiếu trên [A2, B2]+5.
+    """
+    q = qa["question"]
+    fa, fb = flat_prefix(qa, V6_KA), kv_prefix(qa)
+    tail = f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {q}\nĐẦU RA: "
+    ta, ua = client.chat(fa + tail, n=3, temperature=0.7, top_p=0.95)
+    samples = [final_answer(t) for t in ta]
+    tb, ub = client.chat(fb + tail)
+    b, b_ev = _parse_evid(tb[0])
+    if os.environ.get("MAS_V8_NO_C"):  # luật được chọn không dùng C: bỏ lệnh gọi C (memxam_veto/sckv không đổi)
+        c, c_info, uc = "", {"code": "", "error": "tắt"}, Usage()
+    else:
+        c, c_info, uc = code_agent(client, qa)
+    base = Usage(); base.add(ua); base.add(ub)
+    pool4, pool5 = samples + [b], samples + [b, c]
+    r4, r5 = _top(pool4, q), _top(pool5, q)
+    trace = {"samples": samples, "B": b, "B_ev": b_ev[:20], "C": c, **{f"C_{k}": v for k, v in c_info.items()}}
+    full = Usage(); full.add(base); full.add(uc)
+    out = {
+        "knn16_sc3": {"prediction": [_majority(_pick_valid(samples, q), q)], "trace": {"samples": samples}, "usage": ua},
+        "vote4kv": {"prediction": [_majority(_pick_valid(pool4, q), q)], "trace": trace, "usage": base},
+        "code_c": {"prediction": [c or "Null"], "trace": c_info, "usage": uc},
+        "vote5": {"prediction": [_majority(_pick_valid(pool5, q), q)], "trace": trace, "usage": full},
+    }
+    top4 = r4[0][0] if r4 else (pool4[0] if normalize_text(pool4[0]) else b)
+    top5 = r5[0][0] if r5 else top4
+    if len(r5) <= 1:  # 5 đáp án hợp lệ đồng nhất: mọi luật dừng
+        for name, pick, u in (("memxam_sckv", top4, base), ("memxam_veto", top4, base), ("memxam_c5", top5, full)):
+            out[name] = {"prediction": [pick], "trace": {**trace, "route": "consensus"}, "usage": u}
+        return out
+    # Đối chất chuẩn: A bảo vệ đáp án mạnh nhất của họ A; B bảo vệ đáp án của mình, nếu trùng A thì ứng viên
+    # mạnh nhất còn lại (ưu tiên pool v7, rồi tới C).
+    a_top = _top(samples, q)
+    a_pos = a_top[0][0] if a_top else (r4 or r5)[0][0]
+    others = [x for x, _ in r4 + r5 if key(x, q) != key(a_pos, q)]
+    b_pos = b if valid(b, q) and key(b, q) != key(a_pos, q) else (others[0] if others else a_pos)
+    ud = Usage()
+    ra, u = client.chat(fa + _rebut_suffix(qa, a_pos, [], b_pos, b_ev)); ud.add(u)
+    rb, u = client.chat(fb + _rebut_suffix(qa, b_pos, b_ev, a_pos, [])); ud.add(u)
+    a2, b2 = _parse_evid(ra[0])[0], _parse_evid(rb[0])[0]
+    a2 = a2 if valid(a2, q) else a_pos
+    b2 = b2 if valid(b2, q) else b_pos
+    dtrace = {**trace, "A_pos": a_pos, "B_pos": b_pos, "A2": a2, "B2": b2}
+
+    def with_debate(u0: Usage) -> Usage:
+        u1 = Usage(); u1.add(u0); u1.add(ud)
+        return u1
+
+    b_dissents = valid(b, q) and bool(r4) and key(b, q) != key(r4[0][0], q)
+    rules = {
+        "memxam_sckv": (_stop(r4, 3), top4, pool4, base),
+        "memxam_veto": (_stop(r4, 3) and not (r4 and r4[0][1] >= 3 and b_dissents), top4, pool4, base),
+        "memxam_c5": (_stop(r5, 4), top5, pool5, full),
+    }
+    for name, (stop, top, pool, u0) in rules.items():
+        if stop:
+            out[name] = {"prediction": [top], "trace": {**dtrace, "route": "consensus"}, "usage": u0}
+        else:
+            final = _majority(_pick_valid([a2, b2] + pool, q), q)
+            out[name] = {"prediction": [final], "trace": {**dtrace, "route": "debate"}, "usage": with_debate(u0)}
+    return out
+
+
+SUITES["suite_v8"] = suite_v8

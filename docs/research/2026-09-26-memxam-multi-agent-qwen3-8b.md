@@ -419,3 +419,64 @@ prompt), để tiết kiệm GPU; các câu còn lại v7 tự lấy mẫu A.
 
 **Tình trạng mục tiêu (đã hạ):** EM ≥ 80 và BIF 4 nhãn ≥ 80 đạt trên test đầy đủ với phương án chọn
 trên dev (81,0–81,2 EM, 81,4 BIF). Mục tiêu EM 83–85 chưa đạt (còn thiếu ~2 điểm).
+
+## 12. Phân tích lỗi MemXam-SC-KV trên test đầy đủ
+
+`python scripts/analyze_errors_mas_tqa.py` (989 câu có kết quả; danh sách câu sai ghi ra
+`outputs/mas_tqa/eval/errors_memxam_sckv_test.json`). MemXam 81,19, FS 73,71, oracle ứng viên 87,36.
+
+**186 câu sai theo tầng:** 125 câu (67%) không ứng viên nào đúng, tức trần do độ phủ; 61 câu có
+ứng viên đúng nhưng bị loại: 20 câu B đúng một mình nhưng A 3/3 đồng nhất nên dừng ở đồng thuận,
+15 câu 1/3 mẫu A đúng nhưng hai mẫu A còn lại cùng B sai giống nhau, 26 câu thua sau đối chất.
+Đối chất chạy trên 85 câu, đúng 44,7% trong khi oracle trên nhóm đó 75,3%. 31 câu FS đúng mà
+MemXam sai.
+
+**Nhóm yếu.** Câu Vì sao 55,6 (thấp hơn FS 63,0), Như thế nào 53,8, đáp án gold ≥8 token 62,2,
+tính toán 77,8 (nhiều câu sai nhất: 44), liệt kê/sắp xếp 76,8. Bảng Flatten ≥16k ký tự 56,0
+(không lợi so với FS, oracle cũng 56), bảng chỉ có ô gộp giá trị 76,7 (61 câu sai), bảng 40–80
+dòng 75,5. Lợi ích phụ thuộc memory: câu có câu train cùng bảng Jaccard ≥0,8 lời +21,7 EM so với
+FS, Jaccard <0,5 chỉ khoảng +5; bảng có dưới 10 cặp train chỉ lời +2,0. Với bảng mới hoàn toàn,
+phần lợi sẽ giảm mạnh.
+
+**Bản chất 186 câu sai:** 112 sai thật (ô, giá trị, phép tính); 23 đúng nội dung khác định dạng
+("2006"/"Năm 2006", "34.4"/"34,4", dấu nháy, "và"/dấu phẩy, bảng gốc viết "Vuơng" còn gold "Vương");
+16 Có/Không đúng cực tính khác từ; 17 trả Null; 12 Vì sao/Như thế nào diễn đạt khác; 6 gold Null
+(tiền đề sai) nhưng mô hình vẫn trả lời. Sửa Verbalize cho từ Có/Phải/Đúng không khả thi: trên train,
+luật hiện tại khớp 90,1% nhãn Có/Không, thêm luật "có phải → Phải" vẫn 90,1%, còn luật lấy từ đa số
+của bảng chỉ 70,7%; phần này là nhiễu nhãn, không sửa.
+
+## 13. v8: agent C viết code và luật B phủ quyết (dev đầy đủ, 2026-09-28)
+
+Từ phân tích lỗi §12 thử hai hướng, chọn trên **dev đầy đủ** (991 câu, 983 có kết quả; 8 câu lỗi
+HTTP 400, nhiều khả năng do bảng vượt context) rồi mới quyết định chạy test. Tiêu chí đặt trước:
+chạy test chỉ khi luật tốt nhất hơn luật v7 với khoảng tin cậy 95% ghép cặp nằm hẳn trên 0.
+
+- **Agent C (Program-of-Thought):** Qwen3-8B (thinking) viết code pandas trên `df` dựng từ
+  `table_dict`, kèm 8 cặp hỏi–đáp cùng bảng; code chạy trong tiến trình con có timeout 10 giây,
+  giới hạn import, không có `open`/`exec` (`mas_tqa/code_agent.py`).
+- **Luật dừng:** tầng đầu (A 3 mẫu, B Markdown-KV, C) chạy một lần; đối chất chạy khi 5 đáp án
+  chưa đồng nhất; mọi luật được tính trên cùng các lệnh gọi nên so sánh là ghép cặp
+  (`suite_v8`, `scripts/analyze_v8.py`).
+
+| Luật (dev 983 câu, một lần chạy) | EM | Δ so với MemXam-SC-KV [95% CI] | Lệnh gọi/câu |
+|---|---:|---:|---:|
+| kNN16-SC3 (chỉ A) | 80,47 | −0,61 [−1,73; +0,61] | 1 |
+| vote 4 (A×3 + B) | 81,38 | +0,31 [−0,71; +1,32] | 2 |
+| MemXam-SC-KV (luật v7) | 81,08 | — | 2,19 |
+| **B phủ quyết** (A 3/3 mà B bất đồng → vẫn đối chất) | **81,59** | **+0,51 [−0,10; +1,22]** | 2,31 |
+| bỏ phiếu 5 có C, dừng khi ≥4/5 | 81,08 | +0,00 [−0,92; +0,81] | 3,3 |
+| C một mình | 58,39 | −22,69 | 1 |
+
+**Agent C không nâng trần.** C chỉ đúng 58,4%; 187/983 câu code lỗi (98 câu không sinh khối code,
+45 KeyError do gọi sai tên cột, còn lại ValueError/IndexError khi ép kiểu số). Trên 125 câu mà cả
+A lẫn B đều sai, C chỉ cứu 3 câu; trên 800 câu vote 4 đúng, C sai 246. Ngay cả nhóm tính toán C chỉ
+đạt 53,6 so với 76,8 của vote 4. Với Qwen3-8B, đọc bảng trực tiếp tốt hơn viết code trên bảng
+Wikipedia bẩn (ô gộp, số kiểu Việt, chú thích [10]).
+
+**B phủ quyết có hướng đúng nhưng chưa đủ mạnh.** Luật mở thêm 60 câu đối chất; A đổi lập trường
+ở 30 câu; kết quả đúng 29 so với 24 của luật v7, tức +5 câu ròng trên 983 (+0,51 EM), khoảng tin
+cậy chạm 0. Không đạt tiêu chí nên **không chạy test**, đã huỷ GPU ngay (chi phí khoảng $1,05).
+
+**Ghi nhận thêm:** trên dev đầy đủ, MemXam-SC-KV chỉ hơn kNN16-SC3 +0,61 EM (CI chạm 0), còn
+vote 4 không đối chất đã ngang MemXam. Kết quả này củng cố kết luận §5: phần lợi chính đến từ memory
+cùng bảng và self-consistency; đóng góp riêng của đối chất nhỏ, dưới mức phân giải của một lần chạy.

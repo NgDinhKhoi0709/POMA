@@ -357,3 +357,34 @@ Nhận xét:
   `NUM_LABELS = 3`, bỏ các cặp `OTHER`) rồi chấm lại; khi đó cả hai phần của BIF mới cùng giao thức.
 - **PhoBERT-F1 riêng**: FS 88,0–89,0; kNN-FS 91,1–91,9; các ensemble và MemXam 92,8–94,3. Thứ hạng
   theo PhoBERT khớp thứ hạng theo EM.
+
+### 10.1 Chấm lại bằng ViNLI 3 nhãn huấn luyện thật
+
+Checkpoint `checkpoints/vinli-xlmr-large-3label/checkpoint-best` (XLM-R Large, bỏ `OTHER`, Adam 1e-5,
+batch 16, 10 epoch, chọn theo dev ở epoch 5; split 18.282 / 2.255 / 2.264): test **81,63 acc / 81,62
+macro-F1**, sát mốc paper ViNLI (81,36 / 81,31). Entailment là index 0. Cột `BIF_3` dưới đây dùng
+P(entailment) của mô hình này; PhoBERT-F1 giữ nguyên.
+
+| Split | Nhánh | P(E) 3 nhãn | **BIF 3 nhãn** | BIF 4 nhãn |
+|---|---|---:|---:|---:|
+| dev | gold toàn split (trần) | 48,93 | **74,46** | 87,48 |
+| dev | gold dev-200 (trần) | 48,59 | 74,29 | 86,52 |
+| dev | FS (3 lần) | 38,1–40,1 | 63,26–64,58 | 73,23–74,41 |
+| dev | kNN-SC3 (2 lần) | 43,3 / 43,4 | 68,06 / 68,35 | 79,39 / 79,44 |
+| dev | MemXam-SC-KV (v7) | 44,38 | 69,02 | 80,04 |
+| test | gold toàn split (trần) | 52,77 | **76,38** | 88,97 |
+| test | gold test-200 (trần) | 52,42 | 76,21 | 87,45 |
+| test | FS | 40,72 | 64,38 | 73,14 |
+| test | kNN16-SC3 / vote 4 mẫu | 47,48 / 47,25 | 70,52 / 70,53 | 80,09 / 80,25 |
+| test | **MemXam-SC (v6)** | 47,77 | **71,05** | 80,52 |
+| test | MemXam-SC-KV (v7) | 46,50 | 69,80 | 79,66 |
+
+Mô hình 3 nhãn được huấn luyện thật **không** giống xấp xỉ "bỏ `OTHER`" ở §10: với dự đoán trùng hệt
+gold, nó chỉ cho P(entailment) ~49–53%, vì các cặp số/năm trơ trọi không còn chỗ trong `OTHER` và bị
+đẩy sang `neutral`. Trần BIF 3 nhãn chỉ 74,5 (dev) / 76,4 (test). Thứ hạng phương pháp không đổi;
+MemXam-SC đạt 93% trần BIF 3 nhãn trên test-200 (71,05 / 76,21), FS đạt 84%.
+
+**Cần kiểm tra lại với bài báo của dataset:** repo cài BIF với cặp NLI là (đáp án gold → đáp án dự
+đoán), không kèm câu hỏi. Nếu bài báo báo cáo BIF lớn hơn ~76 với ViNLI 3 nhãn, thì cách dựng cặp của
+họ phải khác (ví dụ ghép câu hỏi để thành câu hoàn chỉnh). Bản PDF của bài báo không có trong repo nên
+chưa đối chiếu được.

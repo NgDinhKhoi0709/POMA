@@ -6,12 +6,31 @@ multi-agent cho Table QA) và [`enhance_poma/direction-progress.md`](enhance_pom
 (D01–D13). Phương pháp của bài báo là **một** hệ multi-agent (MemXam); mọi hệ khác ở đây là
 baseline.
 
-> **Trạng thái:** đang chạy. Các mục có dấu ⏳ sẽ được điền khi đủ 3 lần chạy trên dev và lần
-> chạy test duy nhất.
+> **Trạng thái:** đã xong vòng thực nghiệm trên Qwen3-8B tự host (GPU đã huỷ). Mỗi cấu hình mới
+> chỉ chạy **một lần** theo yêu cầu (FS và kNN-SC3 trên dev có 3 lần); con số nào có 1 lần chạy
+> thì đọc với sai số giữa các lần chạy ±1,5–2,5 EM (§5.1).
 
 ## Tóm tắt
 
-⏳
+1. **Mục tiêu EM ≥ 80 và BIF ≥ 80 đạt được, nhưng không chắc chắn qua mọi split.**
+   - MemXam-SC-KV (v7), phương án tốt nhất **chọn trên dev**: dev 82,41 EM / 80,04 BIF; test
+     **80,90 EM / 79,66 BIF** (BIF test hụt 0,34).
+   - MemXam-SC (v6): test **82,50 EM / 80,52 BIF**, nhưng dev chỉ 80,00 / 79,44. Chọn v6 vì điểm
+     test là chọn trên test, nên không dùng làm kết quả chính.
+   - FS cùng phiên: test 71,50 / 73,14; dev trung bình 3 lần 73,33 / 73,73.
+   - Khoảng cách với FS trên test: **+9,4 đến +11,0 EM, +6,5 đến +7,4 BIF**, KTC ghép cặp 95% không
+     chứa 0.
+2. **Nguồn lợi chính là memory cùng bảng, không phải tương tác.** Mọi bảng dev/test đều có câu hỏi
+   train; thêm 8–16 cặp hỏi–đáp train cùng bảng vào prompt nâng FS từ ~73 lên ~78–80 EM. Cộng thêm
+   nhiều mẫu hoặc nhiều view (self-consistency, vote) lên ~81–82.
+3. **Đóng góp riêng của đối chất chưa tách được khỏi 0.** So với bỏ phiếu trên đúng các mẫu tầng
+   đầu (ghép cặp trong cùng lần chạy): v6 −1,5 (dev) / +1,0 (test); v7 −0,5 (dev) / +1,0 (test).
+   Self-consistency 3 mẫu là baseline rất mạnh và rẻ.
+4. **Kết quả âm có đo:** judge LLM (đúng 2/10, 0/6), verifier chấm ứng viên (specificity 0,35),
+   Parse-Critic (ghi chú parse làm 1 thắng/4 thua trên câu bị ảnh hưởng), Memory-Curator (−2 EM so
+   với Jaccard), memory k = 30, bắt ô tất định.
+5. **Trần BIF** của subset dev là 87,5 và test là 89,0 vì ViNLI chấm thấp các đáp án số/năm ngắn;
+   BIF ≥ 80 tương đương EM khoảng 80–83.
 
 ## 1. Hạ tầng: Qwen3-8B tự host
 
@@ -25,6 +44,9 @@ baseline.
 - Thông lượng đo được: ~200 token sinh/s và ~700–800 token prompt/s cho toàn server. KV cache chỉ
   ~5 GB (~34k token), nên chỉ ~7–8 chuỗi thinking chạy song song. Vì vậy thí nghiệm dùng subset
   200 câu dev (chọn phương pháp, 3 lần chạy) và subset 200 câu test (xác nhận, 1 lần).
+- Giai đoạn cuối chuyển sang một A100 SXM4 40 GB (Alberta, $0,638/giờ) với cùng image và tham số,
+  chỉ nâng `--max-num-seqs` lên 64 (không ảnh hưởng đầu ra). Đo được ~5,8k token prompt/s và
+  ~1,2k token sinh/s, tức gấp ~6–7 lần 3090 với giá gấp 2,9 lần (rẻ hơn ~2,3 lần theo token).
 - Mọi baseline được **chạy lại trong cùng phiên trên cùng endpoint**; không so với artifact
   OpenRouter cũ.
 - Mã: `mas_tqa/` (client, dữ liệu, prompt, phương pháp), `scripts/run_mas_tqa.py`,
@@ -47,8 +69,9 @@ chính bảng đó**. Rò rỉ trực tiếp nhỏ: 47/991 câu dev có câu tra
 Chấm chính đáp án gold làm dự đoán cho kết quả EM 100% nhưng **BIF chỉ 87,48 (dev) và 88,97
 (test)**. Lý do: ViNLI cho P(entailment) rất thấp khi premise và hypothesis đều là một số hay một
 năm trơ trọi (vd. `2003`→`2003`: 0,03). Xấp xỉ tuyến tính trên các lần chạy (câu đúng ≈ 0,87, câu
-sai ≈ 0,52) cho thấy **BIF ≥ 80 tương đương EM khoảng 76–79**. Các con số BIF dưới đây cần đọc
-cùng trần này.
+sai ≈ 0,52) ban đầu gợi ý BIF ≥ 80 ứng với EM ~76–79; số đo thực tế sau đó cho thấy cần EM
+khoảng **80–83** (ví dụ dev 82,4 EM → 80,0 BIF; test 81,5 EM → 80,1–80,3 BIF). Các con số BIF dưới
+đây cần đọc cùng trần này.
 
 ## 3. MemXam
 
@@ -66,6 +89,18 @@ phần đuôi, để vLLM tái dùng prefix cache.
 
 Theo định nghĩa của tài liệu 2026-09-26 (§1), MemXam là **multi-agent**: hai solver đọc và phản
 hồi output của nhau. Các ablation bên dưới cô lập đúng phần đóng góp của tương tác.
+
+Bảng trên mô tả bản v3. Các phiên bản sau đó (lý do ở §5):
+
+| Bản | Thay đổi so với bản trước |
+|---|---|
+| v4 | Không hội tụ sau đối chất → bỏ phiếu {A2, B2, C} với C là phiếu độc lập họ A, thay cho judge |
+| v5 (MemXam-3) | Ba solver: Flatten V1, lưới + bằng chứng, **Markdown-KV**; không đồng thuận 3/3 → đối chất một vòng (mỗi solver thấy hai bên kia) → đa số |
+| v6 (**MemXam-SC**) | Agent A = kNN k = 16 lấy **3 mẫu** trong một request (self-consistency trong agent), agent B = lưới + bằng chứng; đồng thuận ≥ 3/4 → dừng; tranh chấp → đối chất một vòng giữa lập trường mạnh nhất của mỗi họ → bỏ phiếu trên cả đáp án gốc và đáp án sau đối chất |
+| v7 (**MemXam-SC-KV**) | Như v6 nhưng agent B nhìn bảng dạng Markdown-KV (solver đơn lẻ tốt nhất trên dev) |
+
+Đối chứng không tương tác của v6/v7 là **vote 4 mẫu** trên đúng 3 mẫu A + 1 mẫu B của cùng lần
+chạy, và **kNN16-SC3** (chỉ 3 mẫu A).
 
 ## 4. Baseline và ablation (cùng tầng đầu)
 
@@ -155,7 +190,7 @@ Self-consistency trên kNN-FS là baseline mạnh nhất và rẻ nhất trong n
 một lần prefill). MemXam-3 hơn vote 3 solver cùng tầng đầu +1,0 EM, nhưng chưa vượt SC3 và tốn
 gấp 4,4 lần token prompt.
 
-### 5.5 Parse-Critic: LLM tự nhận xét cách parse HTML ⏳
+### 5.5 Parse-Critic: LLM tự nhận xét cách parse HTML
 
 Agent nhận HTML gốc đã làm gọn (giữ rowspan/colspan) và chuỗi Flatten V1, liệt kê lỗi parse và
 viết ghi chú cấu trúc (không viết lại nội dung ô); ghi chú chỉ được thêm vào prompt solver với
@@ -164,7 +199,50 @@ chạy, agent phát hiện lỗi thật: giá trị rowspan bị lặp sai, ô c
 chú bị chia đôi. Chạy lần đầu với 4 worker và prompt tới ~20k token đã chiếm hết KV cache của
 server dùng chung và làm nghẽn mọi job khác; bản hiện tại giới hạn mỗi phần 12k ký tự.
 
-### 5.3 Test 200 câu, 1 lần chạy ⏳
+Kết quả: agent đánh giá 40/72 bảng là parse chưa trung thành. So kNN-FS có ghi chú với kNN-FS
+thường trong cùng phiên (200 câu dev): 78,5 so với 80,0 EM (7 thắng / 10 thua). Trên 56 câu thuộc
+các bảng có ghi chú: 78,6 so với 83,9 (1 thắng / 4 thua). Trên 144 câu còn lại, prompt giống hệt
+nhau mà vẫn có 12 câu khác kết quả, tức nhiễu giữa các lần gọi đã cỡ tác động đo được. Kết luận:
+agent phát hiện được lỗi parse, nhưng **đưa ghi chú của nó cho solver không có lợi**, xu hướng âm.
+
+### 5.6 Kết quả chính
+
+Dev 200 câu (một lần chạy, trừ FS và kNN-SC3):
+
+| Nhánh | EM | BIF | Lệnh gọi/câu |
+|---|---:|---:|---:|
+| FS (TB 3 lần) | 73,33 | 73,73 | 1 |
+| kNN-SC3, k = 8 (TB 3 lần) | 81,13 | 79,4 (2 lần) | 1 (3 mẫu) |
+| v6: kNN16-SC3 / vote 4 mẫu / **MemXam-SC** | 81,50 / 81,50 / **80,00** | — / 79,14 / **79,44** | 1 / 2 / 2,1 |
+| v7: kNN16-SC3 / vote 4 mẫu / **MemXam-SC-KV** | 81,91 / 82,91 / **82,41** | 79,44 / 79,76 / **80,04** | 1 / 2 / 2,2 |
+
+Test 200 câu (subset phân tầng `outputs/d04/qas_test_200.json`, một lần chạy):
+
+| Nhánh | EM | BIF | Lệnh gọi/câu | Token prompt/câu | Token sinh/câu |
+|---|---:|---:|---:|---:|---:|
+| **FS (baseline)** | **71,50** | **73,14** | 1 | 2.204 | 725 |
+| kNN-FS (A, k = 8) | 79,40 | 78,53 | 1 | 2.051 | 656 |
+| B (lưới + bằng chứng) | 79,90 | 79,60 | 1 | — | — |
+| cascade3 / cascade3b / judge-only | 80,90 / 81,91 / 81,41 | 80,18 / 80,00 / 80,06 | ~2,1 | — | — |
+| MemXam v4 / MemXam + judge | 80,90 / 81,91 | 79,55 / 80,02 | 2,26 | 4.408 | 1.574 |
+| kNN16-SC3 (run v6 / run v7) | 81,50 / 79,90 | 80,09 / 79,27 | 1 | 2.354 | 1.834 |
+| vote 4 mẫu (v6 / v7) | 81,50 / 79,90 | 80,25 / 79,28 | 2 | 4.159–5.353 | 2.483 |
+| **MemXam-SC (v6)** | **82,50** | **80,52** | 2,12 | 4.664 | 2.562 |
+| **MemXam-SC-KV (v7, chọn trên dev)** | **80,90** | **79,66** | 2,17 | 6.085 | 2.598 |
+
+Các nhánh có 199 câu là do một câu có bảng quá lớn vượt ngữ cảnh 32k ở một view; tính câu đó là
+sai thì EM giảm 0,5.
+
+So sánh ghép cặp trên test (KTC 95%): MemXam-SC − FS **+11,00 [+5,50; +16,50]**; MemXam-SC-KV − FS
+**+9,55 [+4,02; +15,08]**; MemXam-SC − vote 4 mẫu **+1,00 [−1,00; +3,00]**; MemXam-SC-KV − vote 4
+mẫu KV +1,0 (cùng 199 câu).
+
+**Đọc kết quả:**
+- Khoảng cách lớn và chắc chắn với FS đến từ memory cùng bảng cộng với nhiều mẫu hoặc nhiều view.
+- Hai lần chạy kNN16-SC3 giống hệt cấu hình trên test lệch 1,6 EM (81,5 và 79,9). Mọi chênh lệch
+  dưới ~2 điểm giữa các nhánh ở đây nằm trong nhiễu giữa các lần chạy.
+- Đối chất so với bỏ phiếu trên cùng mẫu: +1,0 ở cả hai lần test, −1,5 và −0,5 ở hai lần dev. Không
+  đủ bằng chứng để nói tương tác có lợi riêng.
 
 ## 6. Các ý đã thử và loại
 
@@ -186,4 +264,23 @@ server dùng chung và làm nghẽn mọi job khác; bản hiện tại giới h
 
 ## 7. Giới hạn
 
-⏳
+- **Mỗi cấu hình mới chạy một lần** trên 200 câu dev và 200 câu test; sai số giữa các lần chạy
+  (±1,5–2,5 EM) lớn hơn mọi hiệu ứng tương tác đo được. Thiết kế v3→v7 được điều chỉnh sau khi
+  xem dev, nên con số dev lạc quan.
+- **Test là subset 200 câu**, không phải 992 câu; subset này đã được dùng ở D04/D09 cho mục đích
+  khác. Cần một lần chạy test đầy đủ trước khi đưa số vào luận văn.
+- Phương án chọn trên dev (v7) **hụt BIF 80 trên test 0,34 điểm**; v6 đạt cả hai ngưỡng trên test
+  nhưng không phải phương án chọn trên dev.
+- Memory dùng đáp án gold của train trên cùng bảng. Điều này hợp lệ với split của Open-ViTabQA
+  (theo câu hỏi), nhưng phải nói rõ trong bài: không áp dụng được cho bảng chưa từng thấy. Tỉ lệ câu
+  "sinh đôi" nhỏ (EM-twin chỉ lệch ≤ 0,7 điểm).
+- Chỉ một backbone (Qwen3-8B), thinking bật, trần 6000 token sinh; FS bị cắt thinking ở ~2,5% số
+  câu, các nhánh có memory ít hơn.
+
+## 8. Việc tiếp theo nếu tiếp tục
+
+1. Chạy test đầy đủ 992 câu cho FS, kNN16-SC3, vote 4 mẫu, MemXam-SC và MemXam-SC-KV (A100
+   ~1–1,5 giờ).
+2. Lặp ít nhất 3 lần các cặp MemXam–vote trên cùng mẫu để đo đóng góp của đối chất với đủ độ phân
+   giải; nếu vẫn ≈ 0 thì đóng khung bài theo hướng "memory + đa dạng mẫu", đối chất là ablation.
+3. Thử backbone thứ hai (vd. Qwen3-14B AWQ) để kiểm tra MemXam có tổng quát không.

@@ -318,3 +318,42 @@ lượt FS 200 câu trên các model ~$0,1/$0,35 tốn khoảng $0,1; MemXam-SC 
 và 3,5 lần token sinh. Giao thức đề xuất nếu tiếp tục: chạy FS và kNN-SC3 trên 2–3 model lớn trước
 (rẻ, nhanh), chỉ chạy MemXam-SC trên model nào vượt Qwen3-8B, rồi dùng cùng `score_mas_tqa.py` /
 `bif_mas_tqa.py` và so sánh ghép cặp như trên.
+
+## 10. ViNLI 4 nhãn so với 3 nhãn, và PhoBERT tách riêng
+
+Checkpoint BIF của repo là XLM-R Large huấn luyện **4 nhãn** (`0 entailment, 1 contradiction,
+2 neutral, 3 other`, notebook `reproductions/vinli/`), trong khi bài báo của dataset dùng mô hình 3
+nhãn. `OTHER` trong ViNLI nghĩa là premise và hypothesis không liên quan về sự kiện, chủ thể hay đối
+tượng. Đo lại đủ 4 xác suất cho mọi cặp (reference → prediction) đã chấm
+(`scripts/bif_label_analysis.py`, `outputs/mas_tqa/eval/bif_label_analysis.json`). Cột `BIF_3~` bỏ
+`OTHER` rồi chuẩn hoá lại P(E)/(P(E)+P(C)+P(N)); đây là **xấp xỉ**, không phải mô hình 3 nhãn được
+huấn luyện riêng. `BIF_4` tính lại khớp đúng các số BIF đã báo.
+
+| Split | Nhánh | PhoBERT-F1 | P(E), 4 nhãn | P(OTHER) | BIF (4 nhãn) | BIF 3 nhãn (xấp xỉ) |
+|---|---|---:|---:|---:|---:|---:|
+| dev | gold = dự đoán (trần) | 100,00 | 73,04 | 12,34 | 86,52 | 89,19 |
+| dev | FS (3 lần) | 88,12–89,03 | 58,3–59,8 | 24,1–25,5 | 73,23–74,41 | 78,34–79,28 |
+| dev | kNN-FS | 91,05 | 61,91 | 21,18 | 76,48 | 80,74 |
+| dev | kNN-SC3 (2 lần) | 92,84 / 93,27 | 65,9 / 65,6 | 17,9 / 18,0 | 79,39 / 79,44 | 83,04 / 83,14 |
+| dev | MemXam-SC / vote 4 mẫu (v6) | 93,37 / 93,64 | 65,50 / 64,63 | 17,68 / 18,15 | 79,44 / 79,14 | 83,10 / 82,78 |
+| dev | MemXam-SC-KV / vote 4 mẫu KV (v7) | 93,66 / 93,64 | 66,42 / 65,89 | 17,07 / 17,39 | 80,04 / 79,76 | 83,55 / 83,31 |
+| test | gold = dự đoán (trần) | 100,00 | 74,91 | 11,96 | 87,45 | 89,97 |
+| test | FS | 88,04 | 58,23 | 25,24 | 73,14 | 77,88 |
+| test | kNN-FS | 91,93 | 65,13 | 19,07 | 78,53 | 82,25 |
+| test | kNN16-SC3 | 93,56 | 66,62 | 17,46 | 80,09 | 83,60 |
+| test | MemXam v4 | 93,09 | 66,01 | 17,69 | 79,55 | 83,04 |
+| test | MemXam-SC / vote 4 mẫu (v6) | 94,33 / 93,81 | 66,70 / 66,69 | 17,01 / 17,11 | 80,52 / 80,25 | 83,89 / 83,66 |
+| test | MemXam-SC-KV / vote 4 mẫu KV (v7) | 93,11 / 92,82 | 66,20 / 65,75 | 17,27 / 18,29 | 79,66 / 79,28 | 83,01 / 82,90 |
+
+Nhận xét:
+- Mô hình 4 nhãn dồn **~12% xác suất vào `OTHER` ngay cả khi dự đoán trùng hệt gold**. Phần này rơi
+  vào các đáp án số/năm trơ trọi, nơi cặp "câu" không có nội dung sự kiện. Với dự đoán sai, `OTHER`
+  lên 17–25%.
+- Bỏ `OTHER` nâng trần BIF từ 86,5 lên ~89,2 (dev) và từ 87,5 lên ~90,0 (test). Mọi phương pháp tăng
+  khoảng 3,4–4,9 điểm BIF; FS tăng nhiều hơn một chút (dự đoán sai của nó dồn nhiều vào `OTHER`), nên
+  khoảng cách BIF giữa MemXam và FS co lại ~1 điểm. **Thứ hạng giữa các phương pháp không đổi.**
+- Với xấp xỉ 3 nhãn, mọi phương pháp có memory đều vượt BIF 80 trên cả hai subset; nhưng đây là xấp
+  xỉ. Để so với số trong bài báo của dataset, cần huấn luyện lại ViNLI 3 nhãn (notebook đã hỗ trợ
+  `NUM_LABELS = 3`, bỏ các cặp `OTHER`) rồi chấm lại; khi đó cả hai phần của BIF mới cùng giao thức.
+- **PhoBERT-F1 riêng**: FS 88,0–89,0; kNN-FS 91,1–91,9; các ensemble và MemXam 92,8–94,3. Thứ hạng
+  theo PhoBERT khớp thứ hạng theo EM.

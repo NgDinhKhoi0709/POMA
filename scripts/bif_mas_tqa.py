@@ -24,6 +24,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("pred")
     ap.add_argument("--qas", default="outputs/mas_tqa/qas_dev_200.json")
+    ap.add_argument("--nli", default=NLI, help="Checkpoint ViNLI (mặc định: bản 4 nhãn); entailment luôn là index 0.")
+    ap.add_argument("--tag", default="", help="Hậu tố tên file báo cáo, vd. '.3label', để không ghi đè bản 4 nhãn.")
     args = ap.parse_args()
 
     pred = Path(args.pred)
@@ -46,9 +48,9 @@ def main() -> None:
     cmd = [
         sys.executable, str(ROOT / "run_eval.py"), "--pred", str(vpred), "--qas", str(qpath),
         "--metrics", "em,f1,bif", "--candidate-policy", "first",
-        "--bif-nli-model", str(ROOT / NLI), "--bif-entailment-id", "0", "--bif-device", "cuda",
-        "--bif-details", str(out_dir / f"{stem}.bif_details.json"),
-        "--output", str(out_dir / f"{stem}.report.json"),
+        "--bif-nli-model", str(ROOT / args.nli), "--bif-entailment-id", "0", "--bif-device", "cuda",
+        "--bif-details", str(out_dir / f"{stem}{args.tag}.bif_details.json"),
+        "--output", str(out_dir / f"{stem}{args.tag}.report.json"),
     ]
     subprocess.run(cmd, check=True, cwd=ROOT)
 

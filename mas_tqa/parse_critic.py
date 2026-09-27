@@ -36,6 +36,13 @@ def clean_html(html: str) -> str:
     return "<table>\n" + "\n".join(rows) + "\n</table>"
 
 
+MAX_PART_CHARS = 24000  # ~2 phần × 24k ký tự ≈ 20k token, vừa max-model-len 32768 kể cả thinking
+
+
+def _cap(text: str) -> str:
+    return text if len(text) <= MAX_PART_CHARS else text[:MAX_PART_CHARS] + "\n...(bị cắt do quá dài)"
+
+
 def critic_prompt(table_id: str) -> str:
     t = tables()[table_id]
     return (
@@ -49,8 +56,8 @@ def critic_prompt(table_id: str) -> str:
         "chỉ mô tả cấu trúc và cách đọc (vd. cột nào thuộc nhóm header nào, ô nào áp dụng cho nhiều hàng); "
         "KHÔNG trả lời câu hỏi nào, KHÔNG bịa nội dung ô.\n"
         "ĐẦU RA: đúng một JSON {\"ok\": true/false, \"issues\": [\"<vấn đề>\"], \"notes\": \"<ghi chú cấu trúc; chuỗi rỗng nếu ok>\"}.\n\n"
-        f"TIÊU ĐỀ BẢNG: {t.get('table_title', '')}\n\n(1) HTML GỐC:\n{clean_html(t['table_html'])}\n\n"
-        f"(2) FLATTEN V1:\n{table_str(table_id)}\n"
+        f"TIÊU ĐỀ BẢNG: {t.get('table_title', '')}\n\n(1) HTML GỐC:\n{_cap(clean_html(t['table_html']))}\n\n"
+        f"(2) FLATTEN V1:\n{_cap(table_str(table_id))}\n"
     )
 
 
@@ -61,15 +68,21 @@ def load_cache() -> dict[str, dict]:
 
 
 def critique(client: VLLMClient, table_id: str) -> dict:
-    t, u = client.chat(critic_prompt(table_id))
+    try:
+        t, u = client.chat(critic_prompt(table_id), retries=2)
+    except Exception as e:  # bảng quá dài hoặc lỗi server: coi như không có ghi chú
+        t, u, err = [""], None, repr(e)[:200]
+    else:
+        err = None
     obj = parse_json(t[0]) or {}
     rec = {
         "table_id": table_id,
+        "error": err,
         "ok": bool(obj.get("ok", True)),
         "issues": [str(x) for x in obj.get("issues") or []],
         "notes": str(obj.get("notes") or "").strip(),
-        "prompt_tokens": u.prompt_tokens,
-        "completion_tokens": u.completion_tokens,
+        "prompt_tokens": u.prompt_tokens if u else 0,
+        "completion_tokens": u.completion_tokens if u else 0,
     }
     with _LOCK:
         CACHE.parent.mkdir(parents=True, exist_ok=True)

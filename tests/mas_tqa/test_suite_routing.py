@@ -33,10 +33,10 @@ class FakeClient:
 
 @pytest.fixture(autouse=True)
 def _no_data(monkeypatch):
-    monkeypatch.setattr(methods, "flat_prefix", lambda qa: "FLAT\n")
-    monkeypatch.setattr(methods, "grid_prefix", lambda qa: methods._GRID_HEADER + "GRID\n")
-    monkeypatch.setattr(methods, "knn_prompt", lambda qa: "FLAT\nQ")
-    monkeypatch.setattr(methods, "evid_prompt", lambda qa: methods._GRID_HEADER + "GRID\nQ")
+    monkeypatch.setattr(methods, "flat_prefix", lambda qa, k=8: "FLAT\n")
+    monkeypatch.setattr(methods, "grid_prefix", lambda qa, k=8: methods._GRID_HEADER + "GRID\n")
+    monkeypatch.setattr(methods, "knn_prompt", lambda qa, k=8: "FLAT\nQ")
+    monkeypatch.setattr(methods, "evid_prompt", lambda qa, k=8: methods._GRID_HEADER + "GRID\nQ")
 
 
 def test_agreement_stops_after_two_calls():

@@ -623,3 +623,27 @@ nhỏ vì MemXam đã đúng 38/41 câu loại này.
 FS 89,37 / 90,17 / 90,95; FS + định dạng 89,65; kNN16-SC3 v7 92,87 (+3,50 [+2,50; +4,53]); vote 4 v6 93,11;
 MemXam-SC v6 93,18; vote 4-KV v7 93,17; **MemXam-SC-KV 93,44 / 94,31 / 94,97 (+4,07 [+2,99; +5,17])**;
 MemXam-SC-KV + định dạng 93,64.
+
+## 18. LLM validator chấm điểm (tổng = 1), có và không có lý do của agent (dev, 2026-09-29)
+
+`mas_tqa/scorer.py`, `suite_v9`, `scripts/analyze_v9.py`, `scripts/analyze_scorer.py`. A100, dev đầy đủ
+(983 câu có kết quả). v9: A và B trả thêm trường `reason` (tối đa 2 câu); ở mọi câu có ≥ 2 ứng viên khác nhau,
+hai agent chấm điểm (view Flatten V1 và Markdown-KV) cho mỗi ứng viên một xác suất, tổng = 1, mỗi view chấm
+hai lần: chỉ thấy đáp án / thấy đáp án kèm lý do (và bằng chứng của B). Thứ tự ứng viên xáo theo qa_id; không
+cho validator biết số phiếu.
+
+| Luật (dev 983, trên cùng các lần gọi v9) | EM | Δ so với luật MemView [95% CI] | sửa / hỏng |
+|---|---:|---:|---:|
+| MemView (luật v7, bản có lý do) | 80,16 | — | — |
+| LLM validator chọn ở mọi câu ≥ 2 ứng viên, không lý do | 80,26 | +0,10 [−1,32; +1,63] | 27 / 26 |
+| **LLM validator chọn ở mọi câu ≥ 2 ứng viên, có lý do** | **81,18** | **+1,02 [−0,41; +2,44]** | 31 / 21 |
+| A 3/3 = 1 phiếu, còn lại LLM validator có lý do | 81,18 | +1,02 [−0,41; +2,44] | 31 / 21 |
+| Chỉ ca A 3/3 vs B → LLM validator có lý do | 80,87 | +0,71 [−0,20; +1,63] | 14 / 7 |
+
+Chấm điểm không lý do trên trace v8 dev (không đổi tầng đầu): tốt nhất "phiếu + điểm LLM" +0,92 [−0,31; +2,03]
+(sửa 23 / hỏng 14). Điểm của validator hiệu chuẩn kém: nhóm điểm cao nhất ≥ 0,9 chỉ đúng 59,5%.
+
+**Kết luận.** Lý do của agent giúp validator rõ rệt (+0,10 → +1,02 EM trên cùng các lần gọi), và "A 3/3 = 1
+phiếu" trùng hệt luật để validator chọn ở mọi câu tranh chấp. Nhưng không luật nào có khoảng tin cậy nằm trên 0
+nên không chạy test (test v9 dừng ở 84/992 câu), đã huỷ GPU. Prompt có trường `reason` làm tầng đầu hơi giảm so
+với v8 (chỉ agent A 79,35 so với 80,47; MemView 80,16 so với 81,08, khác lần chạy).

@@ -665,3 +665,89 @@ def math_mv(client: VLLMClient, qa: dict) -> dict:
 
 
 METHODS["math_mv"] = math_mv
+
+
+# ---------- Bỏ phiếu bằng LLM: điểm xác suất cho từng ứng viên (mas_tqa/scorer.py) ----------
+
+def _llm_score(client: VLLMClient, qa: dict) -> dict:
+    from .scorer import llm_score
+
+    return llm_score(client, qa)
+
+
+METHODS["llm_score"] = _llm_score
+
+
+# ---------- v9: A và B trả thêm lý do; agent chấm điểm (tổng = 1) thấy đáp án kèm lý do ----------
+
+_REASON_TAIL = (
+    "BÂY GIỜ TRẢ LỜI CÂU HỎI SAU. Trong JSON đầu ra, thêm trường \"reason\" đặt trước \"final_answer\": "
+    "tối đa 2 câu, nêu dùng hàng/cột/ô nào và suy ra đáp án thế nào.\nCÂU HỎI: {q}\nĐẦU RA: "
+)
+
+
+def _reason(text: str) -> str:
+    obj = parse_json(text) or {}
+    return str(obj.get("reason") or "").strip()[:300]
+
+
+def suite_v9(client: VLLMClient, qa: dict) -> dict[str, dict]:
+    """Tầng đầu như v7 (A: Flatten V1 + 16 câu mẫu, 3 mẫu; B: Markdown-KV) nhưng mỗi đáp án kèm lý do.
+    Luật v7 (đồng thuận ≥ 3/4, nếu không thì đối chất + bỏ phiếu) cho memview_r. Câu còn ≥ 2 ứng viên:
+    agent chấm điểm hai view, mỗi view chấm hai lần (không lý do / có lý do) để so ghép cặp."""
+    from .scorer import candidates, prefix_flat, prefix_kv, score
+
+    q = qa["question"]
+    fa, fb = flat_prefix(qa, V6_KA), kv_prefix(qa)
+    tail = _REASON_TAIL.format(q=q)
+    ta, ua = client.chat(fa + tail, n=3, temperature=0.7, top_p=0.95)
+    samples, a_reasons = [final_answer(t) for t in ta], [_reason(t) for t in ta]
+    tb, ub = client.chat(fb + tail)
+    b, b_ev = _parse_evid(tb[0])
+    b_reason = _reason(tb[0])
+    base = Usage(); base.add(ua); base.add(ub)
+    pool = samples + [b]
+    trace = {"samples": samples, "A_reasons": a_reasons, "B": b, "B_ev": b_ev[:20], "B_reason": b_reason}
+    out = {"knn16_sc3r": {"prediction": [_majority(_pick_valid(samples, q), q)], "trace": {"samples": samples}, "usage": ua},
+           "vote4r": {"prediction": [_majority(_pick_valid(pool, q), q)], "trace": trace, "usage": base}}
+    ranked = _top(pool, q)
+    um = Usage(); um.add(base)
+    if not ranked or ranked[0][1] >= 3 or len(ranked) == 1:
+        final = ranked[0][0] if ranked else (pool[0] if normalize_text(pool[0]) else b)
+        trace["route"] = "consensus"
+    else:
+        a_top = _top(samples, q)
+        a_pos = a_top[0][0] if a_top else ranked[0][0]
+        b_pos = b if valid(b, q) and key(b, q) != key(a_pos, q) else next(
+            (x for x, _ in ranked if key(x, q) != key(a_pos, q)), ranked[-1][0])
+        ra, u = client.chat(fa + _rebut_suffix(qa, a_pos, [], b_pos, b_ev)); um.add(u)
+        rb, u = client.chat(fb + _rebut_suffix(qa, b_pos, b_ev, a_pos, [])); um.add(u)
+        a2, b2 = _parse_evid(ra[0])[0], _parse_evid(rb[0])[0]
+        a2 = a2 if valid(a2, q) else a_pos
+        b2 = b2 if valid(b2, q) else b_pos
+        final = _majority(_pick_valid([a2, b2] + pool, q), q)
+        trace.update({"A_pos": a_pos, "B_pos": b_pos, "A2": a2, "B2": b2, "route": "debate"})
+    out["memview_r"] = {"prediction": [final], "trace": trace, "usage": um}
+    cands, votes = candidates(trace, q)
+    trace["cands"], trace["votes"] = cands, votes
+    if len(cands) < 2:
+        out["score_r"] = {"prediction": [final], "trace": {**trace, "scored": False}, "usage": um}
+        return out
+    notes = []
+    for c in cands:
+        why = [r for s, r in zip(samples, a_reasons) if r and valid(s, q) and key(s, q) == key(c, q)]
+        if valid(b, q) and key(b, q) == key(c, q) and (b_reason or b_ev):
+            why.append((b_reason + (" Bằng chứng: " + "; ".join(b_ev[:5]) if b_ev else "")).strip())
+        notes.append(" | ".join(why)[:600])
+    us = Usage(); us.add(um)
+    ps = {}
+    for view, pre in (("flat", prefix_flat(qa)), ("kv", prefix_kv(qa))):
+        for tag, nt in (("plain", None), ("reason", notes)):
+            ps[f"p_{view}_{tag}"], u = score(client, qa, pre, cands, nt); us.add(u)
+    mean = [(a + bb) / 2 for a, bb in zip(ps["p_flat_reason"], ps["p_kv_reason"])]
+    trace.update({"notes": notes, **ps, "scored": True})
+    out["score_r"] = {"prediction": [cands[max(range(len(cands)), key=mean.__getitem__)]], "trace": trace, "usage": us}
+    return out
+
+
+SUITES["suite_v9"] = suite_v9

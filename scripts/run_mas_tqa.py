@@ -23,7 +23,7 @@ from evaluation.io import load_qas_records  # noqa: E402
 from mas_tqa.client import VLLMClient  # noqa: E402
 from mas_tqa.methods import METHODS, SUITES  # noqa: E402
 
-SUITE_MEMBERS = {"suite": ["knn_fs", "evid", "cascade3", "cascade3b", "judge_only", "memxam", "memxam_judge"], "suite3": ["knn_fs_k8", "evid_k8", "kv_k8", "vote3", "memxam3"], "suite_sc": ["knn16_sc3", "vote4", "memxam_sc"], "suite_sckv": ["knn16_sc3", "vote4kv", "memxam_sckv"], "suite_v8": ["knn16_sc3", "vote4kv", "code_c", "vote5", "memxam_sckv", "memxam_veto", "memxam_c5"]}
+SUITE_MEMBERS = {"suite": ["knn_fs", "evid", "cascade3", "cascade3b", "judge_only", "memxam", "memxam_judge"], "suite3": ["knn_fs_k8", "evid_k8", "kv_k8", "vote3", "memxam3"], "suite_sc": ["knn16_sc3", "vote4", "memxam_sc"], "suite_sckv": ["knn16_sc3", "vote4kv", "memxam_sckv"], "suite_v8": ["knn16_sc3", "vote4kv", "code_c", "vote5", "memxam_sckv", "memxam_veto", "memxam_c5"], "suite_v9": ["knn16_sc3r", "vote4r", "memview_r", "score_r"]}
 
 
 def main() -> None:

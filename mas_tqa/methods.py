@@ -652,3 +652,16 @@ def suite_v8(client: VLLMClient, qa: dict) -> dict[str, dict]:
 
 
 SUITES["suite_v8"] = suite_v8
+
+
+# ---------- Agent M (toán) + agent V (kiểm tra): chỉ chạy trên câu router gán "compute" ----------
+
+def math_mv(client: VLLMClient, qa: dict) -> dict:
+    from .math_agent import prefix, solve
+
+    res = solve(client, qa, prefix(qa), kv_str(qa["table_id"]))
+    usage = res.pop("usage")
+    return {"prediction": [res["V"] or res["M"] or "Null"], "trace": res, "usage": usage}
+
+
+METHODS["math_mv"] = math_mv

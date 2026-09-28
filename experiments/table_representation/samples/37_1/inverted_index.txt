@@ -1,0 +1,57 @@
+{
+  "title": "Các tác phẩm của San Holo_0",
+  "value_to_addresses": {
+    "Tựa đề": [
+      "A1",
+      "A2"
+    ],
+    "Chi tiết": [
+      "B1",
+      "B2"
+    ],
+    "Vị trí trênbảng xếp hạng": [
+      "C1",
+      "D1",
+      "E1"
+    ],
+    "US Dance[1]": [
+      "C2"
+    ],
+    "US Heat[2]": [
+      "D2"
+    ],
+    "NLD[3]": [
+      "E2"
+    ],
+    "album1": [
+      "A3"
+    ],
+    "Phát hành: 21 tháng 9 năm 2018 Hãng phát hành: bitbird Định dạng: Digital download": [
+      "B3"
+    ],
+    "7": [
+      "C3"
+    ],
+    "20": [
+      "D3"
+    ],
+    "80": [
+      "E3"
+    ],
+    "bb u ok?": [
+      "A4"
+    ],
+    "Phát hành: 4 tháng 6 năm 2021 Hãng phát hành: bitbird, Counter Records, Liquid State Định dạng: Digital download": [
+      "B4"
+    ],
+    "3": [
+      "C4"
+    ],
+    "5": [
+      "D4"
+    ],
+    "—": [
+      "E4"
+    ]
+  }
+}

@@ -1,0 +1,1014 @@
+[
+  {
+    "qa_id": "3_1_104",
+    "table_id": "3_1",
+    "question": "Bao nhiêu loài chim được công nhận chính thức và trong tên chim đó có tên quốc gia công nhận?",
+    "gold": "7",
+    "hints": [
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "0"
+    ],
+    "final_prediction": [
+      "0"
+    ],
+    "table_op": null,
+    "table_mode": "lexical_subtable",
+    "n_table_chars": 4513,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "6_2_85",
+    "table_id": "6_2",
+    "question": " Có bao nhiêu đỉnh núi không có parent ?",
+    "gold": "32",
+    "hints": [
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "3"
+    ],
+    "final_prediction": [
+      "3"
+    ],
+    "table_op": null,
+    "table_mode": "lexical_subtable",
+    "n_table_chars": 5606,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99917_3_67",
+    "table_id": "99917_3",
+    "question": "Có phải có 3 tòa nhà cao từ 150m trở lên?",
+    "gold": "Phải",
+    "hints": [
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Phải"
+    ],
+    "final_prediction": [
+      "Phải"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 106,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "9999_0_21",
+    "table_id": "9999_0",
+    "question": "Có bao nhiêu xã được công nhận vào năm 2018?",
+    "gold": "2",
+    "hints": [
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "2"
+    ],
+    "final_prediction": [
+      "2"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 803,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99932_2_90",
+    "table_id": "99932_2",
+    "question": "Quốc gia nào sản xuất được 3.500 nghìn bao cà phê?",
+    "gold": "Guatemala",
+    "hints": [
+      "Ở đâu, trong thành phố nào, ở nước nào,... hoặc những từ đồng nghĩa (Where)"
+    ],
+    "llm_prediction": [
+      "Guatemala"
+    ],
+    "final_prediction": [
+      "Guatemala"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 853,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "9990_2_27",
+    "table_id": "9990_2",
+    "question": "Năm 2020 % dân số thế giới có dưới 66.00% không?",
+    "gold": "Có",
+    "hints": [
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 983,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99924_1_53",
+    "table_id": "99924_1",
+    "question": "Ai là người đã quy định 2 tháng 2 năm 1984 là năm Giáp Tý?",
+    "gold": "Null",
+    "hints": [
+      "Ai, người nào,... hoặc những từ đồng nghĩa (Who)"
+    ],
+    "llm_prediction": [
+      "Tý"
+    ],
+    "final_prediction": [
+      "Tý"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 3870,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99921_1_43",
+    "table_id": "99921_1",
+    "question": "Nơi nào  đứng hạng 5 ? ",
+    "gold": "Phoenix\t",
+    "hints": [
+      "Ở đâu, trong thành phố nào, ở nước nào,... hoặc những từ đồng nghĩa (Where)"
+    ],
+    "llm_prediction": [
+      "Phoenix"
+    ],
+    "final_prediction": [
+      "Phoenix"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1030,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "9994_0_49",
+    "table_id": "9994_0",
+    "question": "Tại sao Lê Nguyễn Tuyết Nhi không phải là người có cân nặng lớn nhất đội?",
+    "gold": "Vì Nguyễn Thị Kim Ngân nặng nhất đội",
+    "hints": [
+      "Vì sao, tại sao,... hoặc những từ đồng nghĩa (Why)"
+    ],
+    "llm_prediction": [
+      "Không đủ thông tin"
+    ],
+    "final_prediction": [
+      "Không đủ thông tin",
+      "Null"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 922,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99956_3_41",
+    "table_id": "99956_3",
+    "question": "Archytas of Tarentum đã phát minh ra một cỗ máy dạng chim bằng gỗ, được phóng đi bằng gì?",
+    "gold": "Hơi nước",
+    "hints": [
+      "Làm thế nào, như thế nào, bằng cách nào,... hoặc những từ đồng nghĩa (How)"
+    ],
+    "llm_prediction": [
+      "hơi nước"
+    ],
+    "final_prediction": [
+      "hơi nước"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2473,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "23_1_26",
+    "table_id": "23_1",
+    "question": "Có tập phim nào xếp hạng #2 trong khung giờ hoặc tỷ lệ người xem trung bình dưới 6% không?",
+    "gold": "Không",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "Có"
+    ],
+    "final_prediction": [
+      "Có"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2725,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99939_1_38",
+    "table_id": "99939_1",
+    "question": "Khi nào thì Berkshire Hathaway được thành lập?",
+    "gold": "Null",
+    "hints": [
+      "Khi nào, thời gian nào, ... hoặc những từ đồng nghĩa (When)"
+    ],
+    "llm_prediction": [
+      "Null"
+    ],
+    "final_prediction": [
+      "Null"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 933,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "48_1_5",
+    "table_id": "48_1",
+    "question": "Có bao nhiêu tòa nhà thuộc Itapema hoặc Buenos Aires được dự kiến hoàn thành năm 2023?",
+    "gold": "0",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột",
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "2"
+    ],
+    "final_prediction": [
+      "2"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2035,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99935_4_100",
+    "table_id": "99935_4",
+    "question": "Shin Dong-yup đã nhận giải thưởng lớn năm 2002 đúng không?",
+    "gold": "Đúng",
+    "hints": [
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Đúng"
+    ],
+    "final_prediction": [
+      "Đúng"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 748,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99922_2_82",
+    "table_id": "99922_2",
+    "question": "Khi nào thì có % Độ ẩm cao nhất?",
+    "gold": "7",
+    "hints": [
+      "Khi nào, thời gian nào, ... hoặc những từ đồng nghĩa (When)"
+    ],
+    "llm_prediction": [
+      "12"
+    ],
+    "final_prediction": [
+      "7"
+    ],
+    "table_op": "climate_extremum",
+    "table_mode": "markdown_full",
+    "n_table_chars": 1858,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "3_2_131",
+    "table_id": "3_2",
+    "question": "Nguyễn Thị Chiên có quê quán ở đâu?",
+    "gold": "Thái Bình",
+    "hints": [
+      "Ở đâu, trong thành phố nào, ở nước nào,... hoặc những từ đồng nghĩa (Where)"
+    ],
+    "llm_prediction": [
+      "Thái Bình"
+    ],
+    "final_prediction": [
+      "Thái Bình"
+    ],
+    "table_op": null,
+    "table_mode": "lexical_subtable",
+    "n_table_chars": 513,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "42_2_11",
+    "table_id": "42_2",
+    "question": "São Paulo có thành phố cao từ 200 m trở lên không?",
+    "gold": "Không",
+    "hints": [
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1071,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "53_2_153",
+    "table_id": "53_2",
+    "question": "Tòa nhà cao 999m, có 200 tầng ở Argentina tên Buenos Aires Forum hoặc Triumph Tower đúng không?",
+    "gold": "Đúng",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột",
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Đúng"
+    ],
+    "final_prediction": [
+      "Đúng"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2557,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "29_2_148",
+    "table_id": "29_2",
+    "question": "Giữa 2 kênh tần số là 23 (UHF/VHF) và 28 (UHF/VHF) thì kênh tần số nào được trạm phát Đài PTTH Sơn La sử dụng?",
+    "gold": "23 (UHF/VHF)",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "23"
+    ],
+    "final_prediction": [
+      "23",
+      "23 (UHF/VHF)"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2969,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "99924_3_116",
+    "table_id": "99924_3",
+    "question": "Vì sao Zambia có khả năng sống lâu ở nam cao thấp hơn nữ?",
+    "gold": "Null",
+    "hints": [
+      "Vì sao, tại sao,... hoặc những từ đồng nghĩa (Why)",
+      "Ở đâu, trong thành phố nào, ở nước nào,... hoặc những từ đồng nghĩa (Where)"
+    ],
+    "llm_prediction": [
+      "Null"
+    ],
+    "final_prediction": [
+      "Null"
+    ],
+    "table_op": null,
+    "table_mode": "lexical_subtable",
+    "n_table_chars": 636,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99925_0_14",
+    "table_id": "99925_0",
+    "question": "Ukraina ở châu Á đúng không?",
+    "gold": "Null",
+    "hints": [
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 527,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99911_4_159",
+    "table_id": "99911_4",
+    "question": "Huyện Thuận Bắc được công nhận năm nào?",
+    "gold": "2005",
+    "hints": [
+      "Khi nào, thời gian nào, ... hoặc những từ đồng nghĩa (When)"
+    ],
+    "llm_prediction": [
+      "2009"
+    ],
+    "final_prediction": [
+      "2009",
+      "Năm 2009"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1487,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99932_0_36",
+    "table_id": "99932_0",
+    "question": "Liệt kê các hạng mục mà Running Man đoạt giải?",
+    "gold": "Chương trình đa dạng hay nhất, Giải thưởng Tinh thần Giải trí, Chương trình giải trí hay nhất, Chương trình đa dạng được yêu thích (người hâm mộ bình chọn), Show giải trí 100 tuổi",
+    "hints": [
+      "Sử dụng yêu cầu liệt kê, sắp xếp"
+    ],
+    "llm_prediction": [
+      "Giải thưởng Tinh thần Giải trí, Chương trình đa dạng hay nhất, Cặp đôi hoàn hảo, Chương trình giải trí hay nhất, Chương trình đa dạng được yêu thích (người hâm mộ bình chọn), Show giải trí 100 tuổi"
+    ],
+    "final_prediction": [
+      "Chương trình đa dạng hay nhất, Giải thưởng Tinh thần Giải trí, Chương trình giải trí hay nhất, Chương trình đa dạng được yêu thích (người hâm mộ bình chọn), Show giải trí 100 tuổi"
+    ],
+    "table_op": "list_rows",
+    "table_mode": "markdown_full",
+    "n_table_chars": 1780,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "61_0_6",
+    "table_id": "61_0",
+    "question": "Có bao nhiêu quốc gia có chỉ số PR lớn hơn 2 và chỉ số CL nhỏ hơn 2?",
+    "gold": "0",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột",
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "0"
+    ],
+    "final_prediction": [
+      "0"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 936,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "22_1_10",
+    "table_id": "22_1",
+    "question": "Tập phim nào có lượng người xem trung bình trên 10% và xếp hạng nhất trong khung giờ?",
+    "gold": "Pilot",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột",
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "Pilot"
+    ],
+    "final_prediction": [
+      "Pilot"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2096,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "48_3_142",
+    "table_id": "48_3",
+    "question": "Tòa nhà nào thuộc Casablanca và có ít tầng nhất?",
+    "gold": "Atlantic Tower",
+    "hints": [
+      "Sử dụng tính toán",
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "Al Noor Tower"
+    ],
+    "final_prediction": [
+      "Atlantic Tower"
+    ],
+    "table_op": "filtered_extremum",
+    "table_mode": "markdown_full",
+    "n_table_chars": 1183,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "99928_0_98",
+    "table_id": "99928_0",
+    "question": "Liệt kê tên các ca sĩ có ngày phát hành vào năm 2023?",
+    "gold": "Lương Bích Hữu, Khải Đăng, Doãn Hiếu",
+    "hints": [
+      "Sử dụng yêu cầu liệt kê, sắp xếp"
+    ],
+    "llm_prediction": [
+      "Khải Đăng, Doãn Hiếu"
+    ],
+    "final_prediction": [
+      "Lương Bích Hữu, Khải Đăng, Doãn Hiếu"
+    ],
+    "table_op": "list_rows",
+    "table_mode": "markdown_full",
+    "n_table_chars": 2932,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "1_3_292",
+    "table_id": "1_3",
+    "question": "Ấn vàng Đại Việt quốc Nguyễn chúa vĩnh trấn chi bảo ra đời khi nào?",
+    "gold": "Năm 1709",
+    "hints": [
+      "Khi nào, thời gian nào, ... hoặc những từ đồng nghĩa (When)"
+    ],
+    "llm_prediction": [
+      "1709"
+    ],
+    "final_prediction": [
+      "1709",
+      "Năm 1709"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1888,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "99939_1_32",
+    "table_id": "99939_1",
+    "question": "Masayoshi Son thu nhập chính từ Softbank Capital, SoftBank Mobile và có quốc tịch ở quốc gia nào?",
+    "gold": "Nhật Bản",
+    "hints": [
+      "Ở đâu, trong thành phố nào, ở nước nào,... hoặc những từ đồng nghĩa (Where)"
+    ],
+    "llm_prediction": [
+      "Nhật Bản"
+    ],
+    "final_prediction": [
+      "Nhật Bản"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 933,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "9990_2_31",
+    "table_id": "9990_2",
+    "question": "Năm 2025 có tỉ lệ tăng lên lớn hơn 0.7% không?",
+    "gold": "Không",
+    "hints": [
+      "Sử dụng tính toán"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 983,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99934_1_5",
+    "table_id": "99934_1",
+    "question": "Kế hoạch năm 1976-1980 và 1981-1985 có chỉ tiêu bằng nhau không?",
+    "gold": "Không",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 561,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "9998_3_136",
+    "table_id": "9998_3",
+    "question": "Tuyến nào là tuyến số 7?",
+    "gold": "Bến xe phía Nam - Thị trấn Nga Sơn",
+    "hints": [
+      "Cái gì, cái nào, công ty nào,... hoặc những từ đồng nghĩa (What)"
+    ],
+    "llm_prediction": [
+      "Bến xe phía Nam - Thị trấn Nga Sơn"
+    ],
+    "final_prediction": [
+      "Bến xe phía Nam - Thị trấn Nga Sơn"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2790,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99920_0_32",
+    "table_id": "99920_0",
+    "question": "Phạm Thị Mai có cân nặng là mấy kg?",
+    "gold": "56",
+    "hints": [
+      "Cái gì, cái nào, công ty nào,... hoặc những từ đồng nghĩa (What)"
+    ],
+    "llm_prediction": [
+      "56"
+    ],
+    "final_prediction": [
+      "56"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 696,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99911_1_42",
+    "table_id": "99911_1",
+    "question": "Ga nào có địa chỉ ở thôn Văn Đăng, xã Vĩnh Lương?",
+    "gold": "Lương Sơn",
+    "hints": [
+      "Cái gì, cái nào, công ty nào,... hoặc những từ đồng nghĩa (What)"
+    ],
+    "llm_prediction": [
+      "Lương Sơn"
+    ],
+    "final_prediction": [
+      "Lương Sơn"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 3971,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99934_2_30",
+    "table_id": "99934_2",
+    "question": "Jung Chae-yeon có làm khách mời trong tập phim số 1 không?",
+    "gold": "Không",
+    "hints": [
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 929,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "55_2_132",
+    "table_id": "55_2",
+    "question": "Đội SNG.Invincible có tên viết tắt là SNG.INV hoặc có STT là 4 đúng không?",
+    "gold": "Đúng",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "SNG.INV"
+    ],
+    "final_prediction": [
+      "SNG.INV",
+      "Đúng"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 553,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "5_2_50",
+    "table_id": "5_2",
+    "question": "Xu hướng của BigMuscle.com là gì?",
+    "gold": "Người đồng tính nam, song tính nam",
+    "hints": [
+      "Cái gì, cái nào, công ty nào,... hoặc những từ đồng nghĩa (What)"
+    ],
+    "llm_prediction": [
+      "Người đồng tính nam, song tính nam"
+    ],
+    "final_prediction": [
+      "Người đồng tính nam, song tính nam"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2357,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99922_0_27",
+    "table_id": "99922_0",
+    "question": "Ai là người đã song ca cùng trong  nhạc mở đầu phim Marumo no Okite?",
+    "gold": "Suzuki Fuku",
+    "hints": [
+      "Ai, người nào,... hoặc những từ đồng nghĩa (Who)"
+    ],
+    "llm_prediction": [
+      "Suzuki Fuku"
+    ],
+    "final_prediction": [
+      "Suzuki Fuku"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 856,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "29_1_78",
+    "table_id": "29_1",
+    "question": "Trạm phát sóng Đài PTTH Lào Cai, TP Lào Cai thuộc tỉnh thành nào?",
+    "gold": "Lào Cai",
+    "hints": [
+      "Cái gì, cái nào, công ty nào,... hoặc những từ đồng nghĩa (What)"
+    ],
+    "llm_prediction": [
+      "Lào Cai"
+    ],
+    "final_prediction": [
+      "Lào Cai"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 3236,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99913_1_20",
+    "table_id": "99913_1",
+    "question": "Tháng nào có trung bình thấp là 11 °C ?",
+    "gold": "12",
+    "hints": [
+      "Khi nào, thời gian nào, ... hoặc những từ đồng nghĩa (When)"
+    ],
+    "llm_prediction": [
+      "null"
+    ],
+    "final_prediction": [
+      "null"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1669,
+    "llm_em": false,
+    "final_em": false
+  },
+  {
+    "qa_id": "99911_3_127",
+    "table_id": "99911_3",
+    "question": "Tháng nào có Cao kỉ lục °C và Trung bình ngày, °C nhỏ nhất?",
+    "gold": "1",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "1"
+    ],
+    "final_prediction": [
+      "1"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2351,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "48_4_72",
+    "table_id": "48_4",
+    "question": "98 14th Street hoặc Ross Perot Tower thuộc thành phố Philadelphia đúng không?",
+    "gold": "Không",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột",
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 3175,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99928_2_78",
+    "table_id": "99928_2",
+    "question": "Người nào có giá trị tài sản thấp nhất và đến từ Ả Rập Xê Út?",
+    "gold": "Sulaiman Al Rajhi",
+    "hints": [
+      "Ai, người nào,... hoặc những từ đồng nghĩa (Who)"
+    ],
+    "llm_prediction": [
+      "Maan Al-Sanea"
+    ],
+    "final_prediction": [
+      "Sulaiman Al Rajhi"
+    ],
+    "table_op": "filtered_extremum",
+    "table_mode": "lexical_subtable",
+    "n_table_chars": 415,
+    "llm_em": false,
+    "final_em": true
+  },
+  {
+    "qa_id": "99935_4_117",
+    "table_id": "99935_4",
+    "question": "Lee Kyung-kyu nhận giải thưởng năm 2010 về dự án \tHappy Sunday: Qualifications of Men đúng không?",
+    "gold": "Đúng",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "Đúng"
+    ],
+    "final_prediction": [
+      "Đúng"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 748,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "32_1_69",
+    "table_id": "32_1",
+    "question": "BlackBerry PlayBook có ppcm nhỏ nhất dòng BlackBerry đúng không?",
+    "gold": "Đúng",
+    "hints": [
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Đúng"
+    ],
+    "final_prediction": [
+      "Đúng"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 675,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99940_0_26",
+    "table_id": "99940_0",
+    "question": "Đồng Minh có 11.247.650+ vũ khí gì?",
+    "gold": "Súng máy",
+    "hints": [
+      "Cái gì, cái nào, công ty nào,... hoặc những từ đồng nghĩa (What)"
+    ],
+    "llm_prediction": [
+      "Súng máy"
+    ],
+    "final_prediction": [
+      "Súng máy"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1605,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99923_0_19",
+    "table_id": "99923_0",
+    "question": "Alain Juppé bắt đầu nhiệm kỳ khi nào?",
+    "gold": "ngày 11 tháng 3 năm 2019",
+    "hints": [
+      "Khi nào, thời gian nào, ... hoặc những từ đồng nghĩa (When)"
+    ],
+    "llm_prediction": [
+      "ngày 11 tháng 3 năm 2019"
+    ],
+    "final_prediction": [
+      "ngày 11 tháng 3 năm 2019"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1054,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "1_1_119",
+    "table_id": "1_1",
+    "question": "Lan can thành bậc tồn tại từ đầu thế kỷ XII hay cuối thế kỷ XVIII?",
+    "gold": "Đầu thế kỷ XII",
+    "hints": [
+      "Sử dụng hỏi kết hợp giữa các ô, các hàng, các cột"
+    ],
+    "llm_prediction": [
+      "đầu thế kỷ XII"
+    ],
+    "final_prediction": [
+      "đầu thế kỷ XII"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 1530,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "9996_3_68",
+    "table_id": "9996_3",
+    "question": "Quy mô dân số và mật độ dân số có cùng thang điểm phải không?",
+    "gold": "Không",
+    "hints": [
+      "Câu hỏi Yes/No"
+    ],
+    "llm_prediction": [
+      "Không"
+    ],
+    "final_prediction": [
+      "Không"
+    ],
+    "table_op": null,
+    "table_mode": "markdown_full",
+    "n_table_chars": 2043,
+    "llm_em": true,
+    "final_em": true
+  },
+  {
+    "qa_id": "99910_4_53",
+    "table_id": "99910_4",
+    "question": "Ví trị nào được sử dụng nhiều thứ 2 trong bảng dữ liệu này?",
+    "gold": "TV",
+    "hints": [
+      "Cái gì, cái nào, công ty nào,... hoặc những từ đồng nghĩa (What)"
+    ],
+    "llm_prediction": [
+      "HV"
+    ],
+    "final_prediction": [
+      "TV"
+    ],
+    "table_op": "frequency_rank",
+    "table_mode": "markdown_full",
+    "n_table_chars": 477,
+    "llm_em": false,
+    "final_em": true
+  }
+]

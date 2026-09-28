@@ -1,0 +1,21 @@
+<table>
+  <title>Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3</title>
+  <row>
+    <cell header="Tỉnh thành">Hà Nội</cell>
+    <cell header="Kênh tần số (UHF/VHF)">22 ➡ 4 ➡ 2</cell>
+    <cell header="Trạm phát (chính)">Trung tâm phát hình Giảng Võ (cũ)</cell>
+    <cell header="Chú thích">2000s - 2010s</cell>
+  </row>
+  <row>
+    <cell header="Tỉnh thành">Đà Nẵng</cell>
+    <cell header="Kênh tần số (UHF/VHF)">27</cell>
+    <cell header="Trạm phát (chính)">Trạm phát sóng truyền hình Sơn Trà</cell>
+    <cell header="Chú thích"></cell>
+  </row>
+  <row>
+    <cell header="Tỉnh thành">TP. Hồ Chí Minh</cell>
+    <cell header="Kênh tần số (UHF/VHF)">24</cell>
+    <cell header="Trạm phát (chính)">Đài Truyền hình TPHCM</cell>
+    <cell header="Chú thích"></cell>
+  </row>
+</table>

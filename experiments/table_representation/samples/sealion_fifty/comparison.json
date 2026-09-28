@@ -1,0 +1,545 @@
+{
+  "note": "Local rows are rescored with this repo evaluation/ on saved prediction files. Paper rows are copied from paper/jit-article.tex Table overall-results (percent). First-50 is the same 50 qa_ids as the SEA-LION sandbox (qas_test.json file order).",
+  "first50_ids": [
+    "3_1_104",
+    "6_2_85",
+    "99917_3_67",
+    "9999_0_21",
+    "99932_2_90",
+    "9990_2_27",
+    "99924_1_53",
+    "99921_1_43",
+    "9994_0_49",
+    "99956_3_41",
+    "23_1_26",
+    "99939_1_38",
+    "48_1_5",
+    "99935_4_100",
+    "99922_2_82",
+    "3_2_131",
+    "42_2_11",
+    "53_2_153",
+    "29_2_148",
+    "99924_3_116",
+    "99925_0_14",
+    "99911_4_159",
+    "99932_0_36",
+    "61_0_6",
+    "22_1_10",
+    "48_3_142",
+    "99928_0_98",
+    "1_3_292",
+    "99939_1_32",
+    "9990_2_31",
+    "99934_1_5",
+    "9998_3_136",
+    "99920_0_32",
+    "99911_1_42",
+    "99934_2_30",
+    "55_2_132",
+    "5_2_50",
+    "99922_0_27",
+    "29_1_78",
+    "99913_1_20",
+    "99911_3_127",
+    "48_4_72",
+    "99928_2_78",
+    "99935_4_117",
+    "32_1_69",
+    "99940_0_26",
+    "99923_0_19",
+    "1_1_119",
+    "9996_3_68",
+    "99910_4_53"
+  ],
+  "paper_full_test_percent": [
+    {
+      "system": "Llama 2*",
+      "em": 6.0,
+      "f1": 4.2,
+      "r1": 8.8,
+      "met": 5.8,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "Llama 3.1*",
+      "em": 34.3,
+      "f1": 34.2,
+      "r1": 44.0,
+      "met": 32.5,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "Mistral 7B v0.3*",
+      "em": 35.0,
+      "f1": 34.9,
+      "r1": 44.8,
+      "met": 32.8,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "Mistral Nemo 2407*",
+      "em": 35.6,
+      "f1": 35.5,
+      "r1": 45.2,
+      "met": 33.5,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "Gemini 1.5 Pro*",
+      "em": 60.8,
+      "f1": 59.8,
+      "r1": 71.9,
+      "met": 49.8,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "Gemini 2.0 Flash Exp.*",
+      "em": 60.2,
+      "f1": 60.5,
+      "r1": 70.1,
+      "met": 50.0,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "Qwen3 8B ZS",
+      "em": 62.4,
+      "f1": 76.16,
+      "r1": 69.06,
+      "met": 67.52,
+      "source": "POMA paper (this repo)"
+    },
+    {
+      "system": "Qwen3 8B TD",
+      "em": 59.38,
+      "f1": 74.01,
+      "r1": 65.99,
+      "met": 64.15,
+      "source": "POMA paper (this repo)"
+    },
+    {
+      "system": "Qwen3 8B CoT",
+      "em": 59.17,
+      "f1": 74.03,
+      "r1": 66.55,
+      "met": 64.45,
+      "source": "POMA paper (this repo)"
+    },
+    {
+      "system": "Qwen3 8B FS",
+      "em": 67.14,
+      "f1": 78.64,
+      "r1": 74.18,
+      "met": 72.3,
+      "source": "POMA paper (this repo)"
+    },
+    {
+      "system": "TAPAS-Base*",
+      "em": 30.29,
+      "f1": 30.62,
+      "r1": 41.1,
+      "met": 28.27,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "TAPAS-Large*",
+      "em": 31.44,
+      "f1": 31.56,
+      "r1": 40.02,
+      "met": 27.96,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "ViT5-Base*",
+      "em": 42.24,
+      "f1": 42.35,
+      "r1": 50.35,
+      "met": 36.81,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "ViT5-Large*",
+      "em": 45.13,
+      "f1": 45.22,
+      "r1": 51.87,
+      "met": 37.12,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "RGCN-RCI*",
+      "em": 17.7,
+      "f1": 18.12,
+      "r1": 23.24,
+      "met": 16.71,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "KorWikiTQ*",
+      "em": 46.0,
+      "f1": 46.0,
+      "r1": 52.9,
+      "met": 37.8,
+      "source": "Open-ViTabQA paper"
+    },
+    {
+      "system": "CoAgt (reimpl.)",
+      "em": 32.36,
+      "f1": 68.87,
+      "r1": 45.32,
+      "met": 46.89,
+      "source": "POMA paper (this repo)"
+    },
+    {
+      "system": "CoQ (reimpl.)",
+      "em": 57.86,
+      "f1": 73.2,
+      "r1": 66.36,
+      "met": 67.2,
+      "source": "POMA paper (this repo)"
+    },
+    {
+      "system": "POMA Qwen3 8B",
+      "em": 80.24,
+      "f1": 88.23,
+      "r1": 86.07,
+      "met": 84.5,
+      "source": "POMA paper (this repo)"
+    }
+  ],
+  "local_rescored": [
+    {
+      "id": "qwen3_8b_zs",
+      "name": "Qwen3-8B zero-shot",
+      "path": "outputs/baseline/qwen/full_zs/qwen3-8b.jsonl",
+      "kind": "direct_baseline",
+      "table": "Flatten V1",
+      "model": "openrouter/qwen/qwen3-8b",
+      "full_test": {
+        "n_scored": 992,
+        "n_missing_from_split": 0,
+        "em": 0.6310483870967742,
+        "f1": 0.7613549374575264,
+        "rouge1": 0.6835747016172965,
+        "meteor": 0.6829264134249683,
+        "em_hits": 626,
+        "source": "outputs/baseline/qwen/full_zs/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.7,
+        "f1": 0.7549475770361846,
+        "rouge1": 0.720952380952381,
+        "meteor": 0.7153383458646617,
+        "em_hits": 35,
+        "source": "outputs/baseline/qwen/full_zs/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "qwen3_8b_td",
+      "name": "Qwen3-8B task-decomposition",
+      "path": "outputs/baseline/qwen/full_td/qwen3-8b.jsonl",
+      "kind": "direct_baseline",
+      "table": "Flatten V1",
+      "model": "openrouter/qwen/qwen3-8b",
+      "full_test": {
+        "n_scored": 992,
+        "n_missing_from_split": 0,
+        "em": 0.5997983870967742,
+        "f1": 0.7400818538157329,
+        "rouge1": 0.6524429820133871,
+        "meteor": 0.6516929488055067,
+        "em_hits": 595,
+        "source": "outputs/baseline/qwen/full_td/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.66,
+        "f1": 0.7441515151515152,
+        "rouge1": 0.69,
+        "meteor": 0.6804024767801857,
+        "em_hits": 33,
+        "source": "outputs/baseline/qwen/full_td/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "qwen3_8b_cot",
+      "name": "Qwen3-8B chain-of-thought",
+      "path": "outputs/baseline/qwen/full_cot/qwen3-8b.jsonl",
+      "kind": "direct_baseline",
+      "table": "Flatten V1",
+      "model": "openrouter/qwen/qwen3-8b",
+      "full_test": {
+        "n_scored": 992,
+        "n_missing_from_split": 0,
+        "em": 0.594758064516129,
+        "f1": 0.7401094401356201,
+        "rouge1": 0.6572285294970214,
+        "meteor": 0.657820977528947,
+        "em_hits": 590,
+        "source": "outputs/baseline/qwen/full_cot/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.64,
+        "f1": 0.7076767676767676,
+        "rouge1": 0.6847692307692307,
+        "meteor": 0.6819710226507911,
+        "em_hits": 32,
+        "source": "outputs/baseline/qwen/full_cot/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "qwen3_8b_fs",
+      "name": "Qwen3-8B few-shot",
+      "path": "outputs/baseline/qwen/full_few_shot/qwen3-8b.jsonl",
+      "kind": "direct_baseline",
+      "table": "Flatten V1",
+      "model": "openrouter/qwen/qwen3-8b",
+      "full_test": {
+        "n_scored": 992,
+        "n_missing_from_split": 0,
+        "em": 0.6733870967741935,
+        "f1": 0.7862510497466993,
+        "rouge1": 0.7346240455001277,
+        "meteor": 0.7355233542328881,
+        "em_hits": 668,
+        "source": "outputs/baseline/qwen/full_few_shot/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.74,
+        "f1": 0.8068975468975469,
+        "rouge1": 0.78,
+        "meteor": 0.7792344497607655,
+        "em_hits": 37,
+        "source": "outputs/baseline/qwen/full_few_shot/qwen3-8b.jsonl",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "poma_qwen_hp",
+      "name": "POMA Qwen3-8B (predicted hints)",
+      "path": "outputs/poma/qwen/poma_qas_test_qwen3_8b_hp.json",
+      "kind": "poma",
+      "table": "Flatten V1",
+      "model": "openrouter/qwen/qwen3-8b",
+      "full_test": {
+        "n_scored": 992,
+        "n_missing_from_split": 0,
+        "em": 0.8024193548387096,
+        "f1": 0.8825225945795703,
+        "rouge1": 0.8448183210442091,
+        "meteor": 0.8517080620795486,
+        "em_hits": 796,
+        "source": "outputs/poma/qwen/poma_qas_test_qwen3_8b_hp.json",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.84,
+        "f1": 0.8914065934065935,
+        "rouge1": 0.8687719298245614,
+        "meteor": 0.8837710437710438,
+        "em_hits": 42,
+        "source": "outputs/poma/qwen/poma_qas_test_qwen3_8b_hp.json",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "poma_qwen_no_hp",
+      "name": "POMA Qwen3-8B (no hint predictor)",
+      "path": "outputs/poma/qwen/poma_qas_test_qwen3_8b_no_hp.json",
+      "kind": "poma",
+      "table": "Flatten V1",
+      "model": "openrouter/qwen/qwen3-8b",
+      "full_test": {
+        "n_scored": 992,
+        "n_missing_from_split": 0,
+        "em": 0.8034274193548387,
+        "f1": 0.8791104584825195,
+        "rouge1": 0.8424195550656691,
+        "meteor": 0.8470531472604798,
+        "em_hits": 797,
+        "source": "outputs/poma/qwen/poma_qas_test_qwen3_8b_no_hp.json",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.84,
+        "f1": 0.8948664799253035,
+        "rouge1": 0.8728671679197996,
+        "meteor": 0.8931846115697047,
+        "em_hits": 42,
+        "source": "outputs/poma/qwen/poma_qas_test_qwen3_8b_no_hp.json",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "poma_gpt4o_hp_no_an",
+      "name": "POMA GPT-4o +HP without AN (partial)",
+      "path": "outputs/poma/ablation/poma_qas_test_gpt4o_hp_without_answer_normalization.json",
+      "kind": "poma_ablation_partial",
+      "table": "Flatten V1",
+      "model": "gpt-4o",
+      "full_test": {
+        "n_scored": 395,
+        "n_missing_from_split": 597,
+        "em": 0.579746835443038,
+        "f1": 0.6884639508959484,
+        "rouge1": 0.6317050995272412,
+        "meteor": 0.639351696079937,
+        "em_hits": 229,
+        "source": "outputs/poma/ablation/poma_qas_test_gpt4o_hp_without_answer_normalization.json",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 12,
+        "n_missing_from_split": 38,
+        "em": 0.4166666666666667,
+        "f1": 0.5399210686095932,
+        "rouge1": 0.44281045751633985,
+        "meteor": 0.47463768115942023,
+        "em_hits": 5,
+        "source": "outputs/poma/ablation/poma_qas_test_gpt4o_hp_without_answer_normalization.json",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "poma_gpt4o_no_hp_no_an",
+      "name": "POMA GPT-4o no HP without AN (almost full)",
+      "path": "outputs/poma/ablation/poma_qas_test_gpt4o_no_hp_without_answer_normalization.json",
+      "kind": "poma_ablation_partial",
+      "table": "Flatten V1",
+      "model": "gpt-4o",
+      "full_test": {
+        "n_scored": 983,
+        "n_missing_from_split": 9,
+        "em": 0.5991861648016277,
+        "f1": 0.7439502256355082,
+        "rouge1": 0.6800663995971631,
+        "meteor": 0.6912163276252482,
+        "em_hits": 589,
+        "source": "outputs/poma/ablation/poma_qas_test_gpt4o_no_hp_without_answer_normalization.json",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 41,
+        "n_missing_from_split": 9,
+        "em": 0.5853658536585366,
+        "f1": 0.7221861982360992,
+        "rouge1": 0.6679228008496301,
+        "meteor": 0.6759213926353064,
+        "em_hits": 24,
+        "source": "outputs/poma/ablation/poma_qas_test_gpt4o_no_hp_without_answer_normalization.json",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "sealion_50_llm",
+      "name": "SEA-LION 8B Q4 CPU few-shot (LLM only)",
+      "path": "outputs/sealion_gguf_cpu/fifty/predictions_llm.jsonl",
+      "kind": "sandbox_sealion",
+      "table": "auto markdown / lexical_subtable",
+      "model": "Llama-SEA-LION-v3-8B-IT-Q4_K_M",
+      "full_test": {
+        "n_scored": 50,
+        "n_missing_from_split": 942,
+        "em": 0.62,
+        "f1": 0.7613977025153496,
+        "rouge1": 0.6881310401310401,
+        "meteor": 0.6822907509096546,
+        "em_hits": 31,
+        "source": "outputs/sealion_gguf_cpu/fifty/predictions_llm.jsonl",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.62,
+        "f1": 0.7613977025153496,
+        "rouge1": 0.6881310401310401,
+        "meteor": 0.6822907509096546,
+        "em_hits": 31,
+        "source": "outputs/sealion_gguf_cpu/fifty/predictions_llm.jsonl",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "sealion_50_ops",
+      "name": "SEA-LION 8B Q4 CPU few-shot + table_ops",
+      "path": "outputs/sealion_gguf_cpu/fifty/predictions.jsonl",
+      "kind": "sandbox_sealion",
+      "table": "auto markdown / lexical_subtable + table_ops",
+      "model": "Llama-SEA-LION-v3-8B-IT-Q4_K_M",
+      "full_test": {
+        "n_scored": 50,
+        "n_missing_from_split": 942,
+        "em": 0.8,
+        "f1": 0.8370370370370371,
+        "rouge1": 0.8,
+        "meteor": 0.8,
+        "em_hits": 40,
+        "source": "outputs/sealion_gguf_cpu/fifty/predictions.jsonl",
+        "candidate_policy": "all"
+      },
+      "first50": {
+        "n_scored": 50,
+        "n_missing_from_split": 0,
+        "em": 0.8,
+        "f1": 0.8370370370370371,
+        "rouge1": 0.8,
+        "meteor": 0.8,
+        "em_hits": 40,
+        "source": "outputs/sealion_gguf_cpu/fifty/predictions.jsonl",
+        "candidate_policy": "all"
+      }
+    }
+  ],
+  "sealion_pilots": [
+    {
+      "id": "sealion_10_zs_prune",
+      "name": "SEA-LION 10-sample zero-shot lexical_subtable",
+      "path": "outputs/sealion_gguf_cpu/ten/predictions.jsonl",
+      "own_split": {
+        "n_scored": 10,
+        "n_missing_from_split": 982,
+        "em": 0.4,
+        "f1": 0.4841269841269841,
+        "rouge1": 0.4,
+        "meteor": 0.4,
+        "em_hits": 4,
+        "source": "outputs/sealion_gguf_cpu/ten/predictions.jsonl",
+        "candidate_policy": "all"
+      }
+    },
+    {
+      "id": "sealion_10_fs_auto",
+      "name": "SEA-LION 10-sample few-shot auto markdown",
+      "path": "outputs/sealion_gguf_cpu/ten_v2/predictions.jsonl",
+      "own_split": {
+        "n_scored": 10,
+        "n_missing_from_split": 982,
+        "em": 0.5,
+        "f1": 0.6090909090909091,
+        "rouge1": 0.5,
+        "meteor": 0.5,
+        "em_hits": 5,
+        "source": "outputs/sealion_gguf_cpu/ten_v2/predictions.jsonl",
+        "candidate_policy": "all"
+      }
+    }
+  ]
+}

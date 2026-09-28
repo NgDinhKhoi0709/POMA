@@ -1,0 +1,7 @@
+TITLE: Các tác phẩm của San Holo_0
+\begin{tabular}{lllll}
+Tựa đề & Chi tiết & Vị trí trênbảng xếp hạng / US Dance[1] & Vị trí trênbảng xếp hạng / US Heat[2] & Vị trí trênbảng xếp hạng / NLD[3] \\
+\hline
+album1 & Phát hành: 21 tháng 9 năm 2018 Hãng phát hành: bitbird Định dạng: Digital download & 7 & 20 & 80 \\
+bb u ok? & Phát hành: 4 tháng 6 năm 2021 Hãng phát hành: bitbird, Counter Records, Liquid State Định dạng: Digital download & 3 & 5 & — \\
+\end{tabular}

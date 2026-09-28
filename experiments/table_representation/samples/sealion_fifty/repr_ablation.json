@@ -1,0 +1,151 @@
+[
+  {
+    "name": "flatten_v1",
+    "path": "outputs/sealion_gguf_cpu/repr_flatten_v1/predictions.jsonl",
+    "llm_only": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.64,
+      "f1": 0.7841464722641193,
+      "rouge1": 0.6790454545454545,
+      "meteor": 0.6778539197699212,
+      "hits": 32
+    },
+    "with_ops": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.76,
+      "f1": 0.833048433048433,
+      "rouge1": 0.764,
+      "meteor": 0.7647619047619049,
+      "hits": 38
+    },
+    "n_error": 0,
+    "mean_chars": 2042.98,
+    "n_ops_fired": 6
+  },
+  {
+    "name": "markdown",
+    "path": "outputs/sealion_gguf_cpu/repr_markdown/predictions.jsonl",
+    "llm_only": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.68,
+      "f1": 0.7915795206971677,
+      "rouge1": 0.7214643734643735,
+      "meteor": 0.7212381193307073,
+      "hits": 34
+    },
+    "with_ops": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.8,
+      "f1": 0.8370370370370371,
+      "rouge1": 0.8,
+      "meteor": 0.8,
+      "hits": 40
+    },
+    "n_error": 0,
+    "mean_chars": 2391.24,
+    "n_ops_fired": 6
+  },
+  {
+    "name": "html",
+    "path": "outputs/sealion_gguf_cpu/repr_html/predictions.jsonl",
+    "llm_only": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.68,
+      "f1": 0.7860666309958723,
+      "rouge1": 0.7198294051627385,
+      "meteor": 0.7208546897487237,
+      "hits": 34
+    },
+    "with_ops": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.8,
+      "f1": 0.8317587152369761,
+      "rouge1": 0.8,
+      "meteor": 0.8,
+      "hits": 40
+    },
+    "n_error": 2,
+    "mean_chars": 3656.18,
+    "n_ops_fired": 6
+  },
+  {
+    "name": "header_path",
+    "path": "outputs/sealion_gguf_cpu/repr_header_path/predictions.jsonl",
+    "llm_only": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.68,
+      "f1": 0.7661991341991342,
+      "rouge1": 0.6996670934699104,
+      "meteor": 0.6985057617893439,
+      "hits": 34
+    },
+    "with_ops": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.78,
+      "f1": 0.808961038961039,
+      "rouge1": 0.78,
+      "meteor": 0.78,
+      "hits": 39
+    },
+    "n_error": 3,
+    "mean_chars": 8325.8,
+    "n_ops_fired": 6
+  },
+  {
+    "name": "auto+prune (prior fifty LLM)",
+    "path": "outputs/sealion_gguf_cpu/fifty/predictions_llm.jsonl",
+    "llm_only": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.62,
+      "f1": 0.7613977025153496,
+      "rouge1": 0.6881310401310401,
+      "meteor": 0.6822907509096546,
+      "hits": 31
+    },
+    "with_ops": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.8,
+      "f1": 0.8370370370370371,
+      "rouge1": 0.8,
+      "meteor": 0.8,
+      "hits": 40
+    },
+    "n_error": 0,
+    "mean_chars": 1672.8,
+    "n_ops_fired": 6
+  },
+  {
+    "name": "auto+prune + table_ops (prior)",
+    "path": "outputs/sealion_gguf_cpu/fifty/predictions.jsonl",
+    "llm_only": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.8,
+      "f1": 0.8370370370370371,
+      "rouge1": 0.8,
+      "meteor": 0.8,
+      "hits": 40
+    },
+    "with_ops": {
+      "n": 50,
+      "missing": 0,
+      "em": 0.8,
+      "f1": 0.8370370370370371,
+      "rouge1": 0.8,
+      "meteor": 0.8,
+      "hits": 40
+    },
+    "n_error": 0,
+    "mean_chars": 1672.8
+  }
+]

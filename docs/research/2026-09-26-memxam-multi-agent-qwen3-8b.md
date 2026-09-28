@@ -525,3 +525,29 @@ nào tách được.
 **Kết luận.** Phần sửa được mà không cần huấn luyện là định dạng (+0,7 EM, +0,4 BIF, có ý nghĩa
 thống kê). Nhóm sai thật cần ứng viên đúng mới; mọi cách không huấn luyện đã thử (agent viết code,
 backbone khác, bộ chọn, B phủ quyết) đều dưới mức phân giải của một lần chạy.
+
+## 15. EM mở rộng: tính đúng các cách viết cùng nghĩa (2026-09-28)
+
+`evaluation/lenient.py`, `python scripts/score_lenient.py`. EM gốc giữ nguyên; báo cáo thêm hai mức:
+
+- **yn**: Có = Đúng = Phải; Không = Sai = Không phải (cùng cực tính).
+- **format**: thêm đồng nghĩa định dạng: tiền tố "Năm", đơn vị trùng đơn vị trong câu hỏi "bao nhiêu
+  <đơn vị>", dấu thập phân (34,4 = 34.4), dấu hàng nghìn (10.400.000 = 10400000), ký hiệu chú thích,
+  dấu nháy, tiền tố hành chính ("Thành phố New York" = "New York"), "và" = dấu phẩy, danh sách không
+  xét thứ tự trừ khi câu hỏi yêu cầu sắp xếp.
+
+Đã đọc từng cặp chỉ đúng ở mức mở rộng của MemXam (16 yn + 29 format) và FS: tất cả cùng nghĩa.
+
+| Test | n | EM gốc | EM + yn | EM + format | Δ so với FS: gốc / yn / format |
+|---|---:|---:|---:|---:|---|
+| FS | 992 | 73,59 | 75,00 | 78,73 | — |
+| kNN16-SC3 (v7) | 989 | 79,78 | 81,40 | 84,73 | +6,07 / +6,27 / +5,86 |
+| vote 4 (v6) | 992 | 80,14 | 81,75 | 84,98 | +6,55 / +6,75 / +6,25 |
+| MemXam-SC (v6) | 992 | 80,54 | 82,16 | 85,08 | +6,96 / +7,16 / +6,35 |
+| vote 4-KV (v7) | 989 | 80,28 | 81,90 | 85,14 | +6,57 / +6,77 / +6,27 |
+| **MemXam-SC-KV (v7)** | 989 | **81,19** | **82,81** | **85,74** | **+7,48 / +7,68 / +6,88** |
+
+Mọi khoảng tin cậy 95% ghép cặp so với FS đều nằm trên +3,3. Mức format thu hẹp khoảng cách
+một chút (+7,48 → +6,88) vì FS không có memory cùng bảng nên sai định dạng nhiều hơn; memory giúp
+MemXam viết đúng kiểu gold ngay từ đầu. Agent định dạng (§14) chỉ sửa một phần của nhóm này: ở mức
+format, có hay không có agent đều ra 85,74 (MemXam) và 78,73 (FS).

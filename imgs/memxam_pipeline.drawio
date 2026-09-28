@@ -27,7 +27,7 @@
         <mxCell id="h5" value="Đối chất &amp; bỏ phiếu" style="text;html=1;align=center;fontStyle=2;fontColor=#666666;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="1140" y="40" width="240" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="h6" value="Định dạng &amp; đầu ra" style="text;html=1;align=center;fontStyle=2;fontColor=#666666;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="h6" value="Đầu ra" style="text;html=1;align=center;fontStyle=2;fontColor=#666666;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="1420" y="40" width="180" height="30" as="geometry" />
         </mxCell>
 
@@ -83,18 +83,15 @@
         </mxCell>
 
         <!-- 6. định dạng + đầu ra -->
-        <mxCell id="fmt" value="&lt;b&gt;Agent định dạng&lt;/b&gt;&lt;br&gt;(tất định)&lt;br&gt;viết theo kiểu đáp án&lt;br&gt;train cùng bảng" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5eff0;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1430" y="220" width="160" height="100" as="geometry" />
-        </mxCell>
         <mxCell id="out" value="&lt;b&gt;Đáp án cuối&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1440" y="400" width="140" height="60" as="geometry" />
+          <mxGeometry x="1440" y="240" width="140" height="60" as="geometry" />
         </mxCell>
 
         <!-- ghi chú -->
-        <mxCell id="note" value="Test 992 câu: EM 81,2 (81,9 với định dạng) · BIF4 81,4 (81,8)&lt;br&gt;Few-shot: EM 73,6 · BIF4 76,4" style="text;html=1;align=left;fontSize=10;fontColor=#444444;" vertex="1" parent="1">
+        <mxCell id="note" value="Test 992 câu: EM 81,2 · BIF4 81,4&lt;br&gt;Few-shot: EM 73,6 · BIF4 76,4" style="text;html=1;align=left;fontSize=10;fontColor=#444444;" vertex="1" parent="1">
           <mxGeometry x="40" y="555" width="380" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="note2" value="Validator: loại đáp án rỗng / không parse được và đáp án không phải Có/Không cho câu Có/Không. Định dạng: tiền tố &quot;Năm&quot;, đơn vị, chú thích *, hàng nghìn, danh sách lặp." style="text;html=1;align=left;fontSize=10;fontColor=#444444;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="note2" value="Validator: loại đáp án rỗng / không parse được và đáp án không phải Có/Không cho câu Có/Không." style="text;html=1;align=left;fontSize=10;fontColor=#444444;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="460" y="555" width="660" height="40" as="geometry" />
         </mxCell>
 
@@ -129,7 +126,7 @@
         <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="val" target="cons">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e11" value="&lt;i&gt;có (đồng thuận)&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="cons" target="fmt">
+        <mxCell id="e11" value="&lt;i&gt;có (đồng thuận)&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="cons" target="out">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e12" value="&lt;i&gt;không (tranh chấp)&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontSize=10;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="cons" target="xe">
@@ -138,13 +135,10 @@
         <mxCell id="e13" value="&lt;i&gt;A2, B2&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontSize=10;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="xe" target="vote">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.85;" edge="1" parent="1" source="vote" target="fmt">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.8;" edge="1" parent="1" source="vote" target="out">
           <mxGeometry relative="1" as="geometry">
             <Array as="points"><mxPoint x="1400" y="500" /><mxPoint x="1400" y="305" /></Array>
           </mxGeometry>
-        </mxCell>
-        <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="fmt" target="out">
-          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

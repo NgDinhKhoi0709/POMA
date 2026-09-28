@@ -480,3 +480,48 @@ cậy chạm 0. Không đạt tiêu chí nên **không chạy test**, đã huỷ
 **Ghi nhận thêm:** trên dev đầy đủ, MemXam-SC-KV chỉ hơn kNN16-SC3 +0,61 EM (CI chạm 0), còn
 vote 4 không đối chất đã ngang MemXam. Kết quả này củng cố kết luận §5: phần lợi chính đến từ memory
 cùng bảng và self-consistency; đóng góp riêng của đối chất nhỏ, dưới mức phân giải của một lần chạy.
+
+## 14. Sửa từng nhóm câu sai (2026-09-28)
+
+Mọi luật được chọn trên dev (trace v8 dev, 983 câu), rồi áp đúng một lần lên test. Không gọi LLM,
+không thuê GPU.
+
+**Định dạng: agent định dạng tất định (`mas_tqa/style.py`).** Đo leave-one-out trên train: người
+gán nhãn nhất quán theo bảng ở tiền tố "Năm" cho đáp án năm (đa số toàn cục 85,6% → đa số cùng
+bảng 93,0%) và việc kèm đơn vị khi hỏi "bao nhiêu <đơn vị>" (94,0% → 97,0%); gold không bao giờ
+giữ ký hiệu chú thích (0 gold, trong khi 90 ô bảng train kết thúc bằng `*`); số ≥1.000 chủ yếu viết
+kiểu 1.234.567. Agent sửa theo 5 luật: năm, đơn vị (chỉ khi có câu train cùng bảng hỏi đúng đơn vị
+đó), chú thích, hàng nghìn (khi bảng viết kiểu 1.234.567), gộp danh sách lặp. Hai luật bị loại trên
+dev: tiền tố hành chính theo ô bảng (sửa 0 / hỏng 2) và dấu thập phân (không đổi câu nào).
+
+| Test (luật chốt trên dev) | EM gốc | + định dạng | Δ [95% CI] | sửa / hỏng | BIF (4 nhãn) gốc → mới |
+|---|---:|---:|---:|---:|---:|
+| MemXam-SC-KV | 81,19 | **81,90** | +0,71 [+0,10; +1,42] | 10 / 3 | 81,38 → **81,78** |
+| vote 4-KV | 80,28 | 81,19 | +0,91 [+0,20; +1,72] | 12 / 3 | |
+| kNN16-SC3 | 79,78 | 80,69 | +0,91 [+0,20; +1,72] | 12 / 3 | |
+| FS | 73,59 | 74,70 | +1,11 [+0,40; +1,92] | 13 / 2 | 76,36 → 76,89 |
+
+Agent có ích cho mọi phương pháp, kể cả FS, nên khoảng cách MemXam–FS gần như giữ nguyên
+(+7,60 → +7,20 EM). Câu bị hỏng là do người gán nhãn không nhất quán ngay trong một bảng.
+
+**Có/Không khác từ (16 câu):** luật Verbalize hiện tại đã tốt nhất trên train (90,1%); là nhiễu nhãn.
+
+**Trả Null / gold Null (17 + 6 câu):** luật "đáp án cuối Null mà có ứng viên khác Null thì lấy
+ứng viên đó" trên dev sửa 1, hỏng 3 (−0,20 EM): hai nhóm kéo ngược nhau, không có luật tất định
+nào tách được.
+
+**Vì sao / Như thế nào (12 câu):** đáp án diễn đạt tự do; EM không phù hợp, dùng BIF.
+
+**Sai thật (~112 câu):**
+- Lỗi tính nhẩm thật chỉ 7 câu trên dev (còn lại: tra sai ô 17, đếm sai 11, xếp hạng 2 trong 37
+  câu số–số); agent máy tính có trần khoảng +0,7 EM, chưa đáng làm.
+- 65 câu dev sai dù đáp án đúng đã có trong tập ứng viên. Bộ chọn học được (logistic regression,
+  đặc trưng: phiếu A, phiếu B, đối chất, trùng ô bảng, độ dài; `scripts/selector_mas_tqa.py`):
+  CV 5-fold theo bảng trên dev +0,31 [−0,41; +1,02], không áp lên test. Hệ số cho thấy một phiếu B
+  nặng gấp khoảng 2,5 lần một mẫu A, cùng hướng với luật B phủ quyết (§13).
+- Thêm backbone < 10B khác làm phiếu phụ: mỗi model chỉ bù 3–7/33 lỗi MemXam trên dev-200; tổ hợp
+  tốt nhất +1,0 đến +1,5 EM nhưng được chọn trong hơn 50 tổ hợp trên chính 200 câu đó, nằm trong nhiễu.
+
+**Kết luận.** Phần sửa được mà không cần huấn luyện là định dạng (+0,7 EM, +0,4 BIF, có ý nghĩa
+thống kê). Nhóm sai thật cần ứng viên đúng mới; mọi cách không huấn luyện đã thử (agent viết code,
+backbone khác, bộ chọn, B phủ quyết) đều dưới mức phân giải của một lần chạy.

@@ -551,3 +551,29 @@ Mọi khoảng tin cậy 95% ghép cặp so với FS đều nằm trên +3,3. M�
 một chút (+7,48 → +6,88) vì FS không có memory cùng bảng nên sai định dạng nhiều hơn; memory giúp
 MemXam viết đúng kiểu gold ngay từ đầu. Agent định dạng (§14) chỉ sửa một phần của nhóm này: ở mức
 format, có hay không có agent đều ra 85,74 (MemXam) và 78,73 (FS).
+
+## 16. BIF gốc và BIF mở rộng cho mọi phương pháp (test, 988 câu chung)
+
+`python scripts/bif_all.py`. Tập câu chung của mọi file: bỏ 3 câu v7 thiếu và `62_3_178` (PhoBERTScore
+crash). BIF mở rộng: câu nào EM mở rộng (§15) tính đúng thì dùng chính gold làm dự đoán, nên điểm câu đó
+bằng trần gold-làm-dự-đoán. Mỗi cặp (gold, dự đoán) duy nhất chấm một lần (1.057 cặp), cache ở
+`outputs/mas_tqa/eval/bif_pairs_cache.json`. ViNLI 4 nhãn = checkpoint cũ; 3 nhãn = checkpoint huấn luyện
+thật (§10.1). Δ là chênh lệch ghép cặp của BIF gốc so với FS.
+
+| Test (988 câu) | PhoBERT | BIF4 gốc | BIF4 + yn | BIF4 + format | BIF3 gốc | BIF3 + yn | BIF3 + format | Δ BIF4 / BIF3 so với FS [95% CI] |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| FS | 89,37 | 76,44 | 76,99 | 78,20 | 66,90 | 67,09 | 67,72 | — |
+| FS + định dạng | 89,65 | 76,98 | 77,53 | 78,23 | 67,32 | 67,51 | 67,76 | +0,54 [+0,26; +0,86] / +0,42 [+0,21; +0,67] |
+| kNN16-SC3 (v6) | 92,69 | 80,34 | 80,92 | 81,98 | 69,95 | 70,08 | 70,67 | +3,90 [+2,71; +5,17] / +3,05 [+2,06; +4,13] |
+| kNN16-SC3 (v7) | 92,87 | 80,68 | 81,25 | 82,31 | 70,23 | 70,36 | 70,95 | +4,23 [+3,03; +5,50] / +3,32 [+2,33; +4,40] |
+| vote 4 (v6) | 93,11 | 80,82 | 81,40 | 82,44 | 70,31 | 70,45 | 71,02 | +4,37 [+3,19; +5,66] / +3,40 [+2,39; +4,47] |
+| MemXam-SC (v6) | 93,18 | 80,91 | 81,49 | 82,47 | 70,48 | 70,62 | 71,16 | +4,47 [+3,22; +5,76] / +3,57 [+2,54; +4,67] |
+| vote 4-KV (v7) | 93,17 | 81,06 | 81,64 | 82,68 | 70,55 | 70,69 | 71,25 | +4,62 [+3,38; +5,90] / +3,65 [+2,60; +4,73] |
+| **MemXam-SC-KV (v7)** | 93,44 | **81,38** | **81,96** | **82,92** | **70,76** | **70,90** | **71,40** | **+4,93 [+3,65; +6,23] / +3,85 [+2,77; +4,96]** |
+| MemXam-SC-KV + định dạng | 93,64 | 81,78 | 82,36 | 82,94 | 71,14 | 71,28 | 71,42 | +5,33 [+4,02; +6,64] / +4,24 [+3,15; +5,37] |
+| Trần (gold làm dự đoán) | 100 | 88,98 | — | — | 76,45 | — | — | |
+
+- Thứ tự các phương pháp giữ nguyên ở mọi cột; MemXam-SC-KV đứng đầu ở cả 6 biến thể BIF.
+- BIF mở rộng chỉ tăng 0,5–1,8 điểm (EM mở rộng tăng 4,5 điểm) vì BIF vốn đã cho điểm một phần các
+  cách viết cùng nghĩa, và trần của chính BIF thấp (88,98 / 76,45): đổi dự đoán thành gold vẫn không
+  đạt 100. MemXam-SC-KV đạt 91,5% trần BIF4 và 92,6% trần BIF3 (gốc); 93,2% / 93,4% (mở rộng).

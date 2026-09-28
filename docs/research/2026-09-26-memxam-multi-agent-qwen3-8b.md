@@ -577,3 +577,44 @@ thật (§10.1). Δ là chênh lệch ghép cặp của BIF gốc so với FS.
 - BIF mở rộng chỉ tăng 0,5–1,8 điểm (EM mở rộng tăng 4,5 điểm) vì BIF vốn đã cho điểm một phần các
   cách viết cùng nghĩa, và trần của chính BIF thấp (88,98 / 76,45): đổi dự đoán thành gold vẫn không
   đạt 100. MemXam-SC-KV đạt 91,5% trần BIF4 và 92,6% trần BIF3 (gốc); 93,2% / 93,4% (mở rộng).
+
+## 17. Agent M (sinh biểu thức) + agent V (kiểm tra) cho câu tính toán (2026-09-28)
+
+`mas_tqa/math_agent.py`, method `math_mv`, `scripts/analyze_math.py`. Chạy qua OpenRouter (Qwen3-8B,
+provider Alibaba, thinking) trên 296 câu dev mà router gán "compute" (không dùng hint; bắt 214/234 câu có
+hint tính toán), chi phí khoảng $0,50.
+
+- **M:** đọc bảng Markdown-KV + 8 câu mẫu cùng bảng, chọn loại phép (`tính` / `đếm` / `chọn` /
+  `xếp_hạng` / `lookup`), trích ô và viết biểu thức cùng lời giải thích; Python tính tất định (bộ tính
+  biểu thức an toàn qua `ast`, chỉ số và phép toán). Câu chỉ cần tra ô thì M bỏ qua.
+- **V:** kiểm tra tất định (ô trích phải có trong bảng) và LLM (đúng ô, đủ ô, đúng phép); được sửa lời giải.
+
+**Độ chính xác có điều kiện (dev, 174 câu M trả lời):** M đúng 43,7% (MemXam đúng 80,5% trên cùng câu).
+Khi MemXam sai (34 câu) M đúng 6; khi MemXam đúng (140 câu) M sai 70. V xác nhận 107 câu, trong đó M
+đúng 67 (MemXam 91); V bác 63 câu, đưa bản sửa 57 câu nhưng chỉ 12 bản sửa đúng.
+
+| Loại M chọn | n | M đúng | MemXam đúng | M đúng mà MemXam sai |
+|---|---:|---:|---:|---:|
+| đếm | 87 | 52 | 74 | 1 |
+| tính | 43 | 24 | 26 | 5 |
+| chọn | 41 | 0 | 38 | 0 |
+| xếp_hạng | 3 | 0 | 2 | 0 |
+
+`chọn` = 0 do lỗi prompt: M lấy tiêu đề khối "Hàng i" làm nhãn thay vì tên đối tượng. `đếm` sai chủ yếu
+vì liệt kê cả hàng không thỏa điều kiện. `tính`, nhóm mà ý tưởng nhắm tới, sửa được 5 lỗi tính nhẩm thật
+nhưng làm hỏng 7 câu (phần lớn lệch đơn vị, vd "3" so với gold "3 tháng").
+
+| Luật ghép (dev 983 câu, sau agent định dạng) | EM | Δ [95% CI] | sửa / hỏng |
+|---|---:|---:|---:|
+| MemXam-SC-KV | 81,99 | — | — |
+| thay bằng M khi V xác nhận | 79,55 | −2,44 [−3,56; −1,32] | 5 / 29 |
+| thay bằng M+V (kể cả bản sửa của V) | 76,30 | −5,70 [−7,32; −4,17] | 6 / 62 |
+| M+V làm 2 phiếu thêm | 82,20 | +0,20 [+0,00; +0,51] | 2 / 0 |
+| M+V làm trọng tài khi tranh chấp | 81,28 | −0,71 [−1,63; +0,10] | 6 / 13 |
+| chỉ thay khi đáp án M+V trùng một ứng viên sẵn có | 82,40 | +0,41 [−0,10; +1,02] | 6 / 2 |
+| chỉ loại `tính`, V xác nhận, giữ đơn vị MemXam | 82,10 | +0,10 [−0,41; +0,61] | 4 / 3 |
+
+**Kết luận.** Không luật nào đạt tiêu chí nên không chạy test. Lỗi của nhóm tính toán nằm ở khâu chọn và
+lọc hàng, không ở khâu tính: trên dev chỉ 7 câu là lỗi tính nhẩm thật, và M đọc/lọc hàng kém hơn MemXam
+đọc trực tiếp. Bản sửa lỗi nhãn `chọn` chưa chạy lại (credit OpenRouter còn khoảng $0,40); trần của nó
+nhỏ vì MemXam đã đúng 38/41 câu loại này.

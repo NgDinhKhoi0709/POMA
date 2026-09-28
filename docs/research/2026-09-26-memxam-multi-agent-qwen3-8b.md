@@ -618,3 +618,8 @@ nhưng làm hỏng 7 câu (phần lớn lệch đơn vị, vd "3" so với gold 
 lọc hàng, không ở khâu tính: trên dev chỉ 7 câu là lỗi tính nhẩm thật, và M đọc/lọc hàng kém hơn MemXam
 đọc trực tiếp. Bản sửa lỗi nhãn `chọn` chưa chạy lại (credit OpenRouter còn khoảng $0,40); trần của nó
 nhỏ vì MemXam đã đúng 38/41 câu loại này.
+
+**PhoBERT-F1 riêng** (cùng 988 câu, lấy từ cache chấm BIF; gốc / + yn / + format; Δ ghép cặp so với FS):
+FS 89,37 / 90,17 / 90,95; FS + định dạng 89,65; kNN16-SC3 v7 92,87 (+3,50 [+2,50; +4,53]); vote 4 v6 93,11;
+MemXam-SC v6 93,18; vote 4-KV v7 93,17; **MemXam-SC-KV 93,44 / 94,31 / 94,97 (+4,07 [+2,99; +5,17])**;
+MemXam-SC-KV + định dạng 93,64.

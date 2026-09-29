@@ -65,9 +65,10 @@ class VLLMClient:
                 u = data.get("usage") or {}
                 usage = Usage(1, int(u.get("prompt_tokens") or 0), int(u.get("completion_tokens") or 0))
                 return [c["message"].get("content") or "" for c in data["choices"]], usage
-            except Exception:
-                if attempt == retries - 1:
-                    raise
+            except Exception as e:
+                resp = getattr(e, "response", None)
+                if attempt == retries - 1 or (resp is not None and 400 <= resp.status_code < 500 and resp.status_code != 429):
+                    raise  # lỗi 4xx (vd. vượt ngữ cảnh) không tự hết khi thử lại
                 time.sleep(5 * (attempt + 1))
         raise AssertionError("unreachable")
 

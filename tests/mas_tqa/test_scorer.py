@@ -61,3 +61,22 @@ def test_suite_v9_scores_with_and_without_reasons(monkeypatch):
     assert c.calls.count("score") == 2 and c.calls.count("score_reason") == 2
     assert out["score_r"]["prediction"] == ["Y"]
     assert "ô Y" in out["score_r"]["trace"]["notes"][out["score_r"]["trace"]["cands"].index("Y")]
+
+
+def test_suite_v9_falls_back_to_agent_a_when_b_overflows(monkeypatch):
+    import requests
+
+    from mas_tqa import methods
+
+    monkeypatch.setattr(methods, "flat_prefix", lambda qa, k=8: "FLAT\n")
+    monkeypatch.setattr(methods, "kv_prefix", lambda qa, k=8: methods._KV_HEADER + "KV\n")
+
+    class C:
+        def chat(self, prompt, **kw):
+            if prompt.startswith(methods._KV_HEADER):
+                raise requests.HTTPError("400 context length")
+            return ['{"final_answer": "X"}', '{"final_answer": "X"}', '{"final_answer": "Y"}'], Usage(1, 1, 1)
+
+    out = methods.suite_v9(C(), {"qa_id": "q", "table_id": "t", "question": "Ai?"})
+    assert {k: v["prediction"] for k, v in out.items()} == {k: ["X"] for k in ("knn16_sc3r", "vote4r", "memview_r", "score_r")}
+    assert out["memview_r"]["trace"]["route"] == "a_only"

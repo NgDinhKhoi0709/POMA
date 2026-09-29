@@ -647,3 +647,26 @@ Chấm điểm không lý do trên trace v8 dev (không đổi tầng đầu): t
 phiếu" trùng hệt luật để validator chọn ở mọi câu tranh chấp. Nhưng không luật nào có khoảng tin cậy nằm trên 0
 nên không chạy test (test v9 dừng ở 84/992 câu), đã huỷ GPU. Prompt có trường `reason` làm tầng đầu hơi giảm so
 với v8 (chỉ agent A 79,35 so với 80,47; MemView 80,16 so với 81,08, khác lần chạy).
+
+## 19. MemView v10/v11: prompt theo Qwen3, A 3/3 = 1 phiếu, agent V có lý do (test đầy đủ, 2026-09-29)
+
+`mas_tqa/prompts_qwen.py`, `suite_v10`, `fs_qwen`. Prompt theo Best Practices của Qwen3-8B (quy tắc ở system,
+bảng và câu mẫu trước, câu hỏi cuối, trường JSON cố định; T = 0,6, top_p = 0,95, top_k = 20, không giới hạn
+max_tokens). Dừng khi 3 mẫu A trùng nhau và B đồng ý; còn lại agent V (hai view, thấy lý do + bằng chứng) chấm
+xác suất cho ứng viên, hoà theo số phiếu; bảng vượt ngữ cảnh ở B → chỉ dùng A. v10 có gợi ý Null riêng cho câu lý
+do; v11 bỏ các điểm riêng benchmark, thêm `<tên_bảng>` (tên trang Wikipedia) và quy tắc chung "được suy luận từ
+bảng và tên bảng; chỉ kết luận khi đủ thông tin, không đủ thì Null". v11 mất kết nối giữa chừng, 145 câu chạy bù
+trên máy mới cùng cấu hình. FS cùng khung prompt (chỉ thay câu mẫu cùng bảng bằng ví dụ chung) chạy cùng phiên.
+
+| Test (992 câu, một lần chạy) | EM | EM chuẩn hoá định dạng | EM mọi cách viết cùng nghĩa | PhoBERT | BIF4 |
+|---|---:|---:|---:|---:|---:|
+| FS cùng khung prompt (v11) | 73,29 | 74,42 | 77,92 | 89,72 | 77,10 |
+| Chỉ agent A (v11) | 80,85 | 81,29 | 84,68 | 93,20 | 81,08 |
+| A + B bỏ phiếu (v11) | 80,75 | 81,19 | 84,78 | 93,15 | 81,17 |
+| **MemView v11** | **81,85** | **82,10** | **85,69** | **93,55** | **81,65** |
+| MemView v10 | 80,65 | 80,99 | 84,58 | 93,06 | 81,14 |
+| MemXam v7 (prompt cũ, đối chất) | 81,19 | 81,90 | 85,74 | 93,44 | 81,38 |
+
+Ghép cặp (989 câu): MemView v11 − FS cùng khung +8,49 [+6,37; +10,62]; − A+B bỏ phiếu +1,11 [−0,10; +2,33];
+− chỉ A +1,01 [−0,20; +2,22]; − v10 +1,21 [−0,20; +2,73]; − MemXam v7 +0,71 [−0,91; +2,33]. v11 trả Null 54 lần
+(sai 14; v10: 67/24; v7: 56/17). 2,39 lần gọi mỗi câu; agent V chạy ở 195 câu (20%).

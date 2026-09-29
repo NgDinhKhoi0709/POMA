@@ -11,6 +11,8 @@ import os
 from collections import Counter
 from functools import lru_cache
 
+import requests
+
 from evaluation.normalization import normalize_text
 from gap_tqa.nodes import YN_NEG, YN_POS, verbalize
 from gap_tqa.router import route
@@ -702,7 +704,13 @@ def suite_v9(client: VLLMClient, qa: dict) -> dict[str, dict]:
     tail = _REASON_TAIL.format(q=q)
     ta, ua = client.chat(fa + tail, n=3, temperature=0.7, top_p=0.95)
     samples, a_reasons = [final_answer(t) for t in ta], [_reason(t) for t in ta]
-    tb, ub = client.chat(fb + tail)
+    try:
+        tb, ub = client.chat(fb + tail)
+    except requests.HTTPError:  # bảng Markdown-KV vượt ngữ cảnh: chỉ dùng kết quả của agent A
+        a_only = _majority(_pick_valid(samples, q), q)
+        tr = {"samples": samples, "A_reasons": a_reasons, "route": "a_only", "scored": False}
+        return {name: {"prediction": [a_only], "trace": tr, "usage": ua}
+                for name in ("knn16_sc3r", "vote4r", "memview_r", "score_r")}
     b, b_ev = _parse_evid(tb[0])
     b_reason = _reason(tb[0])
     base = Usage(); base.add(ua); base.add(ub)

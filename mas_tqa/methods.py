@@ -814,18 +814,19 @@ METHODS["b_qwen"] = _qwen_agent("B", 1)
 
 # ---------- v10 (MemView cho test): prompt Qwen cho A/B, A 3/3 = 1 phiếu, bất đồng → agent V có lý do ----------
 
-def suite_v10(client: VLLMClient, qa: dict) -> dict[str, dict]:
+def suite_v10(client: VLLMClient, qa: dict, memory: bool = True) -> dict[str, dict]:
     """A (3 mẫu) và B trả lời với prompt/tham số Qwen3. Dừng khi 3 mẫu A trùng nhau và B đồng ý; còn lại agent V
-    (hai view, thấy lý do và bằng chứng) chấm xác suất cho các ứng viên, hoà thì theo số phiếu. Không đối chất."""
+    (hai view, thấy lý do và bằng chứng) chấm xác suất cho các ứng viên, hoà thì theo số phiếu. Không đối chất.
+    memory=False: ablation, mọi agent (A, B, V) chỉ thấy ví dụ chung thay cho câu mẫu cùng bảng."""
     from .prompts_qwen import QWEN_THINKING, messages_a, messages_b
     from .scorer import candidates, prefix_flat, prefix_kv, score
 
     q = qa["question"]
-    ta, ua = client.chat(messages_a(qa), n=3, **QWEN_THINKING)
+    ta, ua = client.chat(messages_a(qa, memory=memory), n=3, **QWEN_THINKING)
     samples, a_reasons = [final_answer(t) for t in ta], [_reason(t) for t in ta]
     a_major = _majority(_pick_valid(samples, q), q)
     try:
-        tb, ub = client.chat(messages_b(qa), **QWEN_THINKING)
+        tb, ub = client.chat(messages_b(qa, memory=memory), **QWEN_THINKING)
     except requests.HTTPError:  # bảng Markdown-KV vượt ngữ cảnh: chỉ dùng agent A
         tr = {"samples": samples, "A_reasons": a_reasons, "route": "a_only"}
         return {n: {"prediction": [a_major], "trace": tr, "usage": ua} for n in ("a_only_q", "vote4_q", "memview_q")}
@@ -853,9 +854,9 @@ def suite_v10(client: VLLMClient, qa: dict) -> dict[str, dict]:
         notes.append(" | ".join(why)[:600])
     us = Usage(); us.add(base)
     sampling = {k: v for k, v in QWEN_THINKING.items()}
-    p_flat, u = score(client, qa, prefix_flat(qa), cands, notes, **sampling); us.add(u)
+    p_flat, u = score(client, qa, prefix_flat(qa, memory), cands, notes, **sampling); us.add(u)
     try:
-        p_kv, u = score(client, qa, prefix_kv(qa), cands, notes, **sampling); us.add(u)
+        p_kv, u = score(client, qa, prefix_kv(qa, memory), cands, notes, **sampling); us.add(u)
     except requests.HTTPError:
         p_kv = p_flat
     mean = [(x + y) / 2 for x, y in zip(p_flat, p_kv)]
@@ -874,3 +875,57 @@ def _fs_qwen(client: VLLMClient, qa: dict) -> dict:
 
 SUITES["suite_v10"] = suite_v10
 METHODS["fs_qwen"] = _fs_qwen
+
+
+# ---------- Baseline cho paper: cùng khung prompt và tham số Qwen3 với MemView ----------
+
+def _qwen_single(build, n: int):
+    """Một agent, n mẫu trong một request; n > 1 thì bỏ phiếu đa số (self-consistency)."""
+    from .prompts_qwen import QWEN_THINKING
+
+    def run(client: VLLMClient, qa: dict) -> dict:
+        t, u = client.chat(build(qa), n=n, **QWEN_THINKING)
+        answers = [final_answer(x) for x in t]
+        pred = _majority(_pick_valid(answers, qa["question"]), qa["question"]) if n > 1 else answers[0]
+        return {"prediction": [pred], "trace": {"samples": answers, "reasons": [_reason(x) for x in t]}, "usage": u}
+
+    return run
+
+
+def _debate_turn(others: list[str], question: str) -> str:
+    # Lượt user vòng 2, dịch sát prompt của Du et al. (2023), repo composable-models/llm_multiagent_debate.
+    from .prompts_qwen import _OUT_A
+
+    sols = "".join(f"\n\nLời giải của một agent: ```{o}```" for o in others)
+    return (f"Đây là lời giải của các agent khác cho câu hỏi: {sols}\n\nDùng lời giải của các agent khác làm thông "
+            f"tin tham khảo, bạn hãy đưa ra câu trả lời cho câu hỏi. Câu hỏi gốc là: {question}\n\n{_OUT_A}")
+
+
+def mad_debate(client: VLLMClient, qa: dict, agents: int = 3) -> dict:
+    """Multi-agent debate (Du et al., 2023), zero-shot, không memory: vòng 1 mỗi agent trả lời độc lập; vòng 2 mỗi
+    agent giữ hội thoại của mình, đọc nguyên câu trả lời của các agent kia rồi trả lời lại; đa số vòng 2."""
+    from .prompts_qwen import QWEN_THINKING, messages_zs
+
+    q, msgs = qa["question"], messages_zs(qa)
+    first, usage = client.chat(msgs, n=agents, **QWEN_THINKING)
+    second = []
+    for i in range(agents):
+        ctx = msgs + [{"role": "assistant", "content": first[i]},
+                      {"role": "user", "content": _debate_turn([first[j] for j in range(agents) if j != i], q)}]
+        t, u = client.chat(ctx, **QWEN_THINKING); usage.add(u)
+        second.append(final_answer(t[0]))
+    r1 = [final_answer(x) for x in first]
+    return {"prediction": [_majority(_pick_valid(second, q), q)], "trace": {"round1": r1, "round2": second},
+            "usage": usage}
+
+
+def _prompts(name: str):
+    from . import prompts_qwen
+
+    return lambda qa: getattr(prompts_qwen, name)(qa)
+
+
+METHODS["zs_qwen"] = _qwen_single(_prompts("messages_zs"), 1)
+METHODS["fs_qwen_sc3"] = _qwen_single(_prompts("messages_fs"), 3)
+METHODS["mad_debate"] = mad_debate
+SUITES["suite_v10_nomem"] = lambda c, qa: {k.replace("_q", "_nm"): v for k, v in suite_v10(c, qa, memory=False).items()}

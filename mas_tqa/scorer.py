@@ -13,7 +13,7 @@ import random
 from collections import Counter
 
 from .client import Usage, VLLMClient, parse_json
-from .data import retrieve_same_table, table_str
+from .data import table_str
 from .methods import key, valid
 
 _TASK = (
@@ -25,21 +25,19 @@ _TASK = (
 )
 
 
-def _demos(qa: dict) -> str:
-    return "\n".join(f"CÂU HỎI: {d['question']}\nĐÁP ÁN: {d['answer']}" for d in retrieve_same_table(qa, 8))
+def prefix_flat(qa: dict, memory: bool = True) -> str:
+    from .math_agent import demo_block
 
-
-def prefix_flat(qa: dict) -> str:
     return (
         "Bạn là chuyên gia đọc bảng. Bảng dưới đây ở dạng chuỗi Flatten V1. CHỈ được dùng thông tin trong bảng.\n\n"
-        f"BẢNG:\n{table_str(qa['table_id'])}\n\nCÁC CÂU HỎI KHÁC ĐÃ ĐƯỢC TRẢ LỜI ĐÚNG TRÊN CHÍNH BẢNG NÀY:\n{_demos(qa)}\n\n"
+        f"BẢNG:\n{table_str(qa['table_id'])}\n\n{demo_block(qa, memory)}\n\n"
     )
 
 
-def prefix_kv(qa: dict) -> str:
+def prefix_kv(qa: dict, memory: bool = True) -> str:
     from .math_agent import prefix
 
-    return prefix(qa)
+    return prefix(qa, memory)
 
 
 def candidates(trace: dict, question: str) -> tuple[list[str], list[int]]:

@@ -41,8 +41,8 @@ def test_suite_v10_routes_consensus_and_agent_v(monkeypatch):
     from mas_tqa import scorer
 
     _patch(monkeypatch)
-    monkeypatch.setattr(scorer, "prefix_flat", lambda qa: "SF\n")
-    monkeypatch.setattr(scorer, "prefix_kv", lambda qa: "SK\n")
+    monkeypatch.setattr(scorer, "prefix_flat", lambda qa, memory=True: "SF\n")
+    monkeypatch.setattr(scorer, "prefix_kv", lambda qa, memory=True: "SK\n")
 
     def make(a, b):
         class C:

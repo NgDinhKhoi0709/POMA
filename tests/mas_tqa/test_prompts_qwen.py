@@ -40,3 +40,47 @@ def test_agent_uses_qwen_sampling(monkeypatch):
     assert out["prediction"] == ["X"]
     assert (seen["temperature"], seen["top_p"], seen["top_k"], seen["min_p"], seen["max_tokens"]) == (0.6, 0.95, 20, 0.0, None)
     assert isinstance(seen["messages"], list)
+
+
+def test_comparison_how_question_is_not_treated_as_reason():
+    assert prompts_qwen.asks_reason("Vì sao X bị huỷ?")
+    assert prompts_qwen.asks_reason("Làm thế nào mà đội A thắng?")
+    assert not prompts_qwen.asks_reason("Chiều cao của A như thế nào so với các thành viên khác?")
+    assert not prompts_qwen.asks_reason("So với B thì chiều cao của A như thế nào?")
+
+
+def test_suite_v10_routes_consensus_and_agent_v(monkeypatch):
+    import json
+
+    from mas_tqa import scorer
+
+    _patch(monkeypatch)
+    monkeypatch.setattr(scorer, "prefix_flat", lambda qa: "SF\n")
+    monkeypatch.setattr(scorer, "prefix_kv", lambda qa: "SK\n")
+
+    def make(a, b):
+        class C:
+            calls = []
+
+            def chat(self, prompt, **kw):
+                assert kw.get("temperature") == 0.6
+                if isinstance(prompt, str):
+                    self.calls.append("V")
+                    lines = prompt.split("CÁC ỨNG VIÊN:\n")[1].split("\nĐẦU RA")[0].splitlines()
+                    idx = [ln for ln in lines if ln.startswith("[")]
+                    best = next(k for k, ln in enumerate(idx) if ln.endswith("] Y"))
+                    return [json.dumps({"scores": [{"id": best, "p": 1}]})], Usage(1, 1, 1)
+                if "agent B" in prompt[0]["content"]:
+                    self.calls.append("B")
+                    return [json.dumps({"evidence": ["Y"], "reason": "r", "final_answer": b})], Usage(1, 1, 1)
+                self.calls.append("A")
+                return [json.dumps({"reason": "r", "final_answer": x}) for x in a], Usage(1, 1, 1)
+        return C()
+
+    qa = {"qa_id": "q", "table_id": "t", "question": "Ai?"}
+    c = make(["X", "X", "X"], "X")
+    assert methods.suite_v10(c, qa)["memview_q"]["prediction"] == ["X"] and c.calls == ["A", "B"]
+    c = make(["X", "X", "X"], "Y")
+    out = methods.suite_v10(c, qa)
+    assert out["memview_q"]["trace"]["route"] == "agent_v" and out["memview_q"]["prediction"] == ["Y"]
+    assert c.calls.count("V") == 2

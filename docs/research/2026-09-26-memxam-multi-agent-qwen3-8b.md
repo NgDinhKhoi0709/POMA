@@ -670,3 +670,33 @@ trên máy mới cùng cấu hình. FS cùng khung prompt (chỉ thay câu mẫu
 Ghép cặp (989 câu): MemView v11 − FS cùng khung +8,49 [+6,37; +10,62]; − A+B bỏ phiếu +1,11 [−0,10; +2,33];
 − chỉ A +1,01 [−0,20; +2,22]; − v10 +1,21 [−0,20; +2,73]; − MemXam v7 +0,71 [−0,91; +2,33]. v11 trả Null 54 lần
 (sai 14; v10: 67/24; v7: 56/17). 2,39 lần gọi mỗi câu; agent V chạy ở 195 câu (20%).
+
+## 20. Baseline zero-shot và các hệ multi-agent khác (test đầy đủ 992 câu, 2026-09-30)
+
+Cùng backbone Qwen3-8B (vLLM, A100, `--reasoning-parser qwen3`). Mục 1–4 dùng đúng khung prompt Qwen và tham số
+thinking của MemView (T = 0,6, top_p = 0,95, top_k = 20). MAD theo code gốc Du et al. (2023): zero-shot, 3 agent ×
+2 vòng, vòng 2 đọc nguyên câu trả lời của hai agent kia, đa số vòng 2. CoAgt: prompt WTQ gốc, chunk 2000 token,
+T = 0,2 / 0,5 / 0,5 như `agent_approach_wtq.py`, chế độ thinking. Chain-of-Table: code Google + prompt WikiTQ do
+repo Chain-of-Query thêm, tham số thao tác gốc, tắt thinking (mỗi bước chỉ 150–300 token); 1 câu (17_4_238) vượt
+ngữ cảnh 32K nên tính là sai. BIF4 trên 991 câu (bỏ 62_3_178 như §16).
+
+| Hệ | EM | EM sau định dạng | EM mọi cách viết | PhoBERT | BIF4 | Lệnh gọi/câu | Token/câu |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Zero-shot | 71,77 | 72,78 | 76,51 | 89,01 | 76,12 | 1 | 2.589 |
+| Few-shot (cùng khung) | 73,29 | 74,29 | 77,92 | 89,68 | 77,05 | 1 | 3.137 |
+| Few-shot SC 3 mẫu | 73,89 | 75,10 | 78,93 | 89,75 | 77,03 | 1 (n = 3) | 4.265 |
+| Multi-agent debate | 72,58 | 73,59 | 77,52 | 89,36 | 76,68 | 4 (6 lượt sinh) | 12.251 |
+| CoAgt | 48,59 | 49,70 | 53,23 | 68,68 | 58,52 | 3,45 | 8.161 |
+| Chain-of-Table | 54,74 | 55,54 | 60,08 | 83,31 | 68,31 | 24,30 | 28.525 |
+| MemView không memory | 74,90 | 75,60 | 80,14 | 90,26 | 77,99 | 2,53 | 11.232 |
+| **MemView v11** | **81,85** | **82,06** | **85,69** | **93,56** | **81,66** | 2,39 | 10.732 |
+
+Ablation không memory trong cùng lần chạy: chỉ A 74,60; A + B bỏ phiếu 75,10; MemView 74,90.
+
+Ghép cặp (EM): MemView − không memory +6,96 [+4,94; +8,97]; − MAD +9,27 [+7,26; +11,39]; − FS SC3 +7,96
+[+5,85; +10,08]. So với FS cùng khung: MAD −0,71, FS SC3 +0,60, MemView không memory +1,61 [−0,30; +3,53].
+
+Nhận xét: (1) phần lớn lợi ích đến từ memory cùng bảng (+7 điểm); phần multi-agent không memory chỉ thêm khoảng
++1,6 so với FS, ngang self-consistency; (2) debate không giúp so với một agent few-shot ở backbone 8B; (3) CoAgt và
+Chain-of-Table thấp vì prompt/demo tiếng Anh của WikiTQ: CoAgt refiner viết thường và hay trả số đếm cho câu
+Có/Không, Chain-of-Table chỉ đọc 100 hàng đầu và gọi model trung bình 24 lần mỗi câu.

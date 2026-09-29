@@ -54,7 +54,12 @@ def _title(qa: dict) -> str:
     return f"<tên_bảng>{name}</tên_bảng>\n" if name else ""
 
 
-def _examples(qa: dict, k: int) -> str:
+def _examples(qa: dict, k: int, memory: bool = True) -> str:
+    """memory=False (ablation): thay câu mẫu cùng bảng bằng ví dụ chung của prompt few-shot gốc."""
+    if not memory:
+        from .prompts_fs import _few_shot_examples_vi
+
+        return f"<ví_dụ_chung>\n{_few_shot_examples_vi().strip()}\n</ví_dụ_chung>"
     rows = "\n".join(f"CÂU HỎI: {d['question']}\nĐÁP ÁN: {d['answer']}" for d in retrieve_same_table(qa, k))
     return f"<ví_dụ_cùng_bảng>\n{rows}\n</ví_dụ_cùng_bảng>"
 
@@ -63,25 +68,27 @@ def _question(qa: dict, out: str) -> str:
     return f"<câu_hỏi>\n{qa['question']}\n</câu_hỏi>\n\n{out}"
 
 
-def messages_a(qa: dict, k: int = 16) -> list[dict]:
-    user = f"{_title(qa)}<bảng>\n{table_str(qa['table_id'])}\n</bảng>\n\n{_examples(qa, k)}\n\n{_question(qa, _OUT_A)}"
+def messages_a(qa: dict, k: int = 16, memory: bool = True) -> list[dict]:
+    user = f"{_title(qa)}<bảng>\n{table_str(qa['table_id'])}\n</bảng>\n\n{_examples(qa, k, memory)}\n\n{_question(qa, _OUT_A)}"
     return [{"role": "system", "content": _SYSTEM_A}, {"role": "user", "content": user}]
 
 
-def messages_b(qa: dict, k: int = 8) -> list[dict]:
+def messages_b(qa: dict, k: int = 8, memory: bool = True) -> list[dict]:
     from .methods import kv_str
 
-    user = f"{_title(qa)}<bảng>\n{kv_str(qa['table_id'])}\n</bảng>\n\n{_examples(qa, k)}\n\n{_question(qa, _OUT_B)}"
+    user = f"{_title(qa)}<bảng>\n{kv_str(qa['table_id'])}\n</bảng>\n\n{_examples(qa, k, memory)}\n\n{_question(qa, _OUT_B)}"
     return [{"role": "system", "content": _SYSTEM_B}, {"role": "user", "content": user}]
 
 
-def messages_fs(qa: dict) -> list[dict]:
+def messages_fs(qa: dict, examples: bool = True) -> list[dict]:
     """Baseline few-shot cùng khung prompt với agent A (system, bảng Flatten V1, định dạng đầu ra, tham số lấy mẫu),
     chỉ thay câu mẫu cùng bảng bằng các ví dụ chung của prompt few-shot gốc: so sánh đo đúng tác dụng của memory
-    cùng bảng và phần multi-agent."""
-    from .prompts_fs import _few_shot_examples_vi
-
-    user = (f"<ví_dụ_chung>\n{_few_shot_examples_vi().strip()}\n</ví_dụ_chung>\n\n"
-            f"{_title(qa)}<bảng>\n{table_str(qa['table_id'])}\n</bảng>\n\n{_question(qa, _OUT_A)}")
+    cùng bảng và phần multi-agent. examples=False: zero-shot."""
+    demos = f"{_examples(qa, 0, memory=False)}\n\n" if examples else ""
+    user = f"{demos}{_title(qa)}<bảng>\n{table_str(qa['table_id'])}\n</bảng>\n\n{_question(qa, _OUT_A)}"
     return [{"role": "system", "content": _SYSTEM_A.replace("Bạn là agent A trong một hệ nhiều agent", "Bạn là hệ thống")},
             {"role": "user", "content": user}]
+
+
+def messages_zs(qa: dict) -> list[dict]:
+    return messages_fs(qa, examples=False)

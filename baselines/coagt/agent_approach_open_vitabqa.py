@@ -1,8 +1,9 @@
 """Run CoAgt on Open_ViTabQA records converted to WikiTQ-style JSONL.
 
 This script intentionally reuses the original CoAgt prompt functions from
-utils.agents_prompt_wtq without editing them. Only dataset format, model,
-temperatures, and chunk size are adapted.
+utils.agents_prompt_wtq without editing them. Only the dataset format and
+model are adapted; chunk size (2000) and temperatures (0.2 / 0.5 / 0.5)
+follow the original agent_approach_wtq.py.
 """
 
 from __future__ import annotations
@@ -353,10 +354,10 @@ def run_open_vitabqa(
                         client=client,
                         model=backend_model,
                         pricing=pricing,
-                        max_chunk_tokens=1000,
+                        max_chunk_tokens=2000,
                         collector_temperature=0.2,
                         synthesizer_temperature=0.5,
-                        refiner_temperature=0.0,
+                        refiner_temperature=0.5,
                         max_retries=5,
                     )
                 )
@@ -380,10 +381,10 @@ def run_open_vitabqa(
                     record,
                     model=backend_model,
                     pricing=pricing,
-                    max_chunk_tokens=1000,
+                    max_chunk_tokens=2000,
                     collector_temperature=0.2,
                     synthesizer_temperature=0.5,
-                    refiner_temperature=0.0,
+                    refiner_temperature=0.5,
                     max_retries=5,
                 ): record
                 for record in pending
@@ -438,9 +439,9 @@ def run_open_vitabqa(
         "temperatures": {
             "collector": 0.2,
             "synthesizer": 0.5,
-            "refiner": 0.0,
+            "refiner": 0.5,
         },
-        "max_chunk_tokens": 1000,
+        "max_chunk_tokens": 2000,
     }
     write_json(run_paths.meta_json, meta)
     return meta
@@ -454,10 +455,10 @@ def main() -> int:
     parser.add_argument("--summary-output", help="Summary JSON path. Defaults to <output-stem>_summary.json")
     parser.add_argument("--limit", type=int, help="Only run the first N records from the input JSONL")
     parser.add_argument("--model", default="gpt-4o-mini")
-    parser.add_argument("--max-chunk-tokens", type=int, default=1000)
+    parser.add_argument("--max-chunk-tokens", type=int, default=2000)
     parser.add_argument("--collector-temperature", type=float, default=0.2)
     parser.add_argument("--synthesizer-temperature", type=float, default=0.5)
-    parser.add_argument("--refiner-temperature", type=float, default=0.0)
+    parser.add_argument("--refiner-temperature", type=float, default=0.5)
     parser.add_argument("--max-retries", type=int, default=5)
     parser.add_argument("--max-workers", type=int, default=1, help="Number of QA samples to process concurrently")
     parser.add_argument("--resume", action="store_true", help="Skip qa_ids already present in output/error JSONL files")

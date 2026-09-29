@@ -42,16 +42,26 @@ _M_TASK = (
 )
 
 
-def prefix(qa: dict) -> str:
-    """Tiền tố riêng cho M/V: chỉ mô tả bảng (không kèm lược đồ đầu ra của solver B) + memory cùng bảng."""
+def demo_block(qa: dict, memory: bool = True) -> str:
+    """8 câu mẫu cùng bảng; memory=False (ablation): ví dụ chung của prompt few-shot gốc."""
     from .data import retrieve_same_table
+
+    if not memory:
+        from .prompts_fs import _few_shot_examples_vi
+
+        return f"CÁC VÍ DỤ HỎI–ĐÁP CHUNG:\n{_few_shot_examples_vi().strip()}"
+    demos = "\n".join(f"CÂU HỎI: {d['question']}\nĐÁP ÁN: {d['answer']}" for d in retrieve_same_table(qa, 8))
+    return f"CÁC CÂU HỎI KHÁC ĐÃ ĐƯỢC TRẢ LỜI ĐÚNG TRÊN CHÍNH BẢNG NÀY:\n{demos}"
+
+
+def prefix(qa: dict, memory: bool = True) -> str:
+    """Tiền tố riêng cho M/V: chỉ mô tả bảng (không kèm lược đồ đầu ra của solver B) + memory cùng bảng."""
     from .methods import kv_str
 
-    demos = "\n".join(f"CÂU HỎI: {d['question']}\nĐÁP ÁN: {d['answer']}" for d in retrieve_same_table(qa, 8))
     return (
         "Bạn là chuyên gia phân tích bảng. Bảng dưới đây được viết thành từng khối, mỗi khối là một hàng "
         "(\"## Hàng i\"), mỗi dòng trong khối có dạng \"Tên cột: giá trị\". CHỈ được dùng thông tin trong bảng.\n\n"
-        f"BẢNG:\n{kv_str(qa['table_id'])}\n\nCÁC CÂU HỎI KHÁC ĐÃ ĐƯỢC TRẢ LỜI ĐÚNG TRÊN CHÍNH BẢNG NÀY:\n{demos}\n\n"
+        f"BẢNG:\n{kv_str(qa['table_id'])}\n\n{demo_block(qa, memory)}\n\n"
     )
 
 

@@ -16,7 +16,7 @@ python scripts/run_baseline.py coagt --model openai/gpt-4o-mini --limit 2 --max-
 - collector temperature: `0.2`
 - synthesizer temperature: `0.5`
 - refiner temperature: `0.5`
-- maximum chunk size: `1000` tokens
+- maximum chunk size: `2000` tokens (as in `agent_approach_wtq.py`)
 
 Results and POMA evaluation metrics are written below
 `outputs/baselines/coagt/<run-id>/`. Use `--resume` to continue a partial run.

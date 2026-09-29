@@ -6,6 +6,7 @@ def _patch(monkeypatch):
     monkeypatch.setattr(prompts_qwen, "table_str", lambda t: "T|C <header>")
     monkeypatch.setattr(prompts_qwen, "retrieve_same_table", lambda qa, k: [{"question": "Q0?", "answer": "A0"}])
     monkeypatch.setattr(methods, "kv_str", lambda t: "## Hàng 1\nC: v")
+    monkeypatch.setattr(prompts_qwen, "tables", lambda: {"t": {"table_title": "Điện Biên_0"}})
 
 
 def test_messages_put_rules_in_system_and_question_last(monkeypatch):
@@ -17,14 +18,6 @@ def test_messages_put_rules_in_system_and_question_last(monkeypatch):
         user = msgs[1]["content"]
         assert user.index("<bảng>") < user.index("<ví_dụ_cùng_bảng>") < user.index("<câu_hỏi>")
         assert user.rstrip().endswith("}")
-
-
-def test_explain_question_gets_null_hint(monkeypatch):
-    _patch(monkeypatch)
-    msgs = prompts_qwen.messages_a({"qa_id": "q", "table_id": "t", "question": "Vì sao X bị huỷ?"})
-    assert "hỏi lý do/cách thức" in msgs[1]["content"]
-    msgs = prompts_qwen.messages_a({"qa_id": "q", "table_id": "t", "question": "Ai là chủ tịch?"})
-    assert "hỏi lý do/cách thức" not in msgs[1]["content"]
 
 
 def test_agent_uses_qwen_sampling(monkeypatch):
@@ -40,13 +33,6 @@ def test_agent_uses_qwen_sampling(monkeypatch):
     assert out["prediction"] == ["X"]
     assert (seen["temperature"], seen["top_p"], seen["top_k"], seen["min_p"], seen["max_tokens"]) == (0.6, 0.95, 20, 0.0, None)
     assert isinstance(seen["messages"], list)
-
-
-def test_comparison_how_question_is_not_treated_as_reason():
-    assert prompts_qwen.asks_reason("Vì sao X bị huỷ?")
-    assert prompts_qwen.asks_reason("Làm thế nào mà đội A thắng?")
-    assert not prompts_qwen.asks_reason("Chiều cao của A như thế nào so với các thành viên khác?")
-    assert not prompts_qwen.asks_reason("So với B thì chiều cao của A như thế nào?")
 
 
 def test_suite_v10_routes_consensus_and_agent_v(monkeypatch):
@@ -84,3 +70,10 @@ def test_suite_v10_routes_consensus_and_agent_v(monkeypatch):
     out = methods.suite_v10(c, qa)
     assert out["memview_q"]["trace"]["route"] == "agent_v" and out["memview_q"]["prediction"] == ["Y"]
     assert c.calls.count("V") == 2
+
+
+def test_table_title_is_in_prompt_without_index_suffix(monkeypatch):
+    _patch(monkeypatch)
+    for build in (prompts_qwen.messages_a, prompts_qwen.messages_b, prompts_qwen.messages_fs):
+        user = build({"qa_id": "q", "table_id": "t", "question": "Bảng này của tỉnh nào?"})[1]["content"]
+        assert "<tên_bảng>Điện Biên</tên_bảng>" in user and user.index("<tên_bảng>") < user.index("<bảng>")

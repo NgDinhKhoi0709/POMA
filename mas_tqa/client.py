@@ -35,22 +35,28 @@ class VLLMClient:
 
     def chat(
         self,
-        prompt: str,
+        prompt: str | list[dict],
         *,
         thinking: bool = True,
         n: int = 1,
         temperature: float = 0.0,
         top_p: float = 1.0,
-        max_tokens: int = 6000,
+        top_k: int | None = None,
+        min_p: float | None = None,
+        max_tokens: int | None = 6000,
         retries: int = 4,
     ) -> tuple[list[str], Usage]:
+        """prompt: chuỗi (một tin nhắn user) hoặc danh sách messages (có system). max_tokens=None: để server
+        dùng toàn bộ ngữ cảnh còn lại (Qwen3 khuyến nghị đầu ra dài cho chế độ thinking)."""
         body = {
             "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": prompt if isinstance(prompt, list) else [{"role": "user", "content": prompt}],
             "n": n,
             "temperature": temperature,
             "top_p": top_p,
-            "max_tokens": max_tokens,
+            **({"max_tokens": max_tokens} if max_tokens is not None else {}),
+            **({"top_k": top_k} if top_k is not None else {}),
+            **({"min_p": min_p} if min_p is not None else {}),
             "chat_template_kwargs": {"enable_thinking": thinking},
             # Trường bổ sung cho endpoint khác vLLM, vd. ghim provider OpenRouter:
             # VLLM_EXTRA_BODY='{"provider": {"only": ["alibaba"]}}'

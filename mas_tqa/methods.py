@@ -759,3 +759,54 @@ def suite_v9(client: VLLMClient, qa: dict) -> dict[str, dict]:
 
 
 SUITES["suite_v9"] = suite_v9
+
+
+# ---------- Agent C phát hiện Null cho câu giải thích; ghi chú câu giải thích cho A/B (mas_tqa/null_agent.py) ----------
+
+def _null_detect(client: VLLMClient, qa: dict) -> dict:
+    from .math_agent import prefix
+    from .null_agent import detect
+
+    answerable, info, u = detect(client, qa, prefix(qa))
+    return {"prediction": ["ANSWERABLE" if answerable else "Null"], "trace": {"answerable": answerable, **info}, "usage": u}
+
+
+def _explain_single(prefix_fn, note: bool):
+    """Một lần gọi A (Flatten, 16 câu mẫu) hoặc B (Markdown-KV); có/không ghi chú câu giải thích ở đuôi prompt."""
+    from .null_agent import EXPLAIN_NOTE
+
+    def run(client: VLLMClient, qa: dict) -> dict:
+        tail = (EXPLAIN_NOTE if note else "") + f"BÂY GIỜ TRẢ LỜI CÂU HỎI SAU.\nCÂU HỎI: {qa['question']}\nĐẦU RA: "
+        t, u = client.chat(prefix_fn(qa) + tail, temperature=0.6, top_p=0.95)
+        return {"prediction": [_parse_evid(t[0])[0] if prefix_fn is kv_prefix else final_answer(t[0])], "raw": t[0][-300:], "usage": u}
+
+    return run
+
+
+METHODS["null_detect"] = _null_detect
+METHODS["a_explain_plain"] = _explain_single(lambda qa: flat_prefix(qa, V6_KA), False)
+METHODS["a_explain_note"] = _explain_single(lambda qa: flat_prefix(qa, V6_KA), True)
+METHODS["b_explain_plain"] = _explain_single(kv_prefix, False)
+METHODS["b_explain_note"] = _explain_single(kv_prefix, True)
+
+
+# ---------- Prompt theo Best Practices của Qwen3-8B (mas_tqa/prompts_qwen.py) ----------
+
+def _qwen_agent(which: str, n: int):
+    """Agent A (Flatten V1, 16 câu mẫu) hoặc B (Markdown-KV, 8 câu mẫu, bằng chứng) với system prompt mới và tham số
+    lấy mẫu Qwen3 cho thinking; n mẫu thì lấy đáp án đa số."""
+    from .prompts_qwen import QWEN_THINKING, messages_a, messages_b
+
+    def run(client: VLLMClient, qa: dict) -> dict:
+        msgs = messages_a(qa) if which == "A" else messages_b(qa)
+        t, u = client.chat(msgs, n=n, **QWEN_THINKING)
+        answers = [(_parse_evid(x)[0] if which == "B" else final_answer(x)) for x in t]
+        pred = _majority(_pick_valid(answers, qa["question"]), qa["question"]) if n > 1 else answers[0]
+        return {"prediction": [pred], "trace": {"samples": answers, "reasons": [_reason(x) for x in t]}, "usage": u}
+
+    return run
+
+
+METHODS["a_qwen"] = _qwen_agent("A", 1)
+METHODS["a_qwen_sc3"] = _qwen_agent("A", 3)
+METHODS["b_qwen"] = _qwen_agent("B", 1)

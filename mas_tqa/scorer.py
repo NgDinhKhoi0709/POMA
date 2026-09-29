@@ -74,13 +74,13 @@ def parse_scores(text: str, n: int) -> list[float]:
 
 
 def score(client: VLLMClient, qa: dict, prefix: str, cands: list[str],
-          notes: list[str] | None = None) -> tuple[list[float], Usage]:
+          notes: list[str] | None = None, **sampling) -> tuple[list[float], Usage]:
     """notes[i]: lý do (và bằng chứng) các agent đưa ra cho ứng viên i; None = chỉ cho xem đáp án."""
     order = list(range(len(cands)))
     random.Random(qa["qa_id"]).shuffle(order)
     listing = "\n".join(f"[{j}] {cands[i]}" + (f"\n    Lý do của agent: {notes[i]}" if notes and notes[i] else "")
                         for j, i in enumerate(order))
-    t, u = client.chat(prefix + _TASK + f"\nCÂU HỎI: {qa['question']}\nCÁC ỨNG VIÊN:\n{listing}\nĐẦU RA: ")
+    t, u = client.chat(prefix + _TASK + f"\nCÂU HỎI: {qa['question']}\nCÁC ỨNG VIÊN:\n{listing}\nĐẦU RA: ", **sampling)
     shown = parse_scores(t[0], len(cands))
     p = [0.0] * len(cands)
     for j, i in enumerate(order):

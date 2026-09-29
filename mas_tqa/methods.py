@@ -810,3 +810,67 @@ def _qwen_agent(which: str, n: int):
 METHODS["a_qwen"] = _qwen_agent("A", 1)
 METHODS["a_qwen_sc3"] = _qwen_agent("A", 3)
 METHODS["b_qwen"] = _qwen_agent("B", 1)
+
+
+# ---------- v10 (MemView cho test): prompt Qwen cho A/B, A 3/3 = 1 phiếu, bất đồng → agent V có lý do ----------
+
+def suite_v10(client: VLLMClient, qa: dict) -> dict[str, dict]:
+    """A (3 mẫu) và B trả lời với prompt/tham số Qwen3. Dừng khi 3 mẫu A trùng nhau và B đồng ý; còn lại agent V
+    (hai view, thấy lý do và bằng chứng) chấm xác suất cho các ứng viên, hoà thì theo số phiếu. Không đối chất."""
+    from .prompts_qwen import QWEN_THINKING, messages_a, messages_b
+    from .scorer import candidates, prefix_flat, prefix_kv, score
+
+    q = qa["question"]
+    ta, ua = client.chat(messages_a(qa), n=3, **QWEN_THINKING)
+    samples, a_reasons = [final_answer(t) for t in ta], [_reason(t) for t in ta]
+    a_major = _majority(_pick_valid(samples, q), q)
+    try:
+        tb, ub = client.chat(messages_b(qa), **QWEN_THINKING)
+    except requests.HTTPError:  # bảng Markdown-KV vượt ngữ cảnh: chỉ dùng agent A
+        tr = {"samples": samples, "A_reasons": a_reasons, "route": "a_only"}
+        return {n: {"prediction": [a_major], "trace": tr, "usage": ua} for n in ("a_only_q", "vote4_q", "memview_q")}
+    b, b_ev = _parse_evid(tb[0])
+    b_reason = _reason(tb[0])
+    base = Usage(); base.add(ua); base.add(ub)
+    pool = samples + [b]
+    trace = {"samples": samples, "A_reasons": a_reasons, "B": b, "B_ev": b_ev[:20], "B_reason": b_reason}
+    out = {"a_only_q": {"prediction": [a_major], "trace": {"samples": samples}, "usage": ua},
+           "vote4_q": {"prediction": [_majority(_pick_valid(pool, q), q)], "trace": trace, "usage": base}}
+    a_keys = {key(x, q) for x in samples if valid(x, q)}
+    if len(a_keys) == 1 and (not valid(b, q) or key(b, q) in a_keys):
+        out["memview_q"] = {"prediction": [a_major], "trace": {**trace, "route": "consensus"}, "usage": base}
+        return out
+    cands, votes = candidates(trace, q)
+    if len(cands) < 2:
+        pick = cands[0] if cands else a_major
+        out["memview_q"] = {"prediction": [pick], "trace": {**trace, "route": "single_valid"}, "usage": base}
+        return out
+    notes = []
+    for c in cands:
+        why = [r for s, r in zip(samples, a_reasons) if r and valid(s, q) and key(s, q) == key(c, q)]
+        if valid(b, q) and key(b, q) == key(c, q) and (b_reason or b_ev):
+            why.append((b_reason + (" Bằng chứng: " + "; ".join(b_ev[:5]) if b_ev else "")).strip())
+        notes.append(" | ".join(why)[:600])
+    us = Usage(); us.add(base)
+    sampling = {k: v for k, v in QWEN_THINKING.items()}
+    p_flat, u = score(client, qa, prefix_flat(qa), cands, notes, **sampling); us.add(u)
+    try:
+        p_kv, u = score(client, qa, prefix_kv(qa), cands, notes, **sampling); us.add(u)
+    except requests.HTTPError:
+        p_kv = p_flat
+    mean = [(x + y) / 2 for x, y in zip(p_flat, p_kv)]
+    pick = cands[max(range(len(cands)), key=lambda k: (round(mean[k], 6), votes[k]))]
+    out["memview_q"] = {"prediction": [pick], "usage": us, "trace": {
+        **trace, "route": "agent_v", "cands": cands, "votes": votes, "notes": notes, "p_flat": p_flat, "p_kv": p_kv}}
+    return out
+
+
+def _fs_qwen(client: VLLMClient, qa: dict) -> dict:
+    from .prompts_qwen import QWEN_THINKING, messages_fs
+
+    t, u = client.chat(messages_fs(qa), **QWEN_THINKING)
+    return {"prediction": [final_answer(t[0])], "trace": {"reason": _reason(t[0])}, "usage": u}
+
+
+SUITES["suite_v10"] = suite_v10
+METHODS["fs_qwen"] = _fs_qwen

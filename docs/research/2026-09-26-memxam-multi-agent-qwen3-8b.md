@@ -700,3 +700,20 @@ Nhận xét: (1) phần lớn lợi ích đến từ memory cùng bảng (+7 đi
 +1,6 so với FS, ngang self-consistency; (2) debate không giúp so với một agent few-shot ở backbone 8B; (3) CoAgt và
 Chain-of-Table thấp vì prompt/demo tiếng Anh của WikiTQ: CoAgt refiner viết thường và hay trả số đếm cho câu
 Có/Không, Chain-of-Table chỉ đọc 100 hàng đầu và gọi model trung bình 24 lần mỗi câu.
+
+## 21. Bảng chưa thấy: memory truy hồi từ bảng khác (test đầy đủ 992 câu, 2026-09-30)
+
+`MAS_MEMORY_SCOPE=cross`: A, B và agent V truy hồi câu train bằng Jaccard trên mọi bảng trừ bảng đang hỏi; khối
+ví dụ đổi tên thành "ví dụ từ bảng khác" và quy tắc 3–4 bỏ chữ "cùng bảng". Cùng prompt và tham số với v11.
+EM = mọi cách viết cùng nghĩa, F1 ký tự (`evaluation/f1.py`), BIF4 trên 991 câu.
+
+| Cấu hình | Không memory | Memory bảng khác | Memory cùng bảng |
+|---|---|---|---|
+| Chỉ A (EM / F1 / BIF4) | 79,54 / 85,56 / 77,74 | 82,16 / 87,94 / 79,54 | 84,68 / 89,96 / 81,09 |
+| A + B bỏ phiếu | 80,04 / 85,82 / 77,84 | 83,06 / 88,53 / 79,96 | 84,78 / 89,82 / 81,18 |
+| MemView | 80,14 / 86,01 / 77,99 | 83,27 / 88,69 / 80,05 | 85,69 / 90,66 / 81,66 |
+
+Ghép cặp (EM mọi cách viết): MemView bảng khác − không memory +3,12 [+1,31; +4,94]; − cùng bảng −2,42
+[−4,23; −0,70]; − FS cùng khung +5,35. EM gốc: 79,03. 2,49 lệnh gọi mỗi câu; 1 giờ 56 phút trên A100.
+Memory từ bảng khác giữ khoảng một nửa phần lợi của memory cùng bảng, và phần multi-agent thêm +1,1 EM so với
+chỉ A ở điều kiện này (cùng bảng +1,0; không memory +0,6).

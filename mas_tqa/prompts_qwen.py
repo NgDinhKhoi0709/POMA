@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 
-from .data import retrieve_same_table, table_str, tables
+from .data import MEMORY_SCOPE, retrieve_same_table, table_str, tables
 
 QWEN_THINKING = {"temperature": 0.6, "top_p": 0.95, "top_k": 20, "min_p": 0.0, "max_tokens": None}
 
@@ -24,6 +24,9 @@ _RULES = """<quy_tắc>
 5. Câu hỏi liệt kê: các phần tử cách nhau bởi dấu phẩy, theo thứ tự xuất hiện trong bảng trừ khi câu hỏi yêu cầu sắp xếp.
 6. Câu hỏi tính toán: tính cẩn thận từ các ô liên quan; đáp án là con số cuối cùng, viết theo kiểu số của bảng.
 </quy_tắc>"""
+_TAG = "ví_dụ_cùng_bảng"
+if MEMORY_SCOPE == "cross":  # bảng chưa thấy: ví dụ lấy từ bảng khác
+    _RULES, _TAG = _RULES.replace("các ví dụ cùng bảng", "các ví dụ"), "ví_dụ_từ_bảng_khác"
 
 _SYSTEM_A = (
     "Bạn là agent A trong một hệ nhiều agent trả lời câu hỏi tiếng Việt trên bảng Wikipedia. "
@@ -61,7 +64,7 @@ def _examples(qa: dict, k: int, memory: bool = True) -> str:
 
         return f"<ví_dụ_chung>\n{_few_shot_examples_vi().strip()}\n</ví_dụ_chung>"
     rows = "\n".join(f"CÂU HỎI: {d['question']}\nĐÁP ÁN: {d['answer']}" for d in retrieve_same_table(qa, k))
-    return f"<ví_dụ_cùng_bảng>\n{rows}\n</ví_dụ_cùng_bảng>"
+    return f"<{_TAG}>\n{rows}\n</{_TAG}>"
 
 
 def _question(qa: dict, out: str) -> str:

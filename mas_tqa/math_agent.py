@@ -51,7 +51,10 @@ def demo_block(qa: dict, memory: bool = True) -> str:
 
         return f"CÁC VÍ DỤ HỎI–ĐÁP CHUNG:\n{_few_shot_examples_vi().strip()}"
     demos = "\n".join(f"CÂU HỎI: {d['question']}\nĐÁP ÁN: {d['answer']}" for d in retrieve_same_table(qa, 8))
-    return f"CÁC CÂU HỎI KHÁC ĐÃ ĐƯỢC TRẢ LỜI ĐÚNG TRÊN CHÍNH BẢNG NÀY:\n{demos}"
+    from .data import MEMORY_SCOPE
+
+    where = "CÁC BẢNG KHÁC" if MEMORY_SCOPE == "cross" else "CHÍNH BẢNG NÀY"
+    return f"CÁC CÂU HỎI KHÁC ĐÃ ĐƯỢC TRẢ LỜI ĐÚNG TRÊN {where}:\n{demos}"
 
 
 def prefix(qa: dict, memory: bool = True) -> str:

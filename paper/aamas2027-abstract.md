@@ -39,6 +39,15 @@ MET = METEOR chuẩn (nltk, có phạt phân mảnh, giống bài báo dataset);
 
 BIF của bài báo dùng checkpoint riêng của họ, nên chỉ so BIF giữa các hệ mình tự chạy.
 
+Chỉnh thêm theo góp ý (2026-09-30), áp dụng cho cả hai phiên bản:
+
+- Bỏ "thinking mode".
+- Câu mở đầu: thay "both extractive and abstractive answers" bằng câu hỏi không trả lời được từ bảng.
+- Markdown key–value không phải thuật ngữ chuẩn trong các paper Table QA, nên giải thích ngắn: mỗi hàng viết
+  thành các dòng "column: value".
+- Liệt kê các baseline đã chạy trên cùng backbone kèm EM: zero-shot, few-shot, multi-agent debate,
+  Chain-of-Table, CoAgt; bỏ three-sample self-consistency.
+
 ## Phiên bản 1: nhấn mạnh phương pháp
 
 ### Bản gốc (ChatGPT, vòng 2)
@@ -60,18 +69,20 @@ that complementary agents provide modest improvements beyond relevant exemplar m
 
 ### Bản đã chỉnh
 
-Question answering over open-domain Vietnamese Wikipedia tables involves merged cells, questions requiring
-computation, and both extractive and abstractive answers. We present MemView, a multi-agent system built on
-a small open language model (Qwen3-8B, thinking mode) without fine-tuning. All agents share a memory of
-training question–answer pairs retrieved from the same table. Agent A reads a flattened serialization with 16
-exemplars and draws three samples; agent B reads a Markdown key–value serialization with eight exemplars
-and cites evidence cells. When A's samples agree and B concurs, the answer is returned directly; otherwise an
-LLM validator reads both representations and the agents' rationales and scores each candidate. MemView uses
-2.4 LLM calls per question on average. We evaluate with EM, character-level F1, ROUGE-1, METEOR, and BIF,
-which combines PhoBERT embeddings within BERTScore for semantic similarity with ViNLI for logical
-consistency. On the 992 test questions of Open-ViTabQA, MemView obtains 81.85 EM, 90.66 F1, 87.38
-ROUGE-1, 64.37 METEOR, and 0.711 BIF, exceeding the strongest published baseline, Gemini 1.5 Pro (60.80
-EM), by 21 points and remaining 1.58 EM below human performance (83.43). Ablations show that memory
+Question answering over open-domain Vietnamese Wikipedia tables involves merged cells, questions that require
+computation, and questions that cannot be answered from the table. We present MemView, a multi-agent system
+built on a small open language model (Qwen3-8B) without fine-tuning. All agents share a memory of training
+question–answer pairs retrieved from the same table. Agent A reads a flattened serialization of the table with
+16 exemplars and draws three samples; agent B reads a Markdown key–value serialization, in which each row is
+written as a block of "column: value" lines, with eight exemplars and cites evidence cells before answering.
+When A's samples agree and B concurs, the answer is returned directly; otherwise an LLM validator reads both
+serializations and the agents' rationales and scores each candidate. MemView uses 2.4 LLM calls per question
+on average. We evaluate with EM, character-level F1, ROUGE-1, METEOR, and BIF, which combines PhoBERT
+embeddings within BERTScore for semantic similarity with ViNLI for logical consistency. On the 992 test
+questions of Open-ViTabQA, MemView obtains 81.85 EM, 90.66 F1, 87.38 ROUGE-1, 64.37 METEOR, and 0.711 BIF.
+With the same backbone, it outperforms zero-shot prompting (71.77 EM), few-shot prompting (73.29), multi-agent
+debate (72.58), Chain-of-Table (54.74), and CoAgt (48.59); it also exceeds the strongest published baseline,
+Gemini 1.5 Pro (60.80), and remains 1.58 EM below human performance (83.43). Ablations show that memory
 accounts for most of the gain, while the second agent and the validator add 0.3–1.2 EM; with memory drawn
 only from other tables, a proxy for unseen tables, MemView still reaches 79.03 EM.
 
@@ -105,20 +116,21 @@ question.
 
 ### Bản đã chỉnh
 
-Question answering over open-domain Vietnamese Wikipedia tables involves merged cells, questions requiring
-computation, and both extractive and abstractive answers. We ask when multi-agent systems built on small
-language models help this task, using Qwen3-8B without fine-tuning. We design MemView, which combines a
+Question answering over open-domain Vietnamese Wikipedia tables involves merged cells, questions that require
+computation, and questions that cannot be answered from the table. We ask when multi-agent systems built on
+small language models help this task, using Qwen3-8B without fine-tuning. We design MemView, which combines a
 shared memory of same-table training question–answer pairs, two agents that read the table in complementary
-representations, and an LLM validator invoked only when the agents disagree (2.4 LLM calls per question). We
-evaluate with EM, character-level F1, ROUGE-1, METEOR, and BIF, which combines PhoBERT embeddings within
-BERTScore for semantic similarity with ViNLI for logical consistency. On the 992 test questions of
-Open-ViTabQA, MemView achieves 81.85 EM, 90.66 F1, 87.38 ROUGE-1, 64.37 METEOR, and 0.711 BIF. Its EM
-exceeds few-shot prompting (73.29), three-sample self-consistency (73.89), multi-agent debate (72.58), and the
-strongest published baseline, Gemini 1.5 Pro (60.80), and is 1.58 points below human performance (83.43).
-Controlled ablations locate the gain: removing memory lowers EM to 74.90, whereas the second agent and the
-validator add only 0.3–1.2 EM over a single agent. With memory drawn only from other tables, a proxy for
-unseen tables, MemView still reaches 79.03 EM. At this scale, relevant shared memory matters far more than
-the number of agents.
+serializations (a flattened table and a Markdown key–value form that writes each row as "column: value"
+lines), and an LLM validator invoked only when the agents disagree (2.4 LLM calls per question). We evaluate
+with EM, character-level F1, ROUGE-1, METEOR, and BIF, which combines PhoBERT embeddings within BERTScore for
+semantic similarity with ViNLI for logical consistency. On the 992 test questions of Open-ViTabQA, MemView
+achieves 81.85 EM, 90.66 F1, 87.38 ROUGE-1, 64.37 METEOR, and 0.711 BIF. With the same backbone, it
+outperforms zero-shot prompting (71.77 EM), few-shot prompting (73.29), multi-agent debate (72.58),
+Chain-of-Table (54.74), and CoAgt (48.59); it also exceeds the strongest published baseline, Gemini 1.5 Pro
+(60.80), and is 1.58 EM below human performance (83.43). Controlled ablations locate the gain: removing memory
+lowers EM to 74.90, whereas the second agent and the validator add only 0.3–1.2 EM over a single agent. With
+memory drawn only from other tables, a proxy for unseen tables, MemView still reaches 79.03 EM. At this scale,
+relevant shared memory matters far more than the number of agents.
 
 Thay đổi so với bản gốc vòng 2:
 

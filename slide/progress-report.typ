@@ -134,20 +134,23 @@
 
 == Audit
 
-#slide(title: [Audit])[
-  #text(size: 0.74em)[
+#slide(title: [Full test: POMA vs. baselines on the same Qwen3-8B])[
+  #text(size: 0.7em)[
     #table(
-      columns: (auto, auto, auto, 1fr),
-      inset: 4.2pt,
-      align: (right, right, center, left),
+      columns: (auto, auto, auto, auto, 1fr),
+      inset: 4pt,
+      align: (right, right, right, center, left),
       stroke: 0.4pt + luma(180),
-      fill: (x, y) => if y == 0 { rgb("#2563eb").lighten(82%) } else if calc.odd(y) { luma(246) } else { white },
-      table.header([*EM*], [*BIF*], [*n*], [*What it measures*]),
-      [74.90], [—], [992], [POMA `all` — oracle best-of-K (mean K 3.44, max K 80)],
-      [66.63], [75.00], [992], [POMA-first],
-      [67.34], [73.83], [992], [Few-shot raw],
-      [68.45], [*76.43*], [992], [POMA + GSA finalizer],
-      [*70.16*], [76.10], [992], [*Few-shot + GSA — the single-call baseline wins*],
+      fill: (x, y) => if y == 0 { rgb("#2563eb").lighten(82%) } else if y == 2 { rgb("#059669").lighten(88%) } else if calc.odd(y) { luma(246) } else { white },
+      table.header([*EM*], [*F1*], [*BIF*], [*n*], [*System (sorted by EM)*]),
+      [74.90], [83.42], [—], [992], [POMA `all` — oracle best-of-K, not deployable],
+      [*70.16*], [81.52], [76.10], [992], [*Few-shot + GSA — the single-call baseline wins*],
+      [68.45], [81.31], [*76.43*], [992], [POMA + GSA finalizer],
+      [67.34], [78.63], [73.83], [992], [Few-shot raw],
+      [66.63], [79.80], [75.00], [992], [POMA-first],
+      [63.10], [76.14], [70.02], [992], [Zero-shot raw],
+      [59.98], [74.01], [68.68], [992], [Task decomposition raw],
+      [59.48], [74.01], [69.26], [990], [CoT raw],
     )
   ]
   #v(0.3em)

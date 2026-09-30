@@ -71,15 +71,16 @@ that complementary agents provide modest improvements beyond relevant exemplar m
 
 Question answering over open-domain Vietnamese Wikipedia tables involves merged cells, questions that require
 computation, and questions that cannot be answered from the table. We present MemView, a multi-agent system
-built on a small open language model (Qwen3-8B) without fine-tuning. All agents share a memory of training
+built on a small language model without fine-tuning. All agents share a memory of training
 question–answer pairs retrieved from the same table. Agent A reads a flattened serialization of the table with
 16 exemplars and draws three samples; agent B reads a Markdown key–value serialization, in which each row is
 written as a block of "column: value" lines, with eight exemplars and cites evidence cells before answering.
 When A's samples agree and B concurs, the answer is returned directly; otherwise an LLM validator reads both
 serializations and the agents' rationales and scores each candidate. MemView uses 2.4 LLM calls per question
 on average. We evaluate with EM, character-level F1, ROUGE-1, METEOR, and BIF, which combines PhoBERT
-embeddings within BERTScore for semantic similarity with ViNLI for logical consistency. On the 992 test
-questions of Open-ViTabQA, MemView obtains 81.85 EM, 90.66 F1, 87.38 ROUGE-1, 64.37 METEOR, and 0.711 BIF.
+embeddings within BERTScore for semantic similarity with ViNLI for logical consistency. In experiments with
+Qwen3-8B on the 992 test questions of Open-ViTabQA, MemView obtains 81.85 EM, 90.66 F1, 87.38 ROUGE-1,
+64.37 METEOR, and 0.711 BIF.
 With the same backbone, it outperforms zero-shot prompting (71.77 EM), few-shot prompting (73.29), multi-agent
 debate (72.58), Chain-of-Table (54.74), and CoAgt (48.59); it also exceeds the strongest published baseline,
 Gemini 1.5 Pro (60.80), and remains 1.58 EM below human performance (83.43). Ablations show that memory
@@ -118,13 +119,13 @@ question.
 
 Question answering over open-domain Vietnamese Wikipedia tables involves merged cells, questions that require
 computation, and questions that cannot be answered from the table. We ask when multi-agent systems built on
-small language models help this task, using Qwen3-8B without fine-tuning. We design MemView, which combines a
+small language models without fine-tuning help this task. We design MemView, which combines a
 shared memory of same-table training question–answer pairs, two agents that read the table in complementary
 serializations (a flattened table and a Markdown key–value form that writes each row as "column: value"
 lines), and an LLM validator invoked only when the agents disagree (2.4 LLM calls per question). We evaluate
 with EM, character-level F1, ROUGE-1, METEOR, and BIF, which combines PhoBERT embeddings within BERTScore for
-semantic similarity with ViNLI for logical consistency. On the 992 test questions of Open-ViTabQA, MemView
-achieves 81.85 EM, 90.66 F1, 87.38 ROUGE-1, 64.37 METEOR, and 0.711 BIF. With the same backbone, it
+semantic similarity with ViNLI for logical consistency. In experiments with Qwen3-8B on the 992 test questions
+of Open-ViTabQA, MemView achieves 81.85 EM, 90.66 F1, 87.38 ROUGE-1, 64.37 METEOR, and 0.711 BIF. With the same backbone, it
 outperforms zero-shot prompting (71.77 EM), few-shot prompting (73.29), multi-agent debate (72.58),
 Chain-of-Table (54.74), and CoAgt (48.59); it also exceeds the strongest published baseline, Gemini 1.5 Pro
 (60.80), and is 1.58 EM below human performance (83.43). Controlled ablations locate the gain: removing memory

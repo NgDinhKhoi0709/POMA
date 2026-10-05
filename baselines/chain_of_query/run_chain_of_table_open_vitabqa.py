@@ -37,7 +37,13 @@ class CountingLLM(MyChatGPT):
         create = self.client.chat.completions.create
 
         def counted(**kw):
-            r = create(**kw, extra_body={"chat_template_kwargs": {"enable_thinking": False}})
+            name = self.model_name.lower()
+            if name.startswith("claude"):
+                kw.pop("top_p", None)  # Claude từ chối temperature cùng top_p
+            if name.startswith(("gpt", "azure-", "claude", "gemini")):
+                r = create(**kw)
+            else:
+                r = create(**kw, extra_body={"chat_template_kwargs": {"enable_thinking": False}})
             self.calls += 1
             if r.usage:
                 self.prompt_tokens += r.usage.prompt_tokens

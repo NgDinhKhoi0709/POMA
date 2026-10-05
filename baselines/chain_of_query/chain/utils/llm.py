@@ -79,15 +79,20 @@ class MyChatGPT:
         retry_num = 0
         retry_limit = 2
         error = None
+        stop = end_str
+        if self.model_name.lower().startswith("claude") and isinstance(stop, str) and not stop.strip():
+            stop = None  # Vertex từ chối stop chỉ gồm khoảng trắng
         while gpt_responses is None:
             try:
-                gpt_responses = self.client.chat.completions.create(
-                    model=self.model_name,
-                    seed = 42,
-                    messages=messages,
-                    stop=end_str,  # Stop sequence (optional)
-                    **options  # Pass API request options
-                )
+                request = {
+                    "model": self.model_name,
+                    "seed": 42,
+                    "messages": messages,
+                    **options,
+                }
+                if stop is not None:
+                    request["stop"] = stop
+                gpt_responses = self.client.chat.completions.create(**request)
                 error = None
 
             except openai.OpenAIError as e:
@@ -195,15 +200,20 @@ class MyDeepSeek:
         retry_num = 0
         retry_limit = 2
         error = None
+        stop = end_str
+        if self.model_name.lower().startswith("claude") and isinstance(stop, str) and not stop.strip():
+            stop = None  # Vertex từ chối stop chỉ gồm khoảng trắng
         while gpt_responses is None:
             try:
-                gpt_responses = self.client.chat.completions.create(
-                    model=self.model_name,
-                    seed = 42,
-                    messages=messages,
-                    stop=end_str,  # Stop sequence (optional)
-                    **options  # Pass API request options
-                )
+                request = {
+                    "model": self.model_name,
+                    "seed": 42,
+                    "messages": messages,
+                    **options,
+                }
+                if stop is not None:
+                    request["stop"] = stop
+                gpt_responses = self.client.chat.completions.create(**request)
                 error = None
 
             except openai.OpenAIError as e:

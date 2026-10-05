@@ -33,6 +33,17 @@ class VLLMClient:
     model: str = field(default_factory=lambda: os.environ.get("VLLM_MODEL", "Qwen/Qwen3-8B"))
     timeout: int = 600
 
+    @property
+    def openai_compatible(self) -> bool:
+        """Azure/OpenAI từ chối top_k, min_p và chat_template_kwargs. Qwen trên vLLM thì cần các trường đó."""
+        style = os.environ.get("MAS_API_STYLE", "").lower()
+        if style == "openai":
+            return True
+        if style == "vllm":
+            return False
+        name = self.model.lower()
+        return name.startswith(("gpt", "azure-", "claude", "gemini"))
+
     def chat(
         self,
         prompt: str | list[dict],
@@ -44,6 +55,9 @@ class VLLMClient:
         top_k: int | None = None,
         min_p: float | None = None,
         max_tokens: int | None = 6000,
+        max_completion_tokens: int | None = None,
+        response_format: dict | None = None,
+        extra_body: dict | None = None,
         retries: int = 4,
     ) -> tuple[list[str], Usage]:
         """prompt: chuỗi (một tin nhắn user) hoặc danh sách messages (có system). max_tokens=None: để server
@@ -54,15 +68,36 @@ class VLLMClient:
             "n": n,
             "temperature": temperature,
             "top_p": top_p,
-            **({"max_tokens": max_tokens} if max_tokens is not None else {}),
-            **({"top_k": top_k} if top_k is not None else {}),
-            **({"min_p": min_p} if min_p is not None else {}),
-            "chat_template_kwargs": {"enable_thinking": thinking},
+            **({"max_completion_tokens": max_completion_tokens} if max_completion_tokens is not None else {}),
+            **({"max_tokens": max_tokens} if max_tokens is not None and max_completion_tokens is None else {}),
+            **({"response_format": response_format} if response_format else {}),
+            **({} if self.openai_compatible else {
+                **({"top_k": top_k} if top_k is not None else {}),
+                **({"min_p": min_p} if min_p is not None else {}),
+                "chat_template_kwargs": {"enable_thinking": thinking},
+            }),
             # Trường bổ sung cho endpoint khác vLLM, vd. ghim provider OpenRouter:
             # VLLM_EXTRA_BODY='{"provider": {"only": ["alibaba"]}}'
             **json.loads(os.environ.get("VLLM_EXTRA_BODY") or "{}"),
+            **(extra_body or {}),
         }
+        if self.model.lower().startswith("claude"):
+            body.pop("top_p", None)  # Claude từ chối temperature cùng top_p
+            if n > 1:
+                # Proxy trả một choice dù n>1, nên lấy từng mẫu.
+                texts: list[str] = []
+                usage = Usage()
+                for _ in range(n):
+                    part, one = self.chat(
+                        prompt, thinking=thinking, n=1, temperature=temperature, top_p=top_p, top_k=top_k,
+                        min_p=min_p, max_tokens=max_tokens, max_completion_tokens=max_completion_tokens,
+                        response_format=response_format, extra_body=extra_body, retries=retries,
+                    )
+                    texts.extend(part)
+                    usage.add(one)
+                return texts, usage
         headers = {"Authorization": f"Bearer {self.api_key}"}
+        retries = int(os.environ.get("MAS_RETRIES", retries))
         for attempt in range(retries):
             try:
                 r = requests.post(f"{self.base_url}/chat/completions", json=body, headers=headers, timeout=self.timeout)

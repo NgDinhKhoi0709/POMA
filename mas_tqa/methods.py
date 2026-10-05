@@ -790,16 +790,53 @@ METHODS["b_explain_plain"] = _explain_single(kv_prefix, False)
 METHODS["b_explain_note"] = _explain_single(kv_prefix, True)
 
 
+def _use_gpt(client: VLLMClient) -> bool:
+    """GPT-4o / GPT-4o mini trên Azure dùng prompt và tham số lấy mẫu riêng."""
+    model = str(getattr(client, "model", "") or "").lower()
+    return "4o" in model and (model.startswith("azure") or "gpt" in model)
+
+
+def _prompt_pack(client: VLLMClient):
+    model = str(getattr(client, "model", "") or "").lower()
+    if model.startswith("claude"):
+        from . import prompts_claude
+
+        return prompts_claude, prompts_claude.SAMPLE, prompts_claude.SINGLE
+    if model.startswith("gemini"):
+        from . import prompts_gemini
+
+        return prompts_gemini, prompts_gemini.SAMPLE, prompts_gemini.SINGLE
+    if "4.1" in model:
+        from . import prompts_gpt41
+
+        return prompts_gpt41, prompts_gpt41.GPT_SAMPLE, prompts_gpt41.GPT_SINGLE
+    if _use_gpt(client):
+        from . import prompts_gpt
+
+        return prompts_gpt, prompts_gpt.GPT_SAMPLE, prompts_gpt.GPT_SINGLE
+    from . import prompts_qwen
+
+    return prompts_qwen, prompts_qwen.QWEN_THINKING, prompts_qwen.QWEN_THINKING
+
+
+def _sampling(pack, sample_kw: dict, single_kw: dict, n: int, kind: str) -> dict:
+    kw = dict(sample_kw if n > 1 else single_kw)
+    fmt = getattr(pack, "FORMATS", {}).get(kind)
+    if fmt:
+        kw["response_format"] = fmt
+    return kw
+
+
 # ---------- Prompt theo Best Practices của Qwen3-8B (mas_tqa/prompts_qwen.py) ----------
 
 def _qwen_agent(which: str, n: int):
-    """Agent A (Flatten V1, 16 câu mẫu) hoặc B (Markdown-KV, 8 câu mẫu, bằng chứng) với system prompt mới và tham số
-    lấy mẫu Qwen3 cho thinking; n mẫu thì lấy đáp án đa số."""
-    from .prompts_qwen import QWEN_THINKING, messages_a, messages_b
+    """Agent A (Flatten V1, 16 câu mẫu) hoặc B (Markdown-KV, 8 câu mẫu, bằng chứng). Qwen3 dùng thinking;
+    GPT-4o mini dùng prompt riêng và JSON mode. n mẫu thì lấy đáp án đa số."""
 
     def run(client: VLLMClient, qa: dict) -> dict:
-        msgs = messages_a(qa) if which == "A" else messages_b(qa)
-        t, u = client.chat(msgs, n=n, **QWEN_THINKING)
+        pack, sample_kw, single_kw = _prompt_pack(client)
+        msgs = pack.messages_a(qa) if which == "A" else pack.messages_b(qa)
+        t, u = client.chat(msgs, n=n, **_sampling(pack, sample_kw, single_kw, n, which))
         answers = [(_parse_evid(x)[0] if which == "B" else final_answer(x)) for x in t]
         pred = _majority(_pick_valid(answers, qa["question"]), qa["question"]) if n > 1 else answers[0]
         return {"prediction": [pred], "trace": {"samples": answers, "reasons": [_reason(x) for x in t]}, "usage": u}
@@ -817,16 +854,18 @@ METHODS["b_qwen"] = _qwen_agent("B", 1)
 def suite_v10(client: VLLMClient, qa: dict, memory: bool = True) -> dict[str, dict]:
     """A (3 mẫu) và B trả lời với prompt/tham số Qwen3. Dừng khi 3 mẫu A trùng nhau và B đồng ý; còn lại agent V
     (hai view, thấy lý do và bằng chứng) chấm xác suất cho các ứng viên, hoà thì theo số phiếu. Không đối chất.
-    memory=False: ablation, mọi agent (A, B, V) chỉ thấy ví dụ chung thay cho câu mẫu cùng bảng."""
-    from .prompts_qwen import QWEN_THINKING, messages_a, messages_b
+    memory=False: ablation, mọi agent (A, B, V) chỉ thấy ví dụ chung thay cho câu mẫu cùng bảng.
+    Model GPT-4o mini dùng prompt và nhiệt độ riêng (mas_tqa/prompts_gpt.py)."""
     from .scorer import candidates, prefix_flat, prefix_kv, score
 
+    pack, sample_kw, single_kw = _prompt_pack(client)
+    messages_a, messages_b = pack.messages_a, pack.messages_b
     q = qa["question"]
-    ta, ua = client.chat(messages_a(qa, memory=memory), n=3, **QWEN_THINKING)
+    ta, ua = client.chat(messages_a(qa, memory=memory), n=3, **_sampling(pack, sample_kw, single_kw, 3, "A"))
     samples, a_reasons = [final_answer(t) for t in ta], [_reason(t) for t in ta]
     a_major = _majority(_pick_valid(samples, q), q)
     try:
-        tb, ub = client.chat(messages_b(qa, memory=memory), **QWEN_THINKING)
+        tb, ub = client.chat(messages_b(qa, memory=memory), **_sampling(pack, sample_kw, single_kw, 1, "B"))
     except requests.HTTPError:  # bảng Markdown-KV vượt ngữ cảnh: chỉ dùng agent A
         tr = {"samples": samples, "A_reasons": a_reasons, "route": "a_only"}
         return {n: {"prediction": [a_major], "trace": tr, "usage": ua} for n in ("a_only_q", "vote4_q", "memview_q")}
@@ -853,10 +892,11 @@ def suite_v10(client: VLLMClient, qa: dict, memory: bool = True) -> dict[str, di
             why.append((b_reason + (" Bằng chứng: " + "; ".join(b_ev[:5]) if b_ev else "")).strip())
         notes.append(" | ".join(why)[:600])
     us = Usage(); us.add(base)
-    sampling = {k: v for k, v in QWEN_THINKING.items()}
-    p_flat, u = score(client, qa, prefix_flat(qa, memory), cands, notes, **sampling); us.add(u)
+    score_task = getattr(pack, "SCORE_TASK", None)
+    judge_kw = _sampling(pack, sample_kw, single_kw, 1, "V")
+    p_flat, u = score(client, qa, prefix_flat(qa, memory), cands, notes, task=score_task, **judge_kw); us.add(u)
     try:
-        p_kv, u = score(client, qa, prefix_kv(qa, memory), cands, notes, **sampling); us.add(u)
+        p_kv, u = score(client, qa, prefix_kv(qa, memory), cands, notes, task=score_task, **judge_kw); us.add(u)
     except requests.HTTPError:
         p_kv = p_flat
     mean = [(x + y) / 2 for x, y in zip(p_flat, p_kv)]
@@ -867,9 +907,9 @@ def suite_v10(client: VLLMClient, qa: dict, memory: bool = True) -> dict[str, di
 
 
 def _fs_qwen(client: VLLMClient, qa: dict) -> dict:
-    from .prompts_qwen import QWEN_THINKING, messages_fs
+    pack, _sample_kw, single_kw = _prompt_pack(client)
 
-    t, u = client.chat(messages_fs(qa), **QWEN_THINKING)
+    t, u = client.chat(pack.messages_fs(qa), **_sampling(pack, _sample_kw, single_kw, 1, "A"))
     return {"prediction": [final_answer(t[0])], "trace": {"reason": _reason(t[0])}, "usage": u}
 
 
@@ -879,12 +919,12 @@ METHODS["fs_qwen"] = _fs_qwen
 
 # ---------- Baseline cho paper: cùng khung prompt và tham số Qwen3 với MemView ----------
 
-def _qwen_single(build, n: int):
+def _qwen_single(build_name: str, n: int):
     """Một agent, n mẫu trong một request; n > 1 thì bỏ phiếu đa số (self-consistency)."""
-    from .prompts_qwen import QWEN_THINKING
 
     def run(client: VLLMClient, qa: dict) -> dict:
-        t, u = client.chat(build(qa), n=n, **QWEN_THINKING)
+        pack, sample_kw, single_kw = _prompt_pack(client)
+        t, u = client.chat(getattr(pack, build_name)(qa), n=n, **_sampling(pack, sample_kw, single_kw, n, "A"))
         answers = [final_answer(x) for x in t]
         pred = _majority(_pick_valid(answers, qa["question"]), qa["question"]) if n > 1 else answers[0]
         return {"prediction": [pred], "trace": {"samples": answers, "reasons": [_reason(x) for x in t]}, "usage": u}
@@ -892,40 +932,32 @@ def _qwen_single(build, n: int):
     return run
 
 
-def _debate_turn(others: list[str], question: str) -> str:
+def _debate_turn(others: list[str], question: str, out: str) -> str:
     # Lượt user vòng 2, dịch sát prompt của Du et al. (2023), repo composable-models/llm_multiagent_debate.
-    from .prompts_qwen import _OUT_A
 
     sols = "".join(f"\n\nLời giải của một agent: ```{o}```" for o in others)
     return (f"Đây là lời giải của các agent khác cho câu hỏi: {sols}\n\nDùng lời giải của các agent khác làm thông "
-            f"tin tham khảo, bạn hãy đưa ra câu trả lời cho câu hỏi. Câu hỏi gốc là: {question}\n\n{_OUT_A}")
+            f"tin tham khảo, bạn hãy đưa ra câu trả lời cho câu hỏi. Câu hỏi gốc là: {question}\n\n{out}")
 
 
 def mad_debate(client: VLLMClient, qa: dict, agents: int = 3) -> dict:
     """Multi-agent debate (Du et al., 2023), zero-shot, không memory: vòng 1 mỗi agent trả lời độc lập; vòng 2 mỗi
     agent giữ hội thoại của mình, đọc nguyên câu trả lời của các agent kia rồi trả lời lại; đa số vòng 2."""
-    from .prompts_qwen import QWEN_THINKING, messages_zs
-
-    q, msgs = qa["question"], messages_zs(qa)
-    first, usage = client.chat(msgs, n=agents, **QWEN_THINKING)
+    pack, sample_kw, single_kw = _prompt_pack(client)
+    q, msgs = qa["question"], pack.messages_zs(qa)
+    first, usage = client.chat(msgs, n=agents, **_sampling(pack, sample_kw, single_kw, agents, "A"))
     second = []
     for i in range(agents):
         ctx = msgs + [{"role": "assistant", "content": first[i]},
-                      {"role": "user", "content": _debate_turn([first[j] for j in range(agents) if j != i], q)}]
-        t, u = client.chat(ctx, **QWEN_THINKING); usage.add(u)
+                      {"role": "user", "content": _debate_turn([first[j] for j in range(agents) if j != i], q, pack._OUT_A)}]
+        t, u = client.chat(ctx, **_sampling(pack, sample_kw, single_kw, 1, "A")); usage.add(u)
         second.append(final_answer(t[0]))
     r1 = [final_answer(x) for x in first]
     return {"prediction": [_majority(_pick_valid(second, q), q)], "trace": {"round1": r1, "round2": second},
             "usage": usage}
 
 
-def _prompts(name: str):
-    from . import prompts_qwen
-
-    return lambda qa: getattr(prompts_qwen, name)(qa)
-
-
-METHODS["zs_qwen"] = _qwen_single(_prompts("messages_zs"), 1)
-METHODS["fs_qwen_sc3"] = _qwen_single(_prompts("messages_fs"), 3)
+METHODS["zs_qwen"] = _qwen_single("messages_zs", 1)
+METHODS["fs_qwen_sc3"] = _qwen_single("messages_fs", 3)
 METHODS["mad_debate"] = mad_debate
 SUITES["suite_v10_nomem"] = lambda c, qa: {k.replace("_q", "_nm"): v for k, v in suite_v10(c, qa, memory=False).items()}

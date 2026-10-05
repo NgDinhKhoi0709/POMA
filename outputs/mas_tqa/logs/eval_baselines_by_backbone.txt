@@ -1,0 +1,69 @@
+file                            n      EM      F1      R1     MET
+zs_qwen.rungpt4omini          992   60.69   75.42   68.77   50.87
+fs_qwen.rungpt4omini          992   62.10   76.99   69.88   51.31
+fs_qwen_sc3.rungpt4omini      992   63.61   77.79   71.33   52.58
+mad_debate.rungpt4omini       992   62.20   77.37   70.63   51.93
+chain_of_table.rungpt4omini   992   61.09   76.18   70.07   51.07
+coagt.rungpt4omini            992   32.66   68.96   44.43   33.83
+memview_q.rungpt4omini        992   70.56   83.21   77.74   57.61
+zs_qwen.run41mini             992   69.05   82.80   77.36   57.91
+fs_qwen.run41mini             992   69.66   83.74   78.43   59.18
+fs_qwen_sc3.run41mini         992   69.76   83.50   78.39   59.11
+mad_debate.run41mini          992   70.36   83.97   78.98   59.61
+chain_of_table.run41mini      992   63.61   77.76   72.49   53.95
+coagt.run41mini               992   49.60   69.28   61.75   49.53
+memview_q.run41mini           992   77.42   88.19   84.35   63.18
+zs_qwen.runhaiku45            992   75.00   86.20   81.69   60.05
+fs_qwen.runhaiku45            992   75.71   86.12   81.68   59.80
+fs_qwen_sc3.runhaiku45        992   75.81   86.44   81.98   60.12
+mad_debate.runhaiku45         992   76.11   86.89   82.91   60.98
+chain_of_table.runhaiku45     992    4.64    4.64    4.64    4.64
+coagt.runhaiku45              992    0.00   26.24    4.81   14.20
+memview_q.runhaiku45          992   81.05   89.85   86.72   64.56
+zs_qwen.runflashlite          992   62.10   77.85   70.82   53.99
+fs_qwen.runflashlite          992   64.92   79.97   73.42   55.48
+fs_qwen_sc3.runflashlite      992   67.04   81.03   74.95   56.27
+mad_debate.runflashlite       992   66.13   80.95   74.67   56.76
+chain_of_table.runflashlite   992   65.52   79.06   73.37   53.08
+coagt.runflashlite            992   48.49   69.61   60.89   48.47
+memview_q.runflashlite        992   72.98   85.33   80.53   61.18
+file                              n   strict       yn   format   Δ so với memview_q.rungpt4omini [95% CI] theo mức
+zs_qwen.rungpt4omini            992    60.69    62.30    65.73   -9.88 [-12.50; -7.36] | -9.68 [-12.30; -7.15] | -8.77 [-11.29; -6.15]
+fs_qwen.rungpt4omini            992    62.10    63.61    66.73   -8.47 [-11.09; -5.75] | -8.37 [-11.09; -5.65] | -7.76 [-10.48; -5.04]
+fs_qwen_sc3.rungpt4omini        992    63.61    65.12    68.35   -6.96 [-9.68; -4.23] | -6.85 [-9.58; -4.13] | -6.15 [-8.77; -3.43]
+mad_debate.rungpt4omini         992    62.20    63.71    67.34   -8.37 [-10.79; -5.95] | -8.27 [-10.69; -5.85] | -7.16 [-9.58; -4.74]
+chain_of_table.rungpt4omini     990    61.21    63.03    67.27   -9.39 [-12.32; -6.36] | -8.99 [-12.02; -6.06] | -7.27 [-10.20; -4.34]
+coagt.rungpt4omini              992    32.66    32.66    55.95   -37.90 [-41.63; -34.07] | -39.31 [-43.04; -35.58] | -18.55 [-22.18; -15.02]
+memview_q.rungpt4omini          992    70.56    71.98    74.50
+file                              n   strict       yn   format   Δ so với memview_q.run41mini [95% CI] theo mức
+zs_qwen.run41mini               992    69.05    70.36    74.29   -8.37 [-10.48; -6.35] | -8.67 [-10.79; -6.65] | -7.76 [-9.78; -5.75]
+fs_qwen.run41mini               992    69.66    71.07    74.90   -7.76 [-9.68; -5.95] | -7.96 [-9.88; -6.05] | -7.16 [-9.07; -5.24]
+fs_qwen_sc3.run41mini           992    69.76    71.27    75.30   -7.66 [-9.68; -5.75] | -7.76 [-9.78; -5.85] | -6.75 [-8.67; -4.84]
+mad_debate.run41mini            992    70.36    71.98    76.21   -7.06 [-9.07; -5.14] | -7.06 [-9.07; -5.14] | -5.85 [-7.66; -4.03]
+chain_of_table.run41mini        992    63.61    65.73    69.56   -13.81 [-16.73; -10.99] | -13.31 [-16.13; -10.48] | -12.50 [-15.22; -9.68]
+coagt.run41mini                 992    49.60    49.60    54.54   -27.82 [-31.15; -24.50] | -29.44 [-32.86; -26.11] | -27.52 [-30.95; -24.09]
+memview_q.run41mini             992    77.42    79.03    82.06
+file                              n   strict       yn   format   Δ so với memview_q.runhaiku45 [95% CI] theo mức
+zs_qwen.runhaiku45              992    75.00    76.61    79.74   -6.05 [-8.06; -4.03] | -6.05 [-8.06; -4.03] | -5.14 [-7.06; -3.23]
+fs_qwen.runhaiku45              992    75.71    77.32    79.94   -5.34 [-7.36; -3.33] | -5.34 [-7.36; -3.33] | -4.94 [-6.85; -3.02]
+fs_qwen_sc3.runhaiku45          992    75.81    77.42    80.04   -5.24 [-7.26; -3.33] | -5.24 [-7.26; -3.33] | -4.84 [-6.66; -2.92]
+mad_debate.runhaiku45           992    76.11    77.72    80.85   -4.94 [-6.96; -3.02] | -4.94 [-6.96; -3.02] | -4.03 [-5.95; -2.22]
+Traceback (most recent call last):
+  File "C:\Users\GYK5HC\Desktop\TASK\POMA\scripts\score_lenient.py", line 76, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\GYK5HC\Desktop\TASK\POMA\scripts\score_lenient.py", line 52, in main
+    row = f"{name:<30}{len(ids):5d}" + "".join(f"{100 * sum(s[lv].values()) / len(ids):9.2f}" for lv in LEVELS)
+                                       ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\GYK5HC\Desktop\TASK\POMA\scripts\score_lenient.py", line 52, in <genexpr>
+    row = f"{name:<30}{len(ids):5d}" + "".join(f"{100 * sum(s[lv].values()) / len(ids):9.2f}" for lv in LEVELS)
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+ZeroDivisionError: division by zero
+file                              n   strict       yn   format   Δ so với memview_q.runflashlite [95% CI] theo mức
+zs_qwen.runflashlite            992    62.10    63.21    67.14   -10.89 [-13.51; -8.17] | -11.29 [-14.01; -8.57] | -9.98 [-12.60; -7.46]
+fs_qwen.runflashlite            992    64.92    66.53    70.26   -8.06 [-10.48; -5.65] | -7.96 [-10.38; -5.44] | -6.85 [-9.17; -4.54]
+fs_qwen_sc3.runflashlite        992    67.04    68.55    72.38   -5.95 [-8.37; -3.53] | -5.95 [-8.37; -3.53] | -4.74 [-7.06; -2.32]
+mad_debate.runflashlite         992    66.13    67.34    71.07   -6.85 [-9.27; -4.44] | -7.16 [-9.58; -4.64] | -6.05 [-8.47; -3.73]
+chain_of_table.runflashlite     990    65.66    66.97    70.81   -7.47 [-10.71; -4.44] | -7.68 [-10.91; -4.65] | -6.46 [-9.49; -3.54]
+coagt.runflashlite              992    48.49    49.40    54.94   -24.50 [-28.13; -20.97] | -25.10 [-28.83; -21.67] | -22.18 [-25.81; -18.75]
+memview_q.runflashlite          992    72.98    74.50    77.12

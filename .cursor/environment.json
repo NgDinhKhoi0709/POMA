@@ -1,0 +1,4 @@
+{
+  "name": "POMA",
+  "install": "bash .cursor/install.sh"
+}

@@ -1,0 +1,178 @@
+[
+  {
+    "method": "flatten_v1",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 251,
+    "n_lines": 4,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 41,
+    "path": "experiments/table_representation/samples/29_4/flatten_v1.txt"
+  },
+  {
+    "method": "markdown",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 347,
+    "n_lines": 6,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 88,
+    "path": "experiments/table_representation/samples/29_4/markdown.txt"
+  },
+  {
+    "method": "html",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 499,
+    "n_lines": 10,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 54,
+    "path": "experiments/table_representation/samples/29_4/html.txt"
+  },
+  {
+    "method": "raw_html",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 464,
+    "n_lines": 37,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 71,
+    "path": "experiments/table_representation/samples/29_4/raw_html.txt"
+  },
+  {
+    "method": "csv",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 281,
+    "n_lines": 5,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 49,
+    "path": "experiments/table_representation/samples/29_4/csv.txt"
+  },
+  {
+    "method": "json_records",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 612,
+    "n_lines": 23,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 94,
+    "path": "experiments/table_representation/samples/29_4/json_records.txt"
+  },
+  {
+    "method": "json_triples",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 1336,
+    "n_lines": 65,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 180,
+    "path": "experiments/table_representation/samples/29_4/json_triples.txt"
+  },
+  {
+    "method": "markdown_kv",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 468,
+    "n_lines": 18,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 90,
+    "path": "experiments/table_representation/samples/29_4/markdown_kv.txt"
+  },
+  {
+    "method": "tapex",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 331,
+    "n_lines": 2,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 78,
+    "path": "experiments/table_representation/samples/29_4/tapex.txt"
+  },
+  {
+    "method": "nl_sentences",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 421,
+    "n_lines": 2,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 87,
+    "path": "experiments/table_representation/samples/29_4/nl_sentences.txt"
+  },
+  {
+    "method": "xml",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 793,
+    "n_lines": 21,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 90,
+    "path": "experiments/table_representation/samples/29_4/xml.txt"
+  },
+  {
+    "method": "latex",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 360,
+    "n_lines": 8,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 78,
+    "path": "experiments/table_representation/samples/29_4/latex.txt"
+  },
+  {
+    "method": "spreadsheet_a1",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 329,
+    "n_lines": 5,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 49,
+    "path": "experiments/table_representation/samples/29_4/spreadsheet_a1.txt"
+  },
+  {
+    "method": "inverted_index",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 697,
+    "n_lines": 47,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 106,
+    "path": "experiments/table_representation/samples/29_4/inverted_index.txt"
+  },
+  {
+    "method": "header_path",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 468,
+    "n_lines": 10,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 109,
+    "path": "experiments/table_representation/samples/29_4/header_path.txt"
+  },
+  {
+    "method": "df_loader",
+    "table_id": "29_4",
+    "title": "Danh sách trạm phát sóng truyền hình analog tại Việt Nam_3",
+    "n_chars": 386,
+    "n_lines": 5,
+    "n_rows": 4,
+    "n_cols": 4,
+    "approx_tokens": 62,
+    "path": "experiments/table_representation/samples/29_4/df_loader.txt"
+  }
+]
